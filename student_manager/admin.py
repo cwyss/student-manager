@@ -35,31 +35,13 @@ class StudentAdmin(admin.ModelAdmin):
     list_display = ('matrikel', 'last_name', 'first_name',
                     'subject', 'semester', 'group', 'active',
                     'number_of_exercises', 'total_points')
-    list_filter = (ExercisesCompleteListFilter,)
+    list_filter = (ExercisesCompleteListFilter, 'active', 'group')
     search_fields = ('matrikel', 'last_name', 'first_name')
 
 
-class ExerciseNumberListFilter(admin.SimpleListFilter):
-    title = _('number')
-    parameter_name = 'number'
-
-    def lookups(self, request, model_admin):
-        total = Exercise.total_num_exercises()
-        if total==None:
-            return []
-        else:
-            return [(str(i), str(i)) for i in range(1, total + 1)]
-
-    def queryset(self, request, queryset):
-        if self.value() is None:
-            return queryset
-
-        return queryset.filter(number=self.value)
-
-    
 class ExerciseAdmin(admin.ModelAdmin):
     list_display = ('number', 'points', 'group', 'student')
-    list_filter = (ExerciseNumberListFilter,)
+    list_filter = ('number', 'group')
     raw_id_fields = ('student',)
     search_fields = ('student__matrikel', 'student__last_name',
                      'student__first_name')
