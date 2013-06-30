@@ -5,13 +5,17 @@ from django.db import models
 from django.db.models import Sum, Max
 
 
-POINTS_CHOICES = [(i/2.0 + 0.5, str(i/2.0 + 0.5)) for i in range(10)]
+POINTS_CHOICES = [(i/2.0, str(i/2.0)) for i in range(11)]
 
 
 class Student(models.Model):
-    matrikel = models.IntegerField(unique=True)
-    last_name = models.CharField(max_length=200)
-    first_name = models.CharField(max_length=200)
+    matrikel = models.IntegerField(null=True, blank=True)
+    last_name = models.CharField(max_length=200, null=True, blank=True)
+    first_name = models.CharField(max_length=200, null=True, blank=True)
+    subject = models.CharField(max_length=200, null=True, blank=True)
+    semester = models.IntegerField(null=True, blank=True)
+    group = models.IntegerField(null=True, blank=True)
+    active = models.BooleanField(default=True)
 
     def __unicode__(self):
         return '%s, %s (%s)' % (self.last_name, self.first_name, self.matrikel)
@@ -29,6 +33,7 @@ class Student(models.Model):
 
 class Exercise(models.Model):
     student = models.ForeignKey(Student)
+    group = models.IntegerField(null=True, blank=True)
     number = models.IntegerField()
     points = models.DecimalField(max_digits=2, decimal_places=1,
                                  choices=POINTS_CHOICES)

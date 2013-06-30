@@ -11,7 +11,7 @@ from student_manager import models
 
 
 class ImportForm(forms.Form):
-    exercise_number = forms.IntegerField()
+    group = forms.IntegerField()
     column_separator = forms.CharField(max_length=1, initial=';')
     csv_file = forms.FileField(label=_('CSV file'))
 

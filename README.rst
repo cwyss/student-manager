@@ -16,3 +16,19 @@ To update an existing database after a code change::
 To start the server::
 
   ./manage.py runserver
+
+
+Development notes
+=================
+
+enter virtualenv::
+
+  workon studmgr
+
+leave virtualenv::
+
+  deactivate
+
+new fields added to db table; generates migration file::
+
+  ./manage.py schemamigration student_manager --auto
