@@ -32,3 +32,4 @@ leave virtualenv::
 new fields added to db table; generates migration file::
 
   ./manage.py schemamigration student_manager --auto
+  ./manage.py migrate

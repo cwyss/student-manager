@@ -1,6 +1,7 @@
 """Views"""
 
 import csv
+from decimal import Decimal
 
 from django import forms
 from django.contrib import messages
@@ -37,6 +38,7 @@ class ImportExercisesView(FormView):
             delimiter=str(form.cleaned_data['column_separator']))
         self.stats = {'new': [],
                       'updated': [],
+                      'unchanged': [],
                       'unknown_student': [],
                       'invalid_points': []}
         for line, row in enumerate(csvreader):
@@ -65,28 +67,32 @@ class ImportExercisesView(FormView):
                 self.request,
                 '%s exercises updated.' % len(self.stats['updated']))
         if self.stats['unknown_student']:
+            ustudset = set(self.stats['unknown_student'])
             messages.warning(
                 self.request,
-                '%s unknown students: %s' % (len(self.stats['unknown_student']),
-                                             ', '.join(self.stats['unknown_student'])))
+                '%s unknown students: %s' % (len(ustudset),
+                                             ', '.join(ustudset)))
         if self.stats['invalid_points']:
+            invpset = set(self.stats['invalid_points'])
             messages.warning(
                 self.request,
-                '%s invalid points: %s' % (len(self.stats['invalid_points']),
-                                           ', '.join(self.stats['invalid_points'])))
-        if (not self.stats['new']
-            and not self.stats['updated']
-            and not self.stats['unknown_student']
-            and not self.stats['invalid_points']):
-            messages.warning('Nothing imported.')
-            
+                '%s invalid points: %s' % (len(invpset),
+                                           ', '.join(invpset)))
+        messages.info(
+            self.request,
+            '%s entries processed.' % sum(map(len, self.stats.itervalues())))
+        
         return super(ImportExercisesView, self).form_valid(form)
 
     def save_exercise(self, group, student, number, points):
         try:
             exercise = models.Exercise.objects.get(
                 student=student, number=number)
-            status = 'updated'
+#            print repr(points), repr(exercise.points)
+            if exercise.points==Decimal(points):
+                status = 'unchanged'
+            else:
+                status = 'updated'
         except models.Exercise.DoesNotExist:
             exercise = models.Exercise(student=student, number=number)
             status = 'new'
