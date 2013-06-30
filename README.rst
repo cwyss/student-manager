@@ -1,4 +1,4 @@
-A small Django-based application for managing stutendt's exercises, exams etc.
+A small Django-based application for managing stutent's exercises, exams etc.
 
 
 Installation
