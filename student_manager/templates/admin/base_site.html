@@ -1,0 +1,14 @@
+{% extends "admin/base.html" %}
+{% load i18n %}
+
+{% block title %}{{ title }} | {% trans 'Student Manager' %}{% endblock %}
+
+{% block branding %}
+<h1 id="site-name">{% trans 'Student Manager' %}</h1>
+{% endblock %}
+
+{% block nav-global %}
+<a href="{% url admin:index %}">Admin Home</a> |
+<a href="{% url print_students %}">Print student list</a> |
+<a href="{% url import_exercises %}?return_url={{ request.path }}">Import exercise data</a>
+{% endblock %}
