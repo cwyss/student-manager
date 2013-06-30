@@ -1,5 +1,7 @@
 """Views"""
 
+import csv
+
 from django import forms
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
@@ -24,9 +26,34 @@ class ImportExercisesView(FormView):
         return self.request.GET.get('return_url', '/')
 
     def form_valid(self, form):
-        # TODO: save csv file data here
-        print form.cleaned_data['csv_file'].read()
-        messages.success(self.request, '0 from 0 exercises imported.')
+        group = form.cleaned_data['group']
+        csvreader = csv.reader(
+            form.cleaned_data['csv_file'],
+            delimiter=str(form.cleaned_data['column_separator']))
+        success = 0
+        notfound = []
+        for row in csvreader:
+            try:
+                student = models.Student.objects.get(matrikel=row[0])
+            except models.Student.DoesNotExist:
+                notfound.append(row[0])
+                continue
+            try:
+                exercise = models.Exercise.objects.get(
+                    student=student, number=row[1])
+            except models.Exercise.DoesNotExist:
+                exercise = models.Exercise(student=student, number=row[1])
+            exercise.points = row[2]
+            exercise.group = group
+            exercise.save()
+            success += 1
+        if notfound:
+            messages.warning(
+                self.request,
+                '%s exercises imported, %s unknown students ignored: %s' % (
+                    success, len(notfound), ', '.join(notfound)))
+        else:
+            messages.success(self.request, '%s exercises imported.' % success)
         return super(ImportExercisesView, self).form_valid(form)
 
 import_exercises = staff_member_required(ImportExercisesView.as_view())
