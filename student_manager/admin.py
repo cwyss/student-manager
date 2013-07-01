@@ -2,9 +2,10 @@
 
 from django.contrib import admin
 from django.db.models import Count
+from django import forms
 from django.utils.translation import ugettext_lazy as _
 
-from student_manager.models import Student, Exercise
+from student_manager.models import Student, Exercise, validate_matrikel
 
 
 class ExercisesCompleteListFilter(admin.SimpleListFilter):
@@ -30,13 +31,26 @@ class ExercisesCompleteListFilter(admin.SimpleListFilter):
         if self.value() == 'complete':
             return queryset.filter(id__in=completed_student_ids)
 
-    
+
+class StudentForm(forms.ModelForm):
+
+    class Meta:
+        model = Student
+
+    def clean_matrikel(self):
+        student_id = self.instance.id  if self.instance else None
+        matrikel = self.cleaned_data['matrikel']
+        validate_matrikel(matrikel, student_id)
+        return matrikel
+
+        
 class StudentAdmin(admin.ModelAdmin):
     list_display = ('matrikel', 'last_name', 'first_name',
                     'subject', 'semester', 'group', 'active',
                     'number_of_exercises', 'total_points')
     list_filter = (ExercisesCompleteListFilter, 'active', 'group')
     search_fields = ('matrikel', 'last_name', 'first_name')
+    form = StudentForm
 
 
 class ExerciseAdmin(admin.ModelAdmin):
