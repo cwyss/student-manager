@@ -9,11 +9,16 @@ from django.core.exceptions import ValidationError
 POINTS_CHOICES = [(i/2.0, str(i/2.0)) for i in range(11)]
 VALID_POINTS = [x[0] for x in POINTS_CHOICES]
 
+def validate_matrikel(matrikel, student_id):
+    if matrikel:
+        query = Student.objects.filter(matrikel=matrikel)
+    else:
+        query = Student.objects.none()
+    if student_id:
+        query = query.exclude(id=student_id)
+    if query.exists():
+        raise ValidationError('Matrikel already exists.')
 
-def validate_matrikel(value):
-    if value and Student.objects.filter(matrikel=value).exists():
-        raise ValidationError('matrikel already exists')
-    
 
 class Student(models.Model):
     matrikel = models.IntegerField(null=True, blank=True)
@@ -35,8 +40,7 @@ class Student(models.Model):
         return total or Decimal('0.0')
 
     def save(self, *args, **kwargs):
-        if not self.id:
-            validate_matrikel(self.matrikel)
+        validate_matrikel(self.matrikel, self.id)
         super(Student, self).save(*args, **kwargs)
 
     class Meta:
