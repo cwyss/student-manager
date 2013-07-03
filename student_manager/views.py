@@ -14,7 +14,7 @@ from django.views.generic.list import ListView
 from student_manager import models
 
 
-class ImportForm(forms.Form):
+class ImportExercisesForm(forms.Form):
     group = forms.IntegerField()
     column_separator = forms.CharField(max_length=1, initial=';')
     csv_file = forms.FileField(label=_('CSV file'))
@@ -26,7 +26,7 @@ class ImportForm(forms.Form):
 
 class ImportExercisesView(FormView):
     template_name = 'student_manager/import.html'
-    form_class = ImportForm
+    form_class = ImportExercisesForm
 
     def get_success_url(self):
         return self.request.GET.get('return_url', '/')
@@ -108,6 +108,66 @@ class ImportExercisesView(FormView):
 import_exercises = staff_member_required(ImportExercisesView.as_view())
 
 
-print_students = ListView.as_view(
-    model=models.Student,
-    queryset=models.Student.objects.order_by('matrikel'))
+class ImportStudentsForm(forms.Form):
+    column_separator = forms.CharField(max_length=1, initial=';')
+    csv_file = forms.FileField(label=_('CSV file'))
+
+
+class ImportStudentsView(FormView):
+    template_name = 'student_manager/import.html'
+    form_class = ImportStudentsForm
+
+    def get_success_url(self):
+        return self.request.GET.get('return_url', '/')
+
+    def form_valid(self, form):
+        csvreader = csv.reader(
+            form.cleaned_data['csv_file'],
+            delimiter=str(form.cleaned_data['column_separator']))
+        for line, row in enumerate(csvreader):
+            # TODO
+            pass
+        messages.info(self.request, 'TODO')
+        return super(ImportExercisesView, self).form_valid(form)
+
+import_students = staff_member_required(ImportStudentsView.as_view())
+
+
+class PrintStudentsOptForm(forms.Form):
+    matrikel = forms.ChoiceField(label=_('Selection'),
+                                 choices=(('', 'Students without matrikel'),
+                                         ('on', 'Students with matrikel')))
+    total = forms.BooleanField(label=_('Display total/bonus columns'))
+
+print_students_opt = FormView.as_view(
+    template_name='student_manager/print_students_opt.html',
+    form_class=PrintStudentsOptForm)
+
+
+class PrintStudentsView(ListView):
+    template_name = 'student_manager/student_list.html'
+
+    def get_queryset(self):
+        total_exercises = models.Exercise.total_num_exercises()
+        if self.request.GET.get('matrikel'):
+            students = list(models.Student.objects.exclude(matrikel=None))
+        else:
+             students = list(models.Student.objects.filter(matrikel=None))
+           
+        for student in students:
+            if self.request.GET.get('matrikel'):
+                student.identifier = str(student.matrikel)[-4:]
+                student.sort = str(student.matrikel)[-4:]
+            else:
+                student.identifier = '%s, %s' % (student.last_name,
+                                                 student.first_name)
+                student.sort = (student.last_name, student.first_name)
+            student.exercises = [None] * total_exercises
+            for exercise in student.exercise_set.all():
+                student.exercises[exercise.number-1] = exercise
+
+        students.sort(key=lambda s: s.sort)
+        return students
+
+print_students = PrintStudentsView.as_view()
+

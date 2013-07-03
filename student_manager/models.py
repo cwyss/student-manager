@@ -39,6 +39,9 @@ class Student(models.Model):
         total = self.exercise_set.aggregate(Sum('points'))['points__sum']
         return total or Decimal('0.0')
 
+    def bonus(self):
+        return '1/3'
+
     def save(self, *args, **kwargs):
         validate_matrikel(self.matrikel, self.id)
         super(Student, self).save(*args, **kwargs)
