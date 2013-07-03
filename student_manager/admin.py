@@ -47,7 +47,7 @@ class StudentForm(forms.ModelForm):
 class StudentAdmin(admin.ModelAdmin):
     list_display = ('matrikel', 'last_name', 'first_name',
                     'subject', 'semester', 'group', 'active',
-                    'number_of_exercises', 'total_points')
+                    'number_of_exercises', 'total_points', 'bonus')
     list_filter = (ExercisesCompleteListFilter, 'active', 'group')
     search_fields = ('matrikel', 'last_name', 'first_name')
     form = StudentForm
