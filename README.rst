@@ -9,6 +9,10 @@ To create the database from scratch, run::
   ./manage.py syncdb --all
   ./manage.py migrate --fake
 
+If $LANG is not set::
+
+  LANG=en_GB.UTF-8 ./manage.py syncdb --all
+
 To update an existing database after a code change::
 
   ./manage.py migrate
@@ -16,6 +20,26 @@ To update an existing database after a code change::
 To start the server::
 
   ./manage.py runserver
+
+
+CSV import formats
+==================
+
+import student data::
+
+import exercise data, exercise table::
+
+  matrikel number
+  sheet number
+  points
+
+import exercise data, big table::
+
+  matrikel number
+  points sheet 1
+  points sheet 2
+  ...
+  points sheet n
 
 
 Development notes

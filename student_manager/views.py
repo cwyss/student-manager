@@ -20,12 +20,12 @@ class ImportExercisesForm(forms.Form):
     csv_file = forms.FileField(label=_('CSV file'))
     format = forms.ChoiceField(choices=(
             ('', 'Please select'),
-            (1, 'Exercise table (one entry per number)'),
-            (2, 'Big table (one column per number)')))
+            (1, 'Exercise table (one entry per exercise)'),
+            (2, 'Big table (one column per sheet)')))
 
 
 class ImportExercisesView(FormView):
-    template_name = 'student_manager/import.html'
+    template_name = 'student_manager/import_ex.html'
     form_class = ImportExercisesForm
 
     def get_success_url(self):
@@ -53,8 +53,8 @@ class ImportExercisesView(FormView):
             if form.cleaned_data['format'] == '1':
                 self.save_exercise(group, student, row[1], row[2])
             elif form.cleaned_data['format'] == '2':
-                for number, points in enumerate(row[1:]):
-                    self.save_exercise(group, student, number, points)
+                for sheet, points in enumerate(row[1:]):
+                    self.save_exercise(group, student, sheet, points)
             else:
                 raise ValueError('Unknown format.')
 
@@ -84,17 +84,17 @@ class ImportExercisesView(FormView):
         
         return super(ImportExercisesView, self).form_valid(form)
 
-    def save_exercise(self, group, student, number, points):
+    def save_exercise(self, group, student, sheet, points):
         try:
             exercise = models.Exercise.objects.get(
-                student=student, number=number)
+                student=student, sheet=sheet)
 #            print repr(points), repr(exercise.points)
             if exercise.points==Decimal(points):
                 status = 'unchanged'
             else:
                 status = 'updated'
         except models.Exercise.DoesNotExist:
-            exercise = models.Exercise(student=student, number=number)
+            exercise = models.Exercise(student=student, sheet=sheet)
             status = 'new'
         exercise.points = points
         exercise.group = group
@@ -114,7 +114,7 @@ class ImportStudentsForm(forms.Form):
 
 
 class ImportStudentsView(FormView):
-    template_name = 'student_manager/import.html'
+    template_name = 'student_manager/import_stud.html'
     form_class = ImportStudentsForm
 
     def get_success_url(self):
@@ -164,7 +164,7 @@ class PrintStudentsView(ListView):
                 student.sort = (student.last_name, student.first_name)
             student.exercises = [None] * total_exercises
             for exercise in student.exercise_set.all():
-                student.exercises[exercise.number-1] = exercise
+                student.exercises[exercise.sheet-1] = exercise
 
         students.sort(key=lambda s: s.sort)
         return students

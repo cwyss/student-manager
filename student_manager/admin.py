@@ -54,8 +54,8 @@ class StudentAdmin(admin.ModelAdmin):
 
 
 class ExerciseAdmin(admin.ModelAdmin):
-    list_display = ('number', 'points', 'group', 'student')
-    list_filter = ('number', 'group')
+    list_display = ('sheet', 'points', 'group', 'student')
+    list_filter = ('sheet', 'group')
     raw_id_fields = ('student',)
     search_fields = ('student__matrikel', 'student__last_name',
                      'student__first_name')

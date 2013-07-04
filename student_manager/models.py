@@ -35,6 +35,8 @@ class Student(models.Model):
     def number_of_exercises(self):
         return self.exercise_set.count()
 
+    number_of_exercises.short_description = 'Exercises'
+
     def total_points(self):
         total = self.exercise_set.aggregate(Sum('points'))['points__sum']
         return total or Decimal('0.0')
@@ -53,17 +55,17 @@ class Student(models.Model):
 class Exercise(models.Model):
     student = models.ForeignKey(Student)
     group = models.IntegerField(null=True, blank=True)
-    number = models.IntegerField()
+    sheet = models.IntegerField()
     points = models.DecimalField(
         max_digits=2, decimal_places=1,
         choices=POINTS_CHOICES)
 
     class Meta:
-        unique_together = (('student', 'number'),)
-        ordering = ('student', 'number')
+        unique_together = (('student', 'sheet'),)
+        ordering = ('student', 'sheet')
 
     def __unicode__(self):
-        return '%i: %1.1f - %s' % (self.number, self.points, self.student)
+        return '%i: %1.1f - %s' % (self.sheet, self.points, self.student)
 
     def save(self, *args, **kwargs):
         if float(self.points) not in VALID_POINTS:
@@ -72,5 +74,5 @@ class Exercise(models.Model):
 
     @classmethod
     def total_num_exercises(cls):
-        return cls.objects.aggregate(total=Max('number'))['total']
+        return cls.objects.aggregate(total=Max('sheet'))['total']
 
