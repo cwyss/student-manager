@@ -1,29 +1,34 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <style>
-      td {
-        border: 1px solid;
-        padding: 3px 5px;
-      }
-
-      table {
-        border-collapse: collapse;
-      }
-
-     .right {
-        text-align: right;
-      }
-    </style>
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL}}print.css">
   </head>
   <body>
+    <p>Extra text goes here...</p>
+    <p>And some more text...</p>
     <table>
+      <thead>
+	<tr>
+	  <th>Matr.</th>
+	  {% for exercise in object_list.0.exercises %}
+	  <th>B{{ forloop.counter }}</th>
+	  {% endfor %}
+	  {% if request.GET.total %}
+	  <th>&#8721;</th>
+	  <th>Bonus</th>
+	  {% endif %}
+	</tr>
+      </thead>
       {% for student in object_list %}
-      <tr>
-	<td>{{ student.matrikel }}</td>
-	<td>{{ student.last_name }}</td>
-	<td>{{ student.first_name }}</td>
-	<td class="right">{{ student.total_points }}</td>
+      <tr class="{% cycle 'odd' 'even' %}">
+	<td class="right">{{ student.identifier }}</td>
+	{% for exercise in student.exercises %}
+	<td class="center points">{{ exercise.points|floatformat:1 }}</td>
+	{% endfor %}
+	{% if request.GET.total %}
+	<td class="right">{{ student.total_points|floatformat:1 }}</td>
+	<td class="center">{{ student.bonus }}</td>
+	{% endif %}
       </tr>
       {% endfor %}
     </table>
