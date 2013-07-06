@@ -1,9 +1,20 @@
 {% extends "admin/base_site.html" %}
-{% load admin_static %}
+{% load i18n admin_static %}
+{% load url from future %}
 
 {% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}" />{% endblock %}
 
+{% block title %}Import Exercise Data | {% trans 'Django site admin' %}{% endblock %}
+
 {% block content_title %}<h1>Import Exercise Data</h1>{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:app_list' app_label='student_manager' %}">Student_manager</a>
+&rsaquo; <a href="{% url 'admin:student_manager_exercise_changelist' %}">Exercises</a> &rsaquo; Import exercise data
+</div>
+{% endblock %}
 
 {% block content %}
 <div id="content-main">
@@ -22,5 +33,3 @@
   </form>
 </div>
 {% endblock %}
-
-{% block breadcrumbs %}{% endblock %}
