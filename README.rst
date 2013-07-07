@@ -26,6 +26,12 @@ CSV import formats
 ==================
 
 import student data::
+  matrikel number
+  last name
+  first name
+  subject
+  semester
+  group
 
 import exercise data, exercise table::
 

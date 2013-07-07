@@ -58,6 +58,9 @@ class ImportExercisesView(FormView):
             else:
                 raise ValueError('Unknown format.')
 
+        messages.info(
+            self.request,
+            '%s entries processed.' % sum(map(len, self.stats.itervalues())))
         if self.stats['new']:
             messages.success(
                 self.request,
@@ -78,9 +81,6 @@ class ImportExercisesView(FormView):
                 self.request,
                 '%s invalid points: %s' % (len(invpset),
                                            ', '.join(invpset)))
-        messages.info(
-            self.request,
-            '%s entries processed.' % sum(map(len, self.stats.itervalues())))
         
         return super(ImportExercisesView, self).form_valid(form)
 
@@ -124,11 +124,63 @@ class ImportStudentsView(FormView):
         csvreader = csv.reader(
             form.cleaned_data['csv_file'],
             delimiter=str(form.cleaned_data['column_separator']))
+
+        self.stats = {'new': [],
+                      'exists': [],
+                      'nomatr': []
+                      }
         for line, row in enumerate(csvreader):
-            # TODO
-            pass
-        messages.info(self.request, 'TODO')
-        return super(ImportExercisesView, self).form_valid(form)
+            if line == 0 and not row[0].isdigit():
+                # We seem to have a header; ignore.
+                continue
+
+            if row[0].isdigit():
+                matrikel = row[0]
+                status = 'new'
+            else:
+                matrikel = None
+                status = 'nomatr'
+            if row[4].isdigit():
+                semester = row[4]
+            else:
+                semester = None
+            if row[5].isdigit():
+                group = row[5]
+            else:
+                group = None
+            student = models.Student(matrikel=matrikel,
+                                     last_name=row[1].decode('latin-1'),
+                                     first_name=row[2].decode('latin-1'),
+                                     subject=row[3].decode('latin-1'),
+                                     semester=semester,
+                                     group=group)
+            try:
+                student.save()
+            except ValidationError:
+                status = 'exists'
+            self.stats[status].append(student.matrikel)
+
+        messages.info(
+            self.request,
+            '%s entries processed.' % sum(map(len, self.stats.itervalues())))
+        if self.stats['new']:
+            messages.success(
+                self.request,
+                '%s new students (with matrikel) created.' \
+                    % len(self.stats['new']))
+        if self.stats['nomatr']:
+            messages.success(
+                self.request,
+                '%s students without matrikel created.' \
+                    % len(self.stats['nomatr']))
+        if self.stats['exists']:
+            messages.warning(
+                self.request,
+                '%s matrikel numbers already exist: %s' \
+                    % (len(self.stats['exists']),
+                       ', '.join(self.stats['exists'])))
+
+        return super(ImportStudentsView, self).form_valid(form)
 
 import_students = staff_member_required(ImportStudentsView.as_view())
 
