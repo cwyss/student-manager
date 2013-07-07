@@ -54,6 +54,7 @@ class ImportExercisesView(FormView):
                 self.save_exercise(group, student, row[1], row[2])
             elif form.cleaned_data['format'] == '2':
                 for sheet, points in enumerate(row[1:]):
+                    sheet += 1
                     self.save_exercise(group, student, sheet, points)
             else:
                 raise ValueError('Unknown format.')
@@ -85,10 +86,10 @@ class ImportExercisesView(FormView):
         return super(ImportExercisesView, self).form_valid(form)
 
     def save_exercise(self, group, student, sheet, points):
+        if points.strip()=='':
+            return
         try:
-            exercise = models.Exercise.objects.get(
-                student=student, sheet=sheet)
-#            print repr(points), repr(exercise.points)
+            exercise = models.Exercise.objects.get(student=student, sheet=sheet)
             if exercise.points==Decimal(points):
                 status = 'unchanged'
             else:

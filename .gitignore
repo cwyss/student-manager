@@ -1,6 +1,7 @@
 *~
 *.pyc
-dev*.db
+*.db
+*.db.bak*
 *.csv
 south
 settings_local.py
