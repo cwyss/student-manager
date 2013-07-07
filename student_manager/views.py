@@ -7,7 +7,6 @@ from django import forms
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.exceptions import ValidationError
-from django.db.models import Count
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormView
 from django.views.generic.list import ListView

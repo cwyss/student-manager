@@ -48,8 +48,7 @@ class Student(models.Model):
     def save(self, *args, **kwargs):
         validate_matrikel(self.matrikel, self.id)
         if self.matrikel and not self.obscured_matrikel:
-            if self.matrikel:
-                self.obscured_matrikel = str(self.matrikel)[-4:]
+            self.obscured_matrikel = str(self.matrikel)[-4:]
                 
         return super(Student, self).save(*args, **kwargs)
 
