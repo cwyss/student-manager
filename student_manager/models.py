@@ -22,6 +22,7 @@ def validate_matrikel(matrikel, student_id):
 
 class Student(models.Model):
     matrikel = models.IntegerField(null=True, blank=True)
+    obscured_matrikel = models.CharField(max_length=10, null=True, blank=True)
     last_name = models.CharField(max_length=200, null=True, blank=True)
     first_name = models.CharField(max_length=200, null=True, blank=True)
     subject = models.CharField(max_length=200, null=True, blank=True)
@@ -46,7 +47,10 @@ class Student(models.Model):
 
     def save(self, *args, **kwargs):
         validate_matrikel(self.matrikel, self.id)
-        super(Student, self).save(*args, **kwargs)
+        if self.matrikel and not self.obscured_matrikel:
+            self.obscured_matrikel = str(self.matrikel)[-4:]
+                
+        return super(Student, self).save(*args, **kwargs)
 
     class Meta:
         ordering = ('last_name', 'first_name')
@@ -70,9 +74,9 @@ class Exercise(models.Model):
     def save(self, *args, **kwargs):
         if float(self.points) not in VALID_POINTS:
             raise ValidationError('invalid point value')
-        super(Exercise, self).save(*args, **kwargs)
+        return super(Exercise, self).save(*args, **kwargs)
 
     @classmethod
     def total_num_exercises(cls):
-        return cls.objects.aggregate(total=Max('sheet'))['total']
+        return cls.objects.aggregate(total=Max('sheet'))['total'] or 0
 
