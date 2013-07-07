@@ -9,7 +9,7 @@
     <table>
       <thead>
 	<tr>
-	  <th>Matr.</th>
+	  <th>{% if request.GET.matrikel %}Matr.{% else %}Name{% endif %}</th>
 	  {% for exercise in object_list.0.exercises %}
 	  <th>B{{ forloop.counter }}</th>
 	  {% endfor %}
@@ -21,7 +21,7 @@
       </thead>
       {% for student in object_list %}
       <tr class="{% cycle 'odd' 'even' %}">
-	<td class="right">{{ student.identifier }}</td>
+	<td class="right">{% if request.GET.matrikel %}{{ student.obscured_matrikel }}{% else %}{{ student.last_name }}, {{ student.first_name }}{% endif %}</td>
 	{% for exercise in student.exercises %}
 	<td class="center points">{{ exercise.points|floatformat:1 }}</td>
 	{% endfor %}

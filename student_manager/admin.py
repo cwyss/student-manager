@@ -1,36 +1,36 @@
 """The admin page."""
 
+from collections import defaultdict
+
 from django.contrib import admin
-from django.db.models import Count
 from django import forms
 from django.utils.translation import ugettext_lazy as _
 
 from student_manager.models import Student, Exercise, validate_matrikel
 
 
-class ExercisesCompleteListFilter(admin.SimpleListFilter):
-    title = _('exercises')
-    parameter_name = 'points'
+class NonuniqueObscuredMatrikelListFilter(admin.SimpleListFilter):
+    title = _('obscured matrikel')
+    parameter_name = 'obscured_matrikel'
 
     def lookups(self, request, model_admin):
-        return (('complete', _('Exercises complete')),
-                ('incomplete', _('Exercises incomplete')))
+        return (('nonunique', _('With non-unique obscured matrikel')),)
 
     def queryset(self, request, queryset):
         if self.value() is None:
             return queryset
 
-        total = Exercise.total_num_exercises()
-        # find students who have completed all exercises:
-        query = Exercise.objects.values('student').annotate(
-            count=Count('student')).order_by().filter(count=total)
-        completed_student_ids = [i['student'] for i in query]
-
-        if self.value() == 'incomplete':
-            return queryset.exclude(id__in=completed_student_ids)
-        if self.value() == 'complete':
-            return queryset.filter(id__in=completed_student_ids)
-
+        if self.value() == 'nonunique':
+            matrikels = Student.objects.values_list('id', 'matrikel')
+            short_matrikels = defaultdict(lambda: [])
+            duplicates = []
+            for (id_, matr) in matrikels:
+                short_matr = str(matr)[-4:]
+                if short_matr in short_matrikels:
+                    duplicates.extend(short_matrikels[short_matr])
+                    duplicates.append(id_)
+                short_matrikels[short_matr].append(id_)
+            return queryset.filter(id__in=duplicates)
 
 class StudentForm(forms.ModelForm):
 
@@ -45,10 +45,10 @@ class StudentForm(forms.ModelForm):
 
         
 class StudentAdmin(admin.ModelAdmin):
-    list_display = ('matrikel', 'last_name', 'first_name',
+    list_display = ('matrikel', 'obscured_matrikel', 'last_name', 'first_name',
                     'subject', 'semester', 'group', 'active',
                     'number_of_exercises', 'total_points', 'bonus')
-    list_filter = (ExercisesCompleteListFilter, 'active', 'group')
+    list_filter = (NonuniqueObscuredMatrikelListFilter, 'active', 'group')
     search_fields = ('matrikel', 'last_name', 'first_name')
     form = StudentForm
 
