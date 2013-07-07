@@ -188,8 +188,9 @@ import_students = staff_member_required(ImportStudentsView.as_view())
 
 class PrintStudentsOptForm(forms.Form):
     matrikel = forms.ChoiceField(label=_('Selection'),
-                                 choices=(('', 'Students without matrikel'),
-                                         ('on', 'Students with matrikel')))
+                                 choices=(('on', 'Students with matrikel'),
+                                          ('', 'Students without matrikel')),
+                                 initial='on')
     total = forms.BooleanField(label=_('Display total/bonus columns'))
 
 print_students_opt = FormView.as_view(
@@ -205,22 +206,23 @@ class PrintStudentsView(ListView):
         if self.request.GET.get('matrikel'):
             students = list(models.Student.objects.exclude(matrikel=None))
         else:
-             students = list(models.Student.objects.filter(matrikel=None))
-           
+            students = list(models.Student.objects.filter(matrikel=None))
+
+        student_data = []
+
         for student in students:
+            if not student.exercise_set.all():
+                continue
             if self.request.GET.get('matrikel'):
-                student.identifier = str(student.matrikel)[-4:]
                 student.sort = str(student.matrikel)[-4:]
             else:
-                student.identifier = '%s, %s' % (student.last_name,
-                                                 student.first_name)
                 student.sort = (student.last_name, student.first_name)
             student.exercises = [None] * total_exercises
             for exercise in student.exercise_set.all():
                 student.exercises[exercise.sheet-1] = exercise
+            student_data.append(student)
 
-        students.sort(key=lambda s: s.sort)
-        return students
+        student_data.sort(key=lambda s: (s.sort, s.obscured_matrikel))
+        return student_data
 
 print_students = PrintStudentsView.as_view()
-
