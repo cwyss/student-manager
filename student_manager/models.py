@@ -32,7 +32,7 @@ class Student(models.Model):
     active = models.BooleanField(default=True)
 
     def __unicode__(self):
-        return '%s, %s (%s)' % (self.last_name, self.first_name, self.matrikel)
+        return u'%s, %s (%s)' % (self.last_name, self.first_name, self.matrikel)
 
     def number_of_exercises(self):
         return self.exercise_set.count()
@@ -72,7 +72,7 @@ class Exercise(models.Model):
         ordering = ('student', 'sheet')
 
     def __unicode__(self):
-        return '%i: %1.1f - %s' % (self.sheet, self.points, self.student)
+        return u'%i: %1.1f - %s' % (self.sheet, self.points, self.student)
 
     def save(self, *args, **kwargs):
         if float(self.points) not in VALID_POINTS:
