@@ -22,6 +22,7 @@ def validate_matrikel(matrikel, student_id):
 
 class Student(models.Model):
     matrikel = models.IntegerField(null=True, blank=True)
+    modulo_matrikel = models.IntegerField(null=True, blank=True)
     obscured_matrikel = models.CharField(max_length=10, null=True, blank=True)
     last_name = models.CharField(max_length=200, null=True, blank=True)
     first_name = models.CharField(max_length=200, null=True, blank=True)
@@ -47,8 +48,10 @@ class Student(models.Model):
 
     def save(self, *args, **kwargs):
         validate_matrikel(self.matrikel, self.id)
+        if self.matrikel:
+            self.modulo_matrikel = int(str(self.matrikel)[-4:])
         if self.matrikel and not self.obscured_matrikel:
-            self.obscured_matrikel = str(self.matrikel)[-4:]
+            self.obscured_matrikel = '%04d' % self.modulo_matrikel
                 
         return super(Student, self).save(*args, **kwargs)
 
