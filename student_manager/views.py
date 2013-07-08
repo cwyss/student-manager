@@ -203,26 +203,25 @@ class PrintStudentsView(ListView):
 
     def get_queryset(self):
         total_exercises = models.Exercise.total_num_exercises()
+
         if self.request.GET.get('matrikel'):
-            students = list(models.Student.objects.exclude(matrikel=None))
+            students = models.Student.objects.exclude(matrikel=None)
+            students = students.order_by('modulo_matrikel',
+                                         'obscured_matrikel')
         else:
-            students = list(models.Student.objects.filter(matrikel=None))
+            students = models.Student.objects.filter(matrikel=None)
+            students = students.order_by('last_name', 'first_name')
 
         student_data = []
 
-        for student in students:
+        for student in list(students):
             if not student.exercise_set.all():
                 continue
-            if self.request.GET.get('matrikel'):
-                student.sort = str(student.matrikel)[-4:]
-            else:
-                student.sort = (student.last_name, student.first_name)
             student.exercises = [None] * total_exercises
             for exercise in student.exercise_set.all():
                 student.exercises[exercise.sheet-1] = exercise
             student_data.append(student)
 
-        student_data.sort(key=lambda s: (s.sort, s.obscured_matrikel))
         return student_data
 
 print_students = PrintStudentsView.as_view()
