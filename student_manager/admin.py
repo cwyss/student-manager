@@ -5,7 +5,7 @@ from django.db.models import Count
 from django import forms
 from django.utils.translation import ugettext_lazy as _
 
-from student_manager.models import Student, Exercise, validate_matrikel
+from student_manager.models import Student, Exercise, Exam, validate_matrikel
 
 
 class NonuniqueModuloMatrikelListFilter(admin.SimpleListFilter):
@@ -57,5 +57,14 @@ class ExerciseAdmin(admin.ModelAdmin):
                      'student__first_name')
 
 
+class ExamAdmin(admin.ModelAdmin):
+    list_display = ('exam', 'student', 'subject', 'resit', 'points')
+    list_filter = ('exam', 'subject')
+    raw_id_fields = ('student',)
+    search_fields = ('student__matrikel', 'student__last_name',
+                     'student__first_name')
+
+
 admin.site.register(Student, StudentAdmin)
 admin.site.register(Exercise, ExerciseAdmin)
+admin.site.register(Exam, ExamAdmin)

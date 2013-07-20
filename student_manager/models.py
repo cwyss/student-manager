@@ -52,7 +52,6 @@ class Student(models.Model):
             self.modulo_matrikel = int(str(self.matrikel)[-4:])
         if self.matrikel and not self.obscured_matrikel:
             self.obscured_matrikel = '%04d' % self.modulo_matrikel
-                
         return super(Student, self).save(*args, **kwargs)
 
     class Meta:
@@ -82,4 +81,20 @@ class Exercise(models.Model):
     @classmethod
     def total_num_exercises(cls):
         return cls.objects.aggregate(total=Max('sheet'))['total'] or 0
+
+
+class Exam(models.Model):
+    student = models.ForeignKey(Student)
+    subject = models.CharField(max_length=200, null=True, blank=True)
+    exam = models.IntegerField()
+    resit = models.IntegerField(null=True, blank=True)
+    points = models.DecimalField(max_digits=3, decimal_places=1, 
+                                 null=True, blank=True)
+
+    class Meta:
+        unique_together = (('student', 'exam'),)
+        ordering = ('exam', 'student')
+
+    def __unicode__(self):
+        return u'%i: %s' % (self.exam, self.student)
 

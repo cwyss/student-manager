@@ -34,13 +34,11 @@ import student data::
   group
 
 import exercise data, exercise table::
-
   matrikel number
   sheet number
   points
 
 import exercise data, big table::
-
   matrikel number
   points sheet 1
   points sheet 2
