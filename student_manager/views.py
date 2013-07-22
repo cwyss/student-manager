@@ -1,6 +1,6 @@
 """Views"""
 
-import csv
+import csv, re
 from decimal import Decimal
 
 from django import forms
@@ -225,3 +225,189 @@ class PrintStudentsView(ListView):
         return student_data
 
 print_students = PrintStudentsView.as_view()
+
+
+
+class ImportExamsForm(forms.Form):
+    exam = forms.ChoiceField(label='Exam', 
+                             choices=((1, '1'), (2, '2')))
+    file = forms.FileField(label=_('File'))
+
+
+class ImportExamsView(FormView):
+    template_name = 'student_manager/import_exam.html'
+    form_class = ImportExamsForm
+
+    def get_success_url(self):
+        return self.request.GET.get('return_url', '/')
+
+    def form_valid(self, form):
+        file = form.cleaned_data['file']
+        self.exam = form.cleaned_data['exam']
+        self.stats = {'newstud': [],
+                      'new': [],
+                      'updated': [],
+                      'unchanged': [],
+                      'error': []
+                      }
+        self.subjectcnt = 0
+        self.linebuf = []
+        self.columns = None
+        self.subject = None
+        for line in file:
+            line = line.decode('UTF-8')
+            self.examine_line(line)
+            self.process_lines()
+        self.process_lines(final=True)
+
+        messages.info(
+            self.request,
+            '%d exam entries with %d subjects processed.' % 
+            (sum(map(len, self.stats.itervalues())),
+             self.subjectcnt))
+        if self.stats['newstud']:
+            messages.success(
+                self.request,
+                '%d new students.' % len(self.stats['newstud']))
+        if self.stats['new']:
+            messages.success(
+                self.request,
+                '%d new exams.' % len(self.stats['new']))
+        if self.stats['updated']:
+            messages.success(
+                self.request,
+                '%d exams updated.' % len(self.stats['updated']))
+        if self.stats['error']:
+            for line in self.stats['error'][:10]:
+                messages.warning(
+                    self.request,
+                    'Format error line: %s' % line)
+        return super(ImportExamsView, self).form_valid(form)
+
+    def examine_line(self, line):
+        if line.startswith('subject:'):
+            if len(self.linebuf)>0:
+                self.stats['error'].extend(self.linebuf)
+                self.linebuf = []
+            self.columns = None
+            self.subject = line[8:].strip()
+            self.subjectcnt += 1
+            return
+        cols = self.find_columns(line)
+        if cols:
+            if not self.columns:
+                self.columns = cols
+                self.linebuf.append(line)
+            elif self.columns!=cols:
+                self.stats['error'].append(line)
+            else:
+                self.linebuf.append(line)
+        elif line.isspace():
+            if len(self.linebuf)>0:
+                self.stats['error'].extend(self.linebuf)
+                self.linebuf = []
+            self.columns = None
+        else:
+            self.linebuf.append(line)
+
+    def find_columns(self, line):
+        m = re.match(r"\s*(\d+) (.+?) (\d+) (\d)", line, re.U)
+        if not m:
+            return None
+        m2 = re.match(r"(.+?)  \s*(\S.+?)", m.group(2), re.U)
+        if not m2:
+            m2 = re.match(r"(\S+?) (\S+?)\s*\Z", m.group(2), re.U)
+        if not m2:
+            return None
+        return (m.start(2), m.start(2)+m2.start(2), m.end(3)-7, m.start(4))
+
+    def process_lines(self, final=False):
+        if self.columns:
+            for line in self.linebuf:
+                self.save_exam(line, self.columns)
+            self.linebuf = []
+        elif final and len(self.linebuf)>0:
+            self.stats['error'].extend(self.linebuf)
+            self.linebuf = []
+
+    def save_exam(self, line, cols):
+#        nr = int(line[:cols[0]])
+        try:
+            name = line[cols[0]:cols[1]].strip()
+            first_name = line[cols[1]:cols[2]].strip()
+            matr = int(line[cols[2]:cols[3]])
+            resit = int(line[cols[3]])
+        except (IndexError, ValueError):
+            self.stats['error'].append(line)
+            return
+        try:
+            student = models.Student.objects.get(matrikel=matr)
+        except models.Student.DoesNotExist:
+            student = models.Student(matrikel=matr,
+                                     last_name=name,
+                                     first_name=first_name)
+            student.save()
+            status = 'newstud'
+        else:
+            status = 'new'
+        try:
+            exam = models.Exam.objects.get(student=student, exam=self.exam)
+            if exam.subject==self.subject and exam.resit==resit:
+                status = 'unchanged'
+            else:
+                status = 'updated'
+        except models.Exam.DoesNotExist:
+            exam = models.Exam(student=student, 
+                               exam=self.exam)
+        exam.subject = self.subject
+        exam.resit = resit
+        exam.save()
+        self.stats[status].append(line)
+
+#         messages.info(
+#             self.request,
+#             '%s entries processed.' % sum(map(len, self.stats.itervalues())))
+#         if self.stats['new']:
+#             messages.success(
+#                 self.request,
+#                 '%s new exercises created.' % len(self.stats['new']))
+#         if self.stats['updated']:
+#             messages.success(
+#                 self.request,
+#                 '%s exercises updated.' % len(self.stats['updated']))
+#         if self.stats['unknown_student']:
+#             ustudset = set(self.stats['unknown_student'])
+#             messages.warning(
+#                 self.request,
+#                 '%s unknown students: %s' % (len(ustudset),
+#                                              ', '.join(ustudset)))
+#         if self.stats['invalid_points']:
+#             invpset = set(self.stats['invalid_points'])
+#             messages.warning(
+#                 self.request,
+#                 '%s invalid points: %s' % (len(invpset),
+#                                            ', '.join(invpset)))
+        
+
+#     def save_exercise(self, group, student, sheet, points):
+#         if points.strip()=='':
+#             return
+#         try:
+#             exercise = models.Exercise.objects.get(student=student, sheet=sheet)
+#             if exercise.points==Decimal(points):
+#                 status = 'unchanged'
+#             else:
+#                 status = 'updated'
+#         except models.Exercise.DoesNotExist:
+#             exercise = models.Exercise(student=student, sheet=sheet)
+#             status = 'new'
+#         exercise.points = points
+#         exercise.group = group
+#         try:
+#             exercise.save()
+#         except ValidationError:
+#             status = 'invalid_points'
+
+#         self.stats[status].append(str(student.matrikel))
+                    
+import_exams = staff_member_required(ImportExamsView.as_view())

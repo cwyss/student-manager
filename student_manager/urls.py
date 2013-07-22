@@ -14,5 +14,7 @@ urlpatterns = patterns('',
         name='import_exercises'),
     url(r'^import_students/$', 'student_manager.views.import_students',
         name='import_students'),
+    url(r'^import_exams/$', 'student_manager.views.import_exams',
+        name='import_exams'),
     url(r'^admin/', include(admin.site.urls)),
 )
