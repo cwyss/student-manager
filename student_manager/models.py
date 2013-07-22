@@ -83,18 +83,34 @@ class Exercise(models.Model):
         return cls.objects.aggregate(total=Max('sheet'))['total'] or 0
 
 
+class Room(models.Model):
+    name = models.CharField(max_length=200)
+    examnr = models.IntegerField()
+    capacity = models.IntegerField(null=True, blank=True)
+    priority = models.IntegerField(null=True, blank=True)
+
+    class Meta:
+        ordering = ('examnr', 'priority')
+
+    def __unicode__(self):
+        return u'%s (%d)' % (self.name, self.examnr)
+
+
 class Exam(models.Model):
     student = models.ForeignKey(Student)
     subject = models.CharField(max_length=200, null=True, blank=True)
-    exam = models.IntegerField()
+    examnr = models.IntegerField()
     resit = models.IntegerField(null=True, blank=True)
     points = models.DecimalField(max_digits=3, decimal_places=1, 
                                  null=True, blank=True)
+    room = models.ForeignKey(Room, null=True, blank=True)
+    number = models.IntegerField(null=True, blank=True)
 
     class Meta:
-        unique_together = (('student', 'exam'),)
-        ordering = ('exam', 'student')
+        unique_together = (('student', 'examnr'),
+                           ('examnr','number'))
+        ordering = ('examnr', 'student')
 
     def __unicode__(self):
-        return u'%i: %s' % (self.exam, self.student)
+        return u'%i: %s' % (self.examnr, self.student)
 
