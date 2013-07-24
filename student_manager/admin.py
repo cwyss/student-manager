@@ -1,12 +1,12 @@
 """The admin page."""
 
 from django.contrib import admin
+from django.contrib import messages
 from django.db.models import Count
 from django import forms
 from django.utils.translation import ugettext_lazy as _
 
-from student_manager.models import Student, Exercise, Room, Exam, \
-    validate_matrikel
+from student_manager import models
 
 
 class NonuniqueModuloMatrikelListFilter(admin.SimpleListFilter):
@@ -21,7 +21,7 @@ class NonuniqueModuloMatrikelListFilter(admin.SimpleListFilter):
             return queryset
 
         if self.value() == 'nonunique':
-            duplicates = Student.objects.values('modulo_matrikel')
+            duplicates = models.Student.objects.values('modulo_matrikel')
             duplicates = duplicates.annotate(Count('id'))
             duplicates = duplicates.values('modulo_matrikel').order_by()
             duplicates = duplicates.filter(id__count__gt=1)
@@ -30,13 +30,13 @@ class NonuniqueModuloMatrikelListFilter(admin.SimpleListFilter):
 class StudentForm(forms.ModelForm):
 
     class Meta:
-        model = Student
+        model = models.Student
         exclude = ('modulo_matrikel',)
 
     def clean_matrikel(self):
         student_id = self.instance.id  if self.instance else None
         matrikel = self.cleaned_data['matrikel']
-        validate_matrikel(matrikel, student_id)
+        models.validate_matrikel(matrikel, student_id)
         return matrikel
 
         
@@ -63,6 +63,7 @@ class RoomAdmin(admin.ModelAdmin):
     list_filter = ('examnr',)
 
 
+
 class ExamAdmin(admin.ModelAdmin):
     list_display = ('examnr', 'student', 'subject', 'number', 
                     'room', 'resit', 'points', )
@@ -70,9 +71,41 @@ class ExamAdmin(admin.ModelAdmin):
     raw_id_fields = ('student',)
     search_fields = ('student__matrikel', 'student__last_name',
                      'student__first_name')
+    actions = ('assign_seats',)
+
+    def assign_seats(self, request, queryset):
+        examnr = queryset[0].examnr
+        if queryset.exclude(examnr=examnr).exists():
+            messages.error(request,
+                           'Selection contains different exam numbers.')
+            return
+        rooms = models.Room.objects.filter(examnr=examnr).order_by('priority')
+        roomlist = []
+        maxnumber = 0
+        for room in rooms:
+            if room.capacity is None:
+                 messages.error(request, 'Room %s has no capacity' % room)
+                 return
+            maxnumber += room.capacity
+            roomlist.append((maxnumber, room))
+
+        if maxnumber <= 0:
+            messages.error(request,
+                           'No rooms with capacity found for exam %s' % examnr)
+            return
+
+        queryset.update(number=None)
+        roomdata = roomlist.pop(0)
+        for i, exam in enumerate(queryset):
+            if i >= roomdata[0] and roomlist:
+                roomdata = roomlist.pop(0)
+            exam.number = i+1
+            exam.room = roomdata[1]
+            exam.save()
+        messages.success(request, 'Assigned %s seats' % queryset.count())
 
 
-admin.site.register(Student, StudentAdmin)
-admin.site.register(Exercise, ExerciseAdmin)
-admin.site.register(Room, RoomAdmin)
-admin.site.register(Exam, ExamAdmin)
+admin.site.register(models.Student, StudentAdmin)
+admin.site.register(models.Exercise, ExerciseAdmin)
+admin.site.register(models.Room, RoomAdmin)
+admin.site.register(models.Exam, ExamAdmin)
