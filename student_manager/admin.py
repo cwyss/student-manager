@@ -3,10 +3,11 @@
 from django.contrib import admin
 from django.contrib import messages
 from django.db.models import Count
-from django import forms
+from django.shortcuts import render_to_response
+from django.template import RequestContext
 from django.utils.translation import ugettext_lazy as _
 
-from student_manager import models
+from student_manager import forms, models
 
 
 class NonuniqueModuloMatrikelListFilter(admin.SimpleListFilter):
@@ -27,19 +28,7 @@ class NonuniqueModuloMatrikelListFilter(admin.SimpleListFilter):
             duplicates = duplicates.filter(id__count__gt=1)
             return queryset.filter(modulo_matrikel__in=duplicates)
 
-class StudentForm(forms.ModelForm):
 
-    class Meta:
-        model = models.Student
-        exclude = ('modulo_matrikel',)
-
-    def clean_matrikel(self):
-        student_id = self.instance.id  if self.instance else None
-        matrikel = self.cleaned_data['matrikel']
-        models.validate_matrikel(matrikel, student_id)
-        return matrikel
-
-        
 class StudentAdmin(admin.ModelAdmin):
     list_display = ('matrikel', 'modulo_matrikel', 'obscured_matrikel',
                     'last_name', 'first_name', 'subject', 'semester',
@@ -47,7 +36,7 @@ class StudentAdmin(admin.ModelAdmin):
                     'bonus')
     list_filter = (NonuniqueModuloMatrikelListFilter, 'active', 'group')
     search_fields = ('matrikel', 'last_name', 'first_name')
-    form = StudentForm
+    form = forms.StudentForm
 
 
 class ExerciseAdmin(admin.ModelAdmin):
@@ -71,7 +60,7 @@ class ExamAdmin(admin.ModelAdmin):
     raw_id_fields = ('student',)
     search_fields = ('student__matrikel', 'student__last_name',
                      'student__first_name')
-    actions = ('assign_seats',)
+    actions = ('assign_seats', 'enter_results')
 
     def assign_seats(self, request, queryset):
         examnr = queryset[0].examnr
@@ -104,6 +93,15 @@ class ExamAdmin(admin.ModelAdmin):
             exam.save()
         messages.success(request, 'Assigned %s seats' % queryset.count())
 
+        
+    def enter_results(self, request, queryset):
+        formset = forms.ExamFormSet(queryset=queryset)
+        return render_to_response(
+            'student_manager/exam_results.html',
+            {'formset': formset,
+             'num_exercises': range(6)},
+            context_instance=RequestContext(request))
+        
 
 admin.site.register(models.Student, StudentAdmin)
 admin.site.register(models.Exercise, ExerciseAdmin)

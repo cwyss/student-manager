@@ -3,30 +3,18 @@
 import csv, re
 from decimal import Decimal
 
-from django import forms
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.exceptions import ValidationError
-from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormView
 from django.views.generic.list import ListView
 
-from student_manager import models
-
-
-class ImportExercisesForm(forms.Form):
-    group = forms.IntegerField()
-    column_separator = forms.CharField(max_length=1, initial=';')
-    csv_file = forms.FileField(label=_('CSV file'))
-    format = forms.ChoiceField(choices=(
-            ('', 'Please select'),
-            (1, 'Exercise table (one entry per exercise)'),
-            (2, 'Big table (one column per sheet)')))
+from student_manager import forms, models
 
 
 class ImportExercisesView(FormView):
     template_name = 'student_manager/import_ex.html'
-    form_class = ImportExercisesForm
+    form_class = forms.ImportExercisesForm
 
     def get_success_url(self):
         return self.request.GET.get('return_url', '/')
@@ -109,14 +97,9 @@ class ImportExercisesView(FormView):
 import_exercises = staff_member_required(ImportExercisesView.as_view())
 
 
-class ImportStudentsForm(forms.Form):
-    column_separator = forms.CharField(max_length=1, initial=';')
-    csv_file = forms.FileField(label=_('CSV file'))
-
-
 class ImportStudentsView(FormView):
     template_name = 'student_manager/import_stud.html'
-    form_class = ImportStudentsForm
+    form_class = forms.ImportStudentsForm
 
     def get_success_url(self):
         return self.request.GET.get('return_url', '/')
@@ -186,16 +169,9 @@ class ImportStudentsView(FormView):
 import_students = staff_member_required(ImportStudentsView.as_view())
 
 
-class PrintStudentsOptForm(forms.Form):
-    matrikel = forms.ChoiceField(label=_('Selection'),
-                                 choices=(('on', 'Students with matrikel'),
-                                          ('', 'Students without matrikel')),
-                                 initial='on')
-    total = forms.BooleanField(label=_('Display total/bonus columns'))
-
 print_students_opt = FormView.as_view(
     template_name='student_manager/print_students_opt.html',
-    form_class=PrintStudentsOptForm)
+    form_class=forms.PrintStudentsOptForm)
 
 
 class PrintStudentsView(ListView):
@@ -227,16 +203,9 @@ class PrintStudentsView(ListView):
 print_students = PrintStudentsView.as_view()
 
 
-
-class ImportExamsForm(forms.Form):
-    examnr = forms.ChoiceField(label='Exam number', 
-                             choices=((1, '1'), (2, '2')))
-    file = forms.FileField(label=_('File'))
-
-
 class ImportExamsView(FormView):
     template_name = 'student_manager/import_exam.html'
-    form_class = ImportExamsForm
+    form_class = forms.ImportExamsForm
 
     def get_success_url(self):
         return self.request.GET.get('return_url', '/')
@@ -367,16 +336,9 @@ class ImportExamsView(FormView):
 import_exams = staff_member_required(ImportExamsView.as_view())
 
 
-class PrintExamsOptForm(forms.Form):
-    examnr = forms.ChoiceField(label='Exam number', 
-                             choices=((1, '1'), (2, '2')))
-    numbering = forms.ChoiceField(
-        choices=(('leave', 'leave as is'),
-                 ('modmatr', 'generate by modulo matrikel')))
-
 print_exams_opt = FormView.as_view(
     template_name='student_manager/print_exams_opt.html',
-    form_class=PrintExamsOptForm)
+    form_class=forms.PrintExamsOptForm)
 
 
 class PrintExamsView(ListView):
