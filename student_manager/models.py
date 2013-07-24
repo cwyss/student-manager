@@ -22,8 +22,10 @@ def validate_matrikel(matrikel, student_id):
 
 class Student(models.Model):
     matrikel = models.IntegerField(null=True, blank=True)
-    modulo_matrikel = models.IntegerField(null=True, blank=True)
-    obscured_matrikel = models.CharField(max_length=10, null=True, blank=True)
+    modulo_matrikel = models.IntegerField(null=True, blank=True,
+                                          verbose_name='modulo')
+    obscured_matrikel = models.CharField(max_length=10, null=True, blank=True,
+                                         verbose_name='obscured')
     last_name = models.CharField(max_length=200, null=True, blank=True)
     first_name = models.CharField(max_length=200, null=True, blank=True)
     subject = models.CharField(max_length=200, null=True, blank=True)
@@ -44,7 +46,15 @@ class Student(models.Model):
         return total or Decimal('0.0')
 
     def bonus(self):
-        return '1/3'
+        bonus1 = 25
+        bonus2 = 37.5
+        total = self.total_points()
+        if total>=bonus2:
+            return '2/3'
+        elif total>=bonus1:
+            return '1/3'
+        else:
+            return ''
 
     def save(self, *args, **kwargs):
         validate_matrikel(self.matrikel, self.id)
