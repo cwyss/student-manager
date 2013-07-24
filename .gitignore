@@ -5,3 +5,4 @@
 *.csv
 south
 settings_local.py
+exam-import*

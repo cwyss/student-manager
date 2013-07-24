@@ -4,14 +4,15 @@
     <link rel="stylesheet" type="text/css" href="{{ STATIC_URL}}print.css">
   </head>
   <body>
-    <p>Extra text goes here...</p>
-    <p>And some more text...</p>
+    <h3>Bonuspunkte</h3>
+    <p>Die Liste ist sortiert nach den letzten 4 Stellen der Matrikelnummer.
+      Wenn n&ouml;tig sind weitere Stellen angegeben.</p>
     <table>
       <thead>
 	<tr>
 	  <th>{% if request.GET.matrikel %}Matr.{% else %}Name{% endif %}</th>
 	  {% for exercise in object_list.0.exercises %}
-	  <th>B{{ forloop.counter }}</th>
+	  <th>Bl {{ forloop.counter }}</th>
 	  {% endfor %}
 	  {% if request.GET.total %}
 	  <th>&#8721;</th>

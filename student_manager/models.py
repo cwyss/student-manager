@@ -22,8 +22,10 @@ def validate_matrikel(matrikel, student_id):
 
 class Student(models.Model):
     matrikel = models.IntegerField(null=True, blank=True)
-    modulo_matrikel = models.IntegerField(null=True, blank=True)
-    obscured_matrikel = models.CharField(max_length=10, null=True, blank=True)
+    modulo_matrikel = models.IntegerField(null=True, blank=True,
+                                          verbose_name='modulo')
+    obscured_matrikel = models.CharField(max_length=10, null=True, blank=True,
+                                         verbose_name='obscured')
     last_name = models.CharField(max_length=200, null=True, blank=True)
     first_name = models.CharField(max_length=200, null=True, blank=True)
     subject = models.CharField(max_length=200, null=True, blank=True)
@@ -32,7 +34,7 @@ class Student(models.Model):
     active = models.BooleanField(default=True)
 
     def __unicode__(self):
-        return '%s, %s (%s)' % (self.last_name, self.first_name, self.matrikel)
+        return u'%s, %s (%s)' % (self.last_name, self.first_name, self.matrikel)
 
     def number_of_exercises(self):
         return self.exercise_set.count()
@@ -44,7 +46,15 @@ class Student(models.Model):
         return total or Decimal('0.0')
 
     def bonus(self):
-        return '1/3'
+        bonus1 = 25
+        bonus2 = 37.5
+        total = self.total_points()
+        if total>=bonus2:
+            return '2/3'
+        elif total>=bonus1:
+            return '1/3'
+        else:
+            return ''
 
     def save(self, *args, **kwargs):
         validate_matrikel(self.matrikel, self.id)
@@ -52,7 +62,6 @@ class Student(models.Model):
             self.modulo_matrikel = int(str(self.matrikel)[-4:])
         if self.matrikel and not self.obscured_matrikel:
             self.obscured_matrikel = '%04d' % self.modulo_matrikel
-                
         return super(Student, self).save(*args, **kwargs)
 
     class Meta:
@@ -72,7 +81,7 @@ class Exercise(models.Model):
         ordering = ('student', 'sheet')
 
     def __unicode__(self):
-        return '%i: %1.1f - %s' % (self.sheet, self.points, self.student)
+        return u'%i: %1.1f - %s' % (self.sheet, self.points, self.student)
 
     def save(self, *args, **kwargs):
         if float(self.points) not in VALID_POINTS:
@@ -82,4 +91,36 @@ class Exercise(models.Model):
     @classmethod
     def total_num_exercises(cls):
         return cls.objects.aggregate(total=Max('sheet'))['total'] or 0
+
+
+class Room(models.Model):
+    name = models.CharField(max_length=200)
+    examnr = models.IntegerField()
+    capacity = models.IntegerField(null=True, blank=True)
+    priority = models.IntegerField(null=True, blank=True)
+
+    class Meta:
+        ordering = ('examnr', 'priority')
+
+    def __unicode__(self):
+        return u'%s (%d)' % (self.name, self.examnr)
+
+
+class Exam(models.Model):
+    student = models.ForeignKey(Student)
+    subject = models.CharField(max_length=200, null=True, blank=True)
+    examnr = models.IntegerField()
+    resit = models.IntegerField(null=True, blank=True)
+    points = models.DecimalField(max_digits=3, decimal_places=1, 
+                                 null=True, blank=True)
+    room = models.ForeignKey(Room, null=True, blank=True)
+    number = models.IntegerField(null=True, blank=True)
+
+    class Meta:
+        unique_together = (('student', 'examnr'),
+                           ('examnr','number'))
+        ordering = ('examnr', 'student')
+
+    def __unicode__(self):
+        return u'%i: %s' % (self.examnr, self.student)
 
