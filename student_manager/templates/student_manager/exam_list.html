@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL}}print.css">
+  </head>
+  <body>
+    <h3>Platzliste Nachklausur Mathe A</h3>
+    <p>Die Liste ist sortiert nach den letzten 4 Stellen der Matrikelnummer.
+      Wenn n&ouml;tig sind weitere Stellen angegeben.</p>
+    <table>
+      <thead>
+	<tr>
+	  <th>Matr.</th>
+	  <th>H&ouml;rsaal</th>
+	  <th>Platz</th>
+	</tr>
+      </thead>
+      {% for exam in object_list %}
+      <tr class="{% cycle 'odd' 'even' %}">
+	<td class="right">{{ exam.student.obscured_matrikel }}</td>
+	<td class="center">{{ exam.room.name }}</td>
+	<td class="right">{{ exam.number }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </body>
+</html>

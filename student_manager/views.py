@@ -150,9 +150,9 @@ class ImportStudentsView(FormView):
             else:
                 group = None
             student = models.Student(matrikel=matrikel,
-                                     last_name=row[1].decode('latin-1'),
-                                     first_name=row[2].decode('latin-1'),
-                                     subject=row[3].decode('latin-1'),
+                                     last_name=row[1].decode('UTF-8'),
+                                     first_name=row[2].decode('UTF-8'),
+                                     subject=row[3].decode('UTF-8'),
                                      semester=semester,
                                      group=group)
             try:
@@ -229,7 +229,7 @@ print_students = PrintStudentsView.as_view()
 
 
 class ImportExamsForm(forms.Form):
-    exam = forms.ChoiceField(label='Exam', 
+    examnr = forms.ChoiceField(label='Exam number', 
                              choices=((1, '1'), (2, '2')))
     file = forms.FileField(label=_('File'))
 
@@ -243,7 +243,7 @@ class ImportExamsView(FormView):
 
     def form_valid(self, form):
         file = form.cleaned_data['file']
-        self.exam = form.cleaned_data['exam']
+        self.examnr = form.cleaned_data['examnr']
         self.stats = {'newstud': [],
                       'new': [],
                       'updated': [],
@@ -351,63 +351,73 @@ class ImportExamsView(FormView):
         else:
             status = 'new'
         try:
-            exam = models.Exam.objects.get(student=student, exam=self.exam)
+            exam = models.Exam.objects.get(student=student, examnr=self.examnr)
             if exam.subject==self.subject and exam.resit==resit:
                 status = 'unchanged'
             else:
                 status = 'updated'
         except models.Exam.DoesNotExist:
             exam = models.Exam(student=student, 
-                               exam=self.exam)
+                               examnr=self.examnr)
         exam.subject = self.subject
         exam.resit = resit
         exam.save()
         self.stats[status].append(line)
-
-#         messages.info(
-#             self.request,
-#             '%s entries processed.' % sum(map(len, self.stats.itervalues())))
-#         if self.stats['new']:
-#             messages.success(
-#                 self.request,
-#                 '%s new exercises created.' % len(self.stats['new']))
-#         if self.stats['updated']:
-#             messages.success(
-#                 self.request,
-#                 '%s exercises updated.' % len(self.stats['updated']))
-#         if self.stats['unknown_student']:
-#             ustudset = set(self.stats['unknown_student'])
-#             messages.warning(
-#                 self.request,
-#                 '%s unknown students: %s' % (len(ustudset),
-#                                              ', '.join(ustudset)))
-#         if self.stats['invalid_points']:
-#             invpset = set(self.stats['invalid_points'])
-#             messages.warning(
-#                 self.request,
-#                 '%s invalid points: %s' % (len(invpset),
-#                                            ', '.join(invpset)))
-        
-
-#     def save_exercise(self, group, student, sheet, points):
-#         if points.strip()=='':
-#             return
-#         try:
-#             exercise = models.Exercise.objects.get(student=student, sheet=sheet)
-#             if exercise.points==Decimal(points):
-#                 status = 'unchanged'
-#             else:
-#                 status = 'updated'
-#         except models.Exercise.DoesNotExist:
-#             exercise = models.Exercise(student=student, sheet=sheet)
-#             status = 'new'
-#         exercise.points = points
-#         exercise.group = group
-#         try:
-#             exercise.save()
-#         except ValidationError:
-#             status = 'invalid_points'
-
-#         self.stats[status].append(str(student.matrikel))
                     
 import_exams = staff_member_required(ImportExamsView.as_view())
+
+
+class PrintExamsOptForm(forms.Form):
+    examnr = forms.ChoiceField(label='Exam number', 
+                             choices=((1, '1'), (2, '2')))
+    numbering = forms.ChoiceField(
+        choices=(('leave', 'leave as is'),
+                 ('modmatr', 'generate by modulo matrikel')))
+
+print_exams_opt = FormView.as_view(
+    template_name='student_manager/print_exams_opt.html',
+    form_class=PrintExamsOptForm)
+
+
+class PrintExamsView(ListView):
+    template_name = 'student_manager/exam_list.html'
+
+    def get_queryset(self):
+        examnr = int(self.request.GET.get('examnr'))
+        numbering = self.request.GET.get('numbering')
+
+        if numbering!='leave':
+            rooms = models.Room.objects.filter(examnr=examnr)
+            rooms = rooms.order_by('priority')
+            roomlist = []
+            maxnumber = 0
+            try:
+                for room in rooms:
+                    maxnumber += room.capacity
+                    roomlist.append((maxnumber, room))
+            except TypeError:
+                return []
+            if maxnumber<=0:
+                return []
+            roomdata = roomlist.pop(0)
+
+        exams = models.Exam.objects.filter(examnr=examnr)
+        if numbering=='modmatr':
+            exams = exams.order_by('student__modulo_matrikel',
+                                   'student__obscured_matrikel')
+            for exam in exams:
+                exam.number = None
+                exam.save()
+            for i,exam in enumerate(exams):
+                if i>=roomdata[0] and roomlist:
+                    roomdata = roomlist.pop(0)
+                exam.number = i+1
+                exam.room = roomdata[1]
+                exam.save()
+
+        exams = exams.order_by('student__modulo_matrikel',
+                               'student__obscured_matrikel')
+        return list(exams)
+
+
+print_exams = PrintExamsView.as_view()
