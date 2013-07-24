@@ -4,25 +4,34 @@
 
 {% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}" />{% endblock %}
 
-{% block title %}Print Exam List | {% trans 'Django site admin' %}{% endblock %}
+{% block title %}Print Student List | {% trans 'Django site admin' %}{% endblock %}
 
-{% block content_title %}<h1>Print Exam List</h1>{% endblock %}
+{% block content_title %}<h1>Enter exam results</h1>{% endblock %}
 
 {% block breadcrumbs %}
 <div class="breadcrumbs">
 <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
 &rsaquo; <a href="{% url 'admin:app_list' app_label='student_manager' %}">Student_manager</a>
-&rsaquo; <a href="{% url 'admin:student_manager_exam_changelist' %}">Exams</a> &rsaquo; Print exam list
+&rsaquo; <a href="{% url 'admin:student_manager_exam_changelist' %}">Exams</a> &rsaquo; Enter exam results
 </div>
 {% endblock %}
 
 {% block content %}
 <div id="content-main">
-    <form action="{% url 'print_exams' %}" method="get">
+    <form action="" method="post">
       <div>
+	{% csrf_token %}
 	<fieldset>
 	  <table>
-	  {{ form.as_table }}
+	    {% for form in formset %}
+	      <tr>
+		<td>{{ form.instance.student }}</td>
+		{% for num in num_exercises %}
+		<td><input type="text" class="subpoints" /></td>
+		{% endfor %}
+		<td>{{ form.points }}</td>
+	      </tr>
+	    {% endfor %}
 	  </table>
 	</fieldset>
 	<div class="submit-row">
