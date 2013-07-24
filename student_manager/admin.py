@@ -63,36 +63,6 @@ class RoomAdmin(admin.ModelAdmin):
     list_filter = ('examnr',)
 
 
-def assign_seats(modeladmin, request, queryset):
-    examnr = queryset[0].examnr
-    if queryset.exclude(examnr=examnr).exists():
-        messages.error(request, 'Selection contains different exam numbers.')
-        return
-    rooms = models.Room.objects.filter(examnr=examnr).order_by('priority')
-    roomlist = []
-    maxnumber = 0
-    for room in rooms:
-        if room.capacity is None:
-             messages.error(request, 'Room %s has no capacity' % room)
-             return
-        maxnumber += room.capacity
-        roomlist.append((maxnumber, room))
-         
-    if maxnumber <= 0:
-        messages.error(request,
-                       'No rooms with capacity found for exam %s' % examnr)
-        return
-    
-    queryset.update(number=None)
-    roomdata = roomlist.pop(0)
-    for i, exam in enumerate(queryset):
-        if i >= roomdata[0] and roomlist:
-            roomdata = roomlist.pop(0)
-        exam.number = i+1
-        exam.room = roomdata[1]
-        exam.save()
-    messages.success(request, 'Assigned %s seats' % queryset.count())
-
 
 class ExamAdmin(admin.ModelAdmin):
     list_display = ('examnr', 'student', 'subject', 'number', 
@@ -101,7 +71,38 @@ class ExamAdmin(admin.ModelAdmin):
     raw_id_fields = ('student',)
     search_fields = ('student__matrikel', 'student__last_name',
                      'student__first_name')
-    actions = (assign_seats,)
+    actions = ('assign_seats',)
+
+    def assign_seats(self, request, queryset):
+        examnr = queryset[0].examnr
+        if queryset.exclude(examnr=examnr).exists():
+            messages.error(request,
+                           'Selection contains different exam numbers.')
+            return
+        rooms = models.Room.objects.filter(examnr=examnr).order_by('priority')
+        roomlist = []
+        maxnumber = 0
+        for room in rooms:
+            if room.capacity is None:
+                 messages.error(request, 'Room %s has no capacity' % room)
+                 return
+            maxnumber += room.capacity
+            roomlist.append((maxnumber, room))
+
+        if maxnumber <= 0:
+            messages.error(request,
+                           'No rooms with capacity found for exam %s' % examnr)
+            return
+
+        queryset.update(number=None)
+        roomdata = roomlist.pop(0)
+        for i, exam in enumerate(queryset):
+            if i >= roomdata[0] and roomlist:
+                roomdata = roomlist.pop(0)
+            exam.number = i+1
+            exam.room = roomdata[1]
+            exam.save()
+        messages.success(request, 'Assigned %s seats' % queryset.count())
 
 
 admin.site.register(models.Student, StudentAdmin)
