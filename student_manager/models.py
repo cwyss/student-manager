@@ -6,7 +6,7 @@ from django.db.models import Sum, Max
 from django.core.exceptions import ValidationError
 
 
-POINTS_CHOICES = [(i/2.0, str(i/2.0)) for i in range(11)]
+POINTS_CHOICES = [(i/Decimal('2'), str(i/2.0)) for i in range(11)]
 VALID_POINTS = [x[0] for x in POINTS_CHOICES]
 
 def validate_matrikel(matrikel, student_id):
@@ -46,8 +46,11 @@ class Student(models.Model):
         return total or Decimal('0.0')
 
     def bonus(self):
-        bonus1 = 25
-        bonus2 = 37.5
+        try:
+            bonus1 = Decimal(StaticData.objects.get(key='bonus1').value)
+            bonus2 = Decimal(StaticData.objects.get(key='bonus2').value)
+        except StaticData.DoesNotExist:
+            return None
         total = self.total_points()
         if total>=bonus2:
             return '2/3'
@@ -93,9 +96,19 @@ class Exercise(models.Model):
         return cls.objects.aggregate(total=Max('sheet'))['total'] or 0
 
 
+# class MasterExam(models.Model):
+#     number = models.IntegerField(unique=True)
+#     title = models.CharField(max_length=200, null=True, blank=True)
+#     mark_limits = models.TextField(null=True, blank=True)
+
+#     def __unicode__(self):
+#         return u'%s' % self.number
+
+
 class Room(models.Model):
     name = models.CharField(max_length=200)
     examnr = models.IntegerField()
+#    examnr = models.ForeignKey(MasterExam)
     capacity = models.IntegerField(null=True, blank=True)
     priority = models.IntegerField(null=True, blank=True)
 
@@ -110,6 +123,7 @@ class Exam(models.Model):
     student = models.ForeignKey(Student)
     subject = models.CharField(max_length=200, null=True, blank=True)
     examnr = models.IntegerField()
+#    examnr = models.ForeignKey(MasterExam)
     resit = models.IntegerField(null=True, blank=True)
     points = models.DecimalField(max_digits=3, decimal_places=1, 
                                  null=True, blank=True)
@@ -123,4 +137,16 @@ class Exam(models.Model):
 
     def __unicode__(self):
         return u'%i: %s' % (self.examnr, self.student)
+
+
+class StaticData(models.Model):
+    key = models.CharField(max_length=100)
+    value = models.TextField(null=True, blank=True)
+
+    class Meta:
+        ordering = ('key',)
+        verbose_name_plural = 'Static data'
+
+    def __unicode__(self):
+        return u'%s' % self.key
 

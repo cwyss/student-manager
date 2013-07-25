@@ -47,10 +47,13 @@ class ExerciseAdmin(admin.ModelAdmin):
                      'student__first_name')
 
 
+class MasterExamAdmin(admin.ModelAdmin):
+    list_display = ('number', 'title', 'mark_limits')
+
+
 class RoomAdmin(admin.ModelAdmin):
     list_display = ('examnr', 'name', 'capacity', 'priority')
     list_filter = ('examnr',)
-
 
 
 class ExamAdmin(admin.ModelAdmin):
@@ -103,9 +106,16 @@ class ExamAdmin(admin.ModelAdmin):
             {'formset': formset,
              'num_exercises': range(6)},
             context_instance=RequestContext(request))
-        
+
+
+class StaticDataAdmin(admin.ModelAdmin):
+    list_display = ('key', 'value')
+
+
 
 admin.site.register(models.Student, StudentAdmin)
 admin.site.register(models.Exercise, ExerciseAdmin)
+#admin.site.register(models.MasterExam, MasterExamAdmin)
 admin.site.register(models.Room, RoomAdmin)
 admin.site.register(models.Exam, ExamAdmin)
+admin.site.register(models.StaticData, StaticDataAdmin)

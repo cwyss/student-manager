@@ -22,10 +22,19 @@ To start the server::
   ./manage.py runserver
 
 
-CSV import formats
-==================
+Usage
+=====
 
-import student data::
+static data keys
+----------------
+
+bonus1, bonus2: minimal points for 1/3, 2/3 bonus on exam mark
+
+
+import formats
+--------------
+
+import student data (CSV)::
   matrikel number
   last name
   first name
@@ -33,17 +42,26 @@ import student data::
   semester
   group
 
-import exercise data, exercise table::
+import exercise data, exercise table (CSV)::
   matrikel number
   sheet number
   points
 
-import exercise data, big table::
+import exercise data, big table (CSV)::
   matrikel number
   points sheet 1
   points sheet 2
   ...
   points sheet n
+
+import exam data::
+  subject line 'subject: <subject>' followed by column formated paragraphs
+  with columns::
+    number (ignored)
+    last name
+    first name
+    matrikel number
+    resit count
 
 
 Development notes
