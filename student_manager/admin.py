@@ -48,7 +48,7 @@ class ExerciseAdmin(admin.ModelAdmin):
 
 
 class RoomAdmin(admin.ModelAdmin):
-    list_display = ('name', 'examnr', 'capacity', 'priority')
+    list_display = ('examnr', 'name', 'capacity', 'priority')
     list_filter = ('examnr',)
 
 
@@ -84,6 +84,8 @@ class ExamAdmin(admin.ModelAdmin):
             return
 
         queryset.update(number=None)
+        queryset = queryset.order_by('student__modulo_matrikel',
+                                     'student__obscured_matrikel')
         roomdata = roomlist.pop(0)
         for i, exam in enumerate(queryset):
             if i >= roomdata[0] and roomlist:

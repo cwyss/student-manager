@@ -346,37 +346,8 @@ class PrintExamsView(ListView):
 
     def get_queryset(self):
         examnr = int(self.request.GET.get('examnr'))
-        numbering = self.request.GET.get('numbering')
-
-        if numbering!='leave':
-            rooms = models.Room.objects.filter(examnr=examnr)
-            rooms = rooms.order_by('priority')
-            roomlist = []
-            maxnumber = 0
-            try:
-                for room in rooms:
-                    maxnumber += room.capacity
-                    roomlist.append((maxnumber, room))
-            except TypeError:
-                return []
-            if maxnumber<=0:
-                return []
-            roomdata = roomlist.pop(0)
 
         exams = models.Exam.objects.filter(examnr=examnr)
-        if numbering=='modmatr':
-            exams = exams.order_by('student__modulo_matrikel',
-                                   'student__obscured_matrikel')
-            for exam in exams:
-                exam.number = None
-                exam.save()
-            for i,exam in enumerate(exams):
-                if i>=roomdata[0] and roomlist:
-                    roomdata = roomlist.pop(0)
-                exam.number = i+1
-                exam.room = roomdata[1]
-                exam.save()
-
         exams = exams.order_by('student__modulo_matrikel',
                                'student__obscured_matrikel')
         return list(exams)

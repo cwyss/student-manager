@@ -62,8 +62,5 @@ class ImportExamsForm(forms.Form):
 class PrintExamsOptForm(forms.Form):
     examnr = forms.ChoiceField(label='Exam number', 
                              choices=((1, '1'), (2, '2')))
-    numbering = forms.ChoiceField(
-        choices=(('leave', 'leave as is'),
-                 ('modmatr', 'generate by modulo matrikel')))
 
     
