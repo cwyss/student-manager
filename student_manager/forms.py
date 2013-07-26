@@ -31,7 +31,7 @@ ExamFormSet = modelformset_factory(models.Exam, form=ExamForm, extra=0)
 
 
 class ImportExercisesForm(forms.Form):
-    group = forms.IntegerField()
+    group = forms.IntegerField(required=False)
     column_separator = forms.CharField(max_length=1, initial=';')
     csv_file = forms.FileField(label=_('CSV file'))
     format = forms.ChoiceField(choices=(

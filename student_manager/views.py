@@ -28,10 +28,15 @@ class ImportExercisesView(FormView):
                       'updated': [],
                       'unchanged': [],
                       'unknown_student': [],
-                      'invalid_points': []}
+                      'invalid_points': [],
+                      'no_matrikel': []}
         for line, row in enumerate(csvreader):
-            if line == 0 and not row[0].isdigit():
-                # We seem to have a header; ignore.
+            if not row[0].isdigit():
+                if line == 0:
+                    # We seem to have a header; ignore.
+                    pass
+                else:
+                    self.stats['no_matrikel'].append(row)
                 continue
             try:
                 student = models.Student.objects.get(matrikel=row[0])
@@ -70,6 +75,11 @@ class ImportExercisesView(FormView):
                 self.request,
                 '%s invalid points: %s' % (len(invpset),
                                            ', '.join(invpset)))
+        if self.stats['no_matrikel']:
+            messages.warning(
+                self.request,
+                '%s entries without matrikel skipped.' \
+                    % len(self.stats['no_matrikel']))
         
         return super(ImportExercisesView, self).form_valid(form)
 
