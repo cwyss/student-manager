@@ -96,19 +96,19 @@ class Exercise(models.Model):
         return cls.objects.aggregate(total=Max('sheet'))['total'] or 0
 
 
-# class MasterExam(models.Model):
-#     number = models.IntegerField(unique=True)
-#     title = models.CharField(max_length=200, null=True, blank=True)
-#     mark_limits = models.TextField(null=True, blank=True)
+class MasterExam(models.Model):
+    number = models.IntegerField(unique=True)
+    title = models.CharField(max_length=200, null=True, blank=True)
+    mark_limits = models.TextField(null=True, blank=True)
 
-#     def __unicode__(self):
-#         return u'%s' % self.number
+    def __unicode__(self):
+        return u'%s' % self.number
 
 
 class Room(models.Model):
     name = models.CharField(max_length=200)
-    examnr = models.IntegerField()
-#    examnr = models.ForeignKey(MasterExam)
+    #examnr = models.IntegerField()
+    examnr = models.ForeignKey(MasterExam)
     capacity = models.IntegerField(null=True, blank=True)
     priority = models.IntegerField(null=True, blank=True)
 
@@ -116,14 +116,14 @@ class Room(models.Model):
         ordering = ('examnr', 'priority')
 
     def __unicode__(self):
-        return u'%s (%d)' % (self.name, self.examnr)
+        return u'%s (%d)' % (self.name, self.examnr.number)
 
 
 class Exam(models.Model):
     student = models.ForeignKey(Student)
     subject = models.CharField(max_length=200, null=True, blank=True)
-    examnr = models.IntegerField()
-#    examnr = models.ForeignKey(MasterExam)
+    #examnr = models.IntegerField()
+    examnr = models.ForeignKey(MasterExam)
     resit = models.IntegerField(null=True, blank=True)
     points = models.DecimalField(max_digits=3, decimal_places=1, 
                                  null=True, blank=True)
@@ -136,7 +136,7 @@ class Exam(models.Model):
         ordering = ('examnr', 'student')
 
     def __unicode__(self):
-        return u'%i: %s' % (self.examnr, self.student)
+        return u'%i: %s' % (self.examnr.number, self.student)
 
 
 class StaticData(models.Model):

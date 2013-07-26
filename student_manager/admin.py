@@ -115,7 +115,7 @@ class StaticDataAdmin(admin.ModelAdmin):
 
 admin.site.register(models.Student, StudentAdmin)
 admin.site.register(models.Exercise, ExerciseAdmin)
-#admin.site.register(models.MasterExam, MasterExamAdmin)
+admin.site.register(models.MasterExam, MasterExamAdmin)
 admin.site.register(models.Room, RoomAdmin)
 admin.site.register(models.Exam, ExamAdmin)
 admin.site.register(models.StaticData, StaticDataAdmin)
