@@ -1,10 +1,11 @@
 {% extends "admin/base.html" %}
 {% load i18n %}
+{% load student_manager_extras %}
 
 {% block title %}{{ title }} | {% trans 'Student Manager' %}{% endblock %}
 
 {% block branding %}
-<h1 id="site-name">{% trans 'Student Manager' %}</h1>
+<h1 id="site-name">{% trans 'Student Manager' %} {% static_data "title" %}</h1>
 {% endblock %}
 
 {% block nav-global %}
