@@ -20,6 +20,12 @@ def validate_matrikel(matrikel, student_id):
         raise ValidationError('Matrikel already exists.')
 
 
+class StudentManager(models.Manager):
+    def get_query_set(self):
+        query = super(StudentManager, self).get_query_set()
+        return query.annotate(_total_points=Sum('exercise__points'))
+
+
 class Student(models.Model):
     matrikel = models.IntegerField(null=True, blank=True)
     modulo_matrikel = models.IntegerField(null=True, blank=True,
@@ -33,6 +39,8 @@ class Student(models.Model):
     group = models.IntegerField(null=True, blank=True)
     active = models.BooleanField(default=True)
 
+    objects = StudentManager()
+
     def __unicode__(self):
         return u'%s, %s (%s)' % (self.last_name, self.first_name, self.matrikel)
 
@@ -42,8 +50,9 @@ class Student(models.Model):
     number_of_exercises.short_description = 'Exercises'
 
     def total_points(self):
-        total = self.exercise_set.aggregate(Sum('points'))['points__sum']
-        return total or Decimal('0.0')
+        return self._total_points or Decimal('0.0')
+    
+    total_points.admin_order_field = '_total_points'
 
     def bonus(self):
         try:
