@@ -108,7 +108,6 @@ class MasterExam(models.Model):
 
 class Room(models.Model):
     name = models.CharField(max_length=200)
-    #examnr = models.IntegerField()
     examnr = models.ForeignKey(MasterExam)
     capacity = models.IntegerField(null=True, blank=True)
     priority = models.IntegerField(null=True, blank=True)
@@ -123,7 +122,6 @@ class Room(models.Model):
 class Exam(models.Model):
     student = models.ForeignKey(Student)
     subject = models.CharField(max_length=200, null=True, blank=True)
-    #examnr = models.IntegerField()
     examnr = models.ForeignKey(MasterExam)
     resit = models.IntegerField(null=True, blank=True)
     points = models.DecimalField(max_digits=3, decimal_places=1, 

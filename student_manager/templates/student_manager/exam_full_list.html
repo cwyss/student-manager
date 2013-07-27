@@ -4,22 +4,26 @@
     <link rel="stylesheet" type="text/css" href="{{ STATIC_URL}}print.css">
   </head>
   <body>
-    <h3>Platzliste {{ examtitle|safe|default:"Klausur" }}</h3>
-    <p>Die Liste ist sortiert nach den letzten 4 Stellen der Matrikelnummer.
-      Wenn n&ouml;tig sind weitere Stellen angegeben.</p>
+    <h3>Teilnehmer {{ examtitle|safe|default:"Klausur" }}</h3>
     <table>
       <thead>
 	<tr>
-	  <th>Matr.</th>
+	  <th>Nr</th>
 	  <th>H&ouml;rsaal</th>
-	  <th>Platz</th>
+	  <th>Matr.</th>
+	  <th>Name</th>
+	  <th>Fach</th>
+	  <th></th>
 	</tr>
       </thead>
       {% for exam in object_list %}
       <tr class="{% cycle 'odd' 'even' %}">
-	<td class="right">{{ exam.student.obscured_matrikel }}</td>
-	<td class="center">{{ exam.room.name }}</td>
 	<td class="right">{{ exam.number }}</td>
+	<td class="center">{{ exam.room.name }}</td>
+	<td class="right">{{ exam.student.matrikel }}</td>
+	<td>{{ exam.student.last_name }}, {{ exam.student.first_name }}</td>
+	<td>{{ exam.subject }}</td>
+	<td>&#x25a1;</td>
       </tr>
       {% endfor %}
     </table>

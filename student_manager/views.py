@@ -358,15 +358,25 @@ print_exams_opt = staff_member_required(FormView.as_view(
 
 
 class PrintExamsView(ListView):
-    template_name = 'student_manager/exam_list.html'
-
     def get_queryset(self):
-        examnr = int(self.request.GET.get('examnr'))
-
+        examnr = self.request.GET.get('examnr')
+        format = self.request.GET.get('format')
         exams = models.Exam.objects.filter(examnr=examnr)
-        exams = exams.order_by('student__modulo_matrikel',
-                               'student__obscured_matrikel')
+        if format.endswith('obscured'):
+            exams = exams.order_by('student__modulo_matrikel',
+                                   'student__obscured_matrikel')
+            self.template_name = 'student_manager/exam_list.html'
+        elif format == 'exam_full':
+            exams = exams.order_by('number')
+            self.template_name = 'student_manager/exam_full_list.html'
         return list(exams)
+
+    def get_context_data(self, **kwargs):
+        context = super(PrintExamsView, self).get_context_data(**kwargs)
+        examnr = self.request.GET.get('examnr')
+        masterexam = models.MasterExam.objects.get(id=examnr)
+        context['examtitle'] = masterexam.title
+        return context
 
 print_exams = staff_member_required(PrintExamsView.as_view())
 

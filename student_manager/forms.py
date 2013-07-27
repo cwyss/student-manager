@@ -61,7 +61,10 @@ class ImportExamsForm(forms.Form):
 
 
 class PrintExamsOptForm(forms.Form):
-    examnr = forms.ChoiceField(label='Exam number', 
-                             choices=((1, '1'), (2, '2')))
-
+    examnr = forms.ModelChoiceField(
+        label='Exam number', 
+        queryset=models.MasterExam.objects.all())
+    format = forms.ChoiceField(
+        choices=(('exam_obscured', 'seat list - with obscured matrikel'),
+                ('exam_full', 'seat list - with full data')))
     
