@@ -7,7 +7,7 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.utils.translation import ugettext_lazy as _
 
-from student_manager import forms, models
+from student_manager import forms, models, views
 
 
 class NonuniqueModuloMatrikelListFilter(admin.SimpleListFilter):
@@ -48,7 +48,7 @@ class ExerciseAdmin(admin.ModelAdmin):
 
 
 class MasterExamAdmin(admin.ModelAdmin):
-    list_display = ('number', 'title', 'mark_limits')
+    list_display = ('number', 'title', 'mark_limits', 'num_exercises')
 
 
 class RoomAdmin(admin.ModelAdmin):
@@ -100,19 +100,13 @@ class ExamAdmin(admin.ModelAdmin):
 
         
     def enter_results(self, request, queryset):
-        formset = forms.ExamFormSet(queryset=queryset)
-        return render_to_response(
-            'student_manager/exam_results.html',
-            {'formset': formset,
-             'num_exercises': range(6)},
-            context_instance=RequestContext(request))
+        return views.save_exam_results(request, queryset)
 
 
 class StaticDataAdmin(admin.ModelAdmin):
     list_display = ('key', 'value')
 
-
-
+        
 admin.site.register(models.Student, StudentAdmin)
 admin.site.register(models.Exercise, ExerciseAdmin)
 admin.site.register(models.MasterExam, MasterExamAdmin)

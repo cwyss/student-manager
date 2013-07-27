@@ -20,5 +20,7 @@ urlpatterns = patterns('',
         name='import_students'),
     url(r'^import_exams/$', 'student_manager.views.import_exams',
         name='import_exams'),
+    url(r'^save_exam_results/$', 'student_manager.views.save_exam_results',
+        name='save_exam_results'),
     url(r'^admin/', include(admin.site.urls)),
 )

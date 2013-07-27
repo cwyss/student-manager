@@ -100,6 +100,7 @@ class MasterExam(models.Model):
     number = models.IntegerField(unique=True)
     title = models.CharField(max_length=200, null=True, blank=True)
     mark_limits = models.TextField(null=True, blank=True)
+    num_exercises = models.IntegerField()
 
     def __unicode__(self):
         return u'%s' % self.number
