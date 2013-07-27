@@ -6,6 +6,12 @@ from decimal import Decimal
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.exceptions import ValidationError
+from django.core.urlresolvers import reverse, reverse_lazy
+from django.db.models import Max
+from django.http import HttpResponseRedirect
+from django.shortcuts import render_to_response
+from django.template import RequestContext
+from django.views.decorators.http import require_POST
 from django.views.generic.edit import FormView
 from django.views.generic.list import ListView
 
@@ -179,9 +185,9 @@ class ImportStudentsView(FormView):
 import_students = staff_member_required(ImportStudentsView.as_view())
 
 
-print_students_opt = FormView.as_view(
+print_students_opt = staff_member_required(FormView.as_view(
     template_name='student_manager/print_students_opt.html',
-    form_class=forms.PrintStudentsOptForm)
+    form_class=forms.PrintStudentsOptForm))
 
 
 class PrintStudentsView(ListView):
@@ -210,7 +216,7 @@ class PrintStudentsView(ListView):
 
         return student_data
 
-print_students = PrintStudentsView.as_view()
+print_students = staff_member_required(PrintStudentsView.as_view())
 
 
 class ImportExamsView(FormView):
@@ -346,9 +352,9 @@ class ImportExamsView(FormView):
 import_exams = staff_member_required(ImportExamsView.as_view())
 
 
-print_exams_opt = FormView.as_view(
+print_exams_opt = staff_member_required(FormView.as_view(
     template_name='student_manager/print_exams_opt.html',
-    form_class=forms.PrintExamsOptForm)
+    form_class=forms.PrintExamsOptForm))
 
 
 class PrintExamsView(ListView):
@@ -362,5 +368,36 @@ class PrintExamsView(ListView):
                                'student__obscured_matrikel')
         return list(exams)
 
+print_exams = staff_member_required(PrintExamsView.as_view())
 
-print_exams = PrintExamsView.as_view()
+
+@staff_member_required
+@require_POST
+def save_exam_results(request, queryset=None):
+    if queryset is not None:
+        # initial form
+        formset = forms.ExamFormSet(queryset=queryset)
+        num_exercises = queryset.aggregate(
+            max=Max('examnr__num_exercises'))['max']
+        num_exercises_form = forms.NumberExercisesForm(
+            initial={'num_exercises': num_exercises})
+    else:
+        # submitted form
+        formset = forms.ExamFormSet(request.POST)
+        if formset.is_valid():
+            formset.save()
+            messages.success(request, 'Exam results updated.')
+            return HttpResponseRedirect(
+                reverse('admin:student_manager_exam_changelist'))
+        num_exercises_form = forms.NumberExercisesForm(request.POST)
+        if num_exercises_form.is_valid():
+            num_exercises = num_exercises_form.cleaned_data['num_exercises']
+        else:
+            raise ValidationError('Can\'t determine number of exercises')
+
+    return render_to_response(
+        'student_manager/exam_results.html',
+        {'formset': formset,
+         'num_exercises': range(1, num_exercises + 1),
+         'num_exercises_form': num_exercises_form},
+        context_instance=RequestContext(request))

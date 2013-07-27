@@ -1,0 +1,20 @@
+.exam-results .subpoints input,
+.exam-results .total input {
+    width: 50px;
+}
+
+.exam-results .total {
+    background-color: #FFFFCC;
+    text-align: center;
+}
+
+.exam-results .subpoints {
+    text-align: center;
+}
+
+.exam-results td {
+    padding-top: 0px;
+    padding-bottom: 0px;
+    vertical-align: middle;
+}
+

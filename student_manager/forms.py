@@ -1,7 +1,8 @@
 """Forms."""
 
 from django import forms
-from django.forms.models import modelformset_factory
+from django.forms.models import modelformset_factory, modelform_factory
+from django.forms.widgets import HiddenInput
 from django.utils.translation import ugettext_lazy as _
 
 from student_manager import models
@@ -20,14 +21,14 @@ class StudentForm(forms.ModelForm):
         return matrikel
 
 
-class ExamForm(forms.ModelForm):
+ExamFormSet = modelformset_factory(
+    models.Exam,
+    form=modelform_factory(models.Exam, fields=('points',)),
+    extra=0)
 
-    class Meta:
-        model = models.Exam
-        fields = ('points',)
 
-        
-ExamFormSet = modelformset_factory(models.Exam, form=ExamForm, extra=0)
+class NumberExercisesForm(forms.Form):
+    num_exercises = forms.IntegerField(widget=HiddenInput)
 
 
 class ImportExercisesForm(forms.Form):
