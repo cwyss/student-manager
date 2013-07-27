@@ -2,7 +2,10 @@
 {% load i18n admin_static %}
 {% load url from future %}
 
-{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}" />{% endblock %}
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}" />
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL}}main.css" %}" />
+{% endblock %}
 
 {% block title %}Print Student List | {% trans 'Django site admin' %}{% endblock %}
 
@@ -18,18 +21,34 @@
 
 {% block content %}
 <div id="content-main">
-    <form action="" method="post">
+    <form action="{% url 'save_exam_results' %}" method="post">
+      {{ formset.management_form }}
+      {{ num_exercises_form }}
+      {{ formset.nonfield_errors }}
       <div>
 	{% csrf_token %}
 	<fieldset>
-	  <table>
-	    {% for form in formset %}
+	  <table class="exam-results">
+	    <thead>
 	      <tr>
+		<th>Student</th>
+		{% for num in num_exercises %}
+		<th>Exercise {{ num }}</th>
+		{% endfor %}
+		<th>Total</th>
+	      </tr>
+	    </thead>
+	    {% for form in formset %}
+	      <tr onchange="updateTotal(this)">
 		<td>{{ form.instance.student }}</td>
 		{% for num in num_exercises %}
-		<td><input type="text" class="subpoints" /></td>
+		<td class="subpoints"><input type="text" /></td>
 		{% endfor %}
-		<td>{{ form.points }}</td>
+		<td class="total">{{ form.points }}{{ form.points.errors }}
+		  {% for field in form.hidden_fields %}
+		  {{ field }}{{ field.errors }}
+		  {% endfor %}
+		</td>
 	      </tr>
 	    {% endfor %}
 	  </table>
@@ -40,4 +59,17 @@
     </div>
   </form>
 </div>
+
+<script>
+function updateTotal(row) {
+  var subpoints = row.getElementsByClassName("subpoints");
+  var sum = 0;
+  for (var i = 0; i < subpoints.length; i++) {
+    val = subpoints[i].getElementsByTagName('input')[0].value;
+    if (val) sum += parseFloat(val);
+  }
+  var total = row.getElementsByClassName("total")[0];
+  total.getElementsByTagName('input')[0].value = sum;
+}
+</script>
 {% endblock %}
