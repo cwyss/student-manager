@@ -49,6 +49,7 @@ class ExerciseAdmin(admin.ModelAdmin):
 
 class MasterExamAdmin(admin.ModelAdmin):
     list_display = ('number', 'title', 'mark_limits', 'num_exercises')
+    form = forms.MasterExamForm
 
 
 class RoomAdmin(admin.ModelAdmin):

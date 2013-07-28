@@ -1,9 +1,11 @@
 """Forms."""
 
+import json
 from django import forms
 from django.forms.models import modelformset_factory, modelform_factory
 from django.forms.widgets import HiddenInput
 from django.utils.translation import ugettext_lazy as _
+from django.core.exceptions import ValidationError
 
 from student_manager import models
 
@@ -19,6 +21,25 @@ class StudentForm(forms.ModelForm):
         matrikel = self.cleaned_data['matrikel']
         models.validate_matrikel(matrikel, student_id)
         return matrikel
+
+
+class MasterExamForm(forms.ModelForm):
+    class Meta:
+        model = models.MasterExam
+
+    def clean_mark_limits(self):
+        mark_limits_str = self.cleaned_data['mark_limits']
+        if mark_limits_str:
+            try:
+                mark_limits = json.loads(mark_limits_str)
+                if type(mark_limits) != list:
+                    raise ValueError
+                for entry in mark_limits:
+                    if type(entry) != list or len(entry) != 2:
+                        raise ValueError
+            except ValueError:
+                raise ValidationError('Expect list of point-mark-tuples')
+        return mark_limits_str
 
 
 class ExamForm(forms.ModelForm):

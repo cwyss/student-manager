@@ -28,9 +28,18 @@ Usage
 static data keys
 ----------------
 
-lecture: lecture name for headings
-bonus1, bonus2: minimal points for 1/3, 2/3 bonus on exam mark
+lecture::
+  lecture name for headings
+bonus1, bonus2::
+  minimal points for 1/3, 2/3 bonus on exam mark
 
+master exam data
+----------------
+
+mark_limits::
+  list of point-mark-tuples; point is minimum point value for this mark
+  list in json format: [[point, mark], ...]
+  order by decreasing points
 
 import formats
 --------------
