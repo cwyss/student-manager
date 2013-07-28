@@ -13,6 +13,7 @@
 	  <th>Matr.</th>
 	  <th>Punkte</th>
 	  <th>Note</th>
+	  <th>Bonus</th>
 	  <th>Endnote</th>
 	</tr>
       </thead>
@@ -21,6 +22,7 @@
 	<td class="right">{{ exam.student.obscured_matrikel }}</td>
 	<td class="right">{{ exam.points|floatformat:1 }}</td>
 	<td class="center">{{ exam.mark|floatformat:1 }}</td>
+	<td class="center">{{ exam.student.bonus }}</td>
 	<td class="center">{{ exam.final_mark|floatformat:1 }}</td>
       </tr>
       {% endfor %}

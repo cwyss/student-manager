@@ -10,6 +10,7 @@
 	<tr>
 	  <th>Matr.</th>
 	  <th>Name</th>
+	  <th>Bonus</th>
 	  <th>Punkte</th>
 	  <th>Note</th>
 	  <th>Endnote</th>
@@ -19,7 +20,8 @@
       <tr class="{% cycle 'odd' 'even' %}">
 	<td class="right">{{ exam.student.matrikel }}</td>
 	<td>{{ exam.student.last_name }}, {{ exam.student.first_name }}</td>
-	<td class="right">{{ exam.points|floatformat:1 }}</td>
+	<td class="center">{{ exam.student.bonus }}</td>
+	<td class="right">{{ exam.points|floatformat:1|default:"n.t." }}</td>
 	<td class="center">{{ exam.mark|floatformat:1 }}</td>
 	<td class="center">{{ exam.final_mark|floatformat:1 }}</td>
       </tr>

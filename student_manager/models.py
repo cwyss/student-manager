@@ -173,6 +173,9 @@ class Exam(models.Model):
                 self.final_mark = BONUSMAP[BONUSMAP[self.mark]]
             else:
                 self.final_mark = self.mark
+        else:
+            self.mark = None
+            self.final_mark = None
         return super(Exam, self).save(*args, **kwargs)
 
 

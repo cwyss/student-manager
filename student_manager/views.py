@@ -368,6 +368,7 @@ class PrintExamsView(ListView):
             if format == 'exam_obscured':
                 self.template_name = 'student_manager/exam_list.html'
             else:
+                exams = exams.exclude(points=None)
                 self.template_name = 'student_manager/result_list.html'
         elif format == 'exam_full':
             exams = exams.order_by('number')
