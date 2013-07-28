@@ -93,5 +93,7 @@ class PrintExamsOptForm(forms.Form):
         queryset=models.MasterExam.objects.all())
     format = forms.ChoiceField(
         choices=(('exam_obscured', 'seat list - with obscured matrikel'),
-                ('exam_full', 'seat list - with full data')))
-    
+                 ('exam_full', 'seat list - with full data'),
+                 ('result_obscured', 'result list - with obscured matrikel'),
+                 ('result_full', 'result list - with full data')))
+

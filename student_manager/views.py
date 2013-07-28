@@ -365,10 +365,17 @@ class PrintExamsView(ListView):
         if format.endswith('obscured'):
             exams = exams.order_by('student__modulo_matrikel',
                                    'student__obscured_matrikel')
-            self.template_name = 'student_manager/exam_list.html'
+            if format == 'exam_obscured':
+                self.template_name = 'student_manager/exam_list.html'
+            else:
+                self.template_name = 'student_manager/result_list.html'
         elif format == 'exam_full':
             exams = exams.order_by('number')
             self.template_name = 'student_manager/exam_full_list.html'
+        else:
+            exams = exams.order_by('student__last_name',
+                                   'student__first_name')
+            self.template_name = 'student_manager/result_full_list.html'
         return list(exams)
 
     def get_context_data(self, **kwargs):
