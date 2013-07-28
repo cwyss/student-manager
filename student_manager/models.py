@@ -4,6 +4,7 @@ from decimal import Decimal
 from django.db import models
 from django.db.models import Sum, Max
 from django.core.exceptions import ValidationError
+import json
 
 
 POINTS_CHOICES = [(i/Decimal('2'), str(i/2.0)) for i in range(11)]
@@ -128,6 +129,10 @@ class Room(models.Model):
         return u'%s (%d)' % (self.name, self.examnr.number)
 
 
+BONUSMAP = {5.0: 5.0, 4.0: 3.7, 3.7: 3.3, 3.3: 3.0, 3.0: 2.7,
+            2.7: 2.3, 2.3: 2.0, 2.0: 1.7, 1.7: 1.3, 1.3: 1.0,
+            1.0: 1.0}
+
 class Exam(models.Model):
     student = models.ForeignKey(Student)
     subject = models.CharField(max_length=200, null=True, blank=True)
@@ -137,6 +142,10 @@ class Exam(models.Model):
                                  null=True, blank=True)
     room = models.ForeignKey(Room, null=True, blank=True)
     number = models.IntegerField(null=True, blank=True)
+    mark = models.DecimalField(max_digits=2, decimal_places=1,
+                               null=True, blank=True)
+    final_mark = models.DecimalField(max_digits=2, decimal_places=1,
+                                     null=True, blank=True)
 
     class Meta:
         unique_together = (('student', 'examnr'),
@@ -145,6 +154,21 @@ class Exam(models.Model):
 
     def __unicode__(self):
         return u'%i: %s' % (self.examnr.number, self.student)
+
+    def save(self, *args, **kwargs):
+        if self.examnr.mark_limits and self.points != None:
+            mark_limits = json.loads(self.examnr.mark_limits)
+            for limit,mark in mark_limits:
+                if self.points >= limit:
+                    self.mark = mark
+                    break
+            if self.student.bonus() == '1/3':
+                self.final_mark = BONUSMAP[self.mark]
+            elif self.student.bonus() == '2/3':
+                self.final_mark = BONUSMAP[BONUSMAP[self.mark]]
+            else:
+                self.final_mark = self.mark
+        return super(Exam, self).save(*args, **kwargs)
 
 
 class StaticData(models.Model):

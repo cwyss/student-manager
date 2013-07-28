@@ -58,12 +58,13 @@ class RoomAdmin(admin.ModelAdmin):
 
 class ExamAdmin(admin.ModelAdmin):
     list_display = ('examnr', 'student', 'subject', 'number', 
-                    'room', 'resit', 'points', )
+                    'room', 'resit', 'points', 'mark', 'final_mark')
     list_filter = ('examnr', 'subject', 'room')
     raw_id_fields = ('student',)
     search_fields = ('student__matrikel', 'student__last_name',
                      'student__first_name')
     actions = ('assign_seats', 'enter_results')
+    form = forms.ExamForm
 
     def assign_seats(self, request, queryset):
         examnr = queryset[0].examnr

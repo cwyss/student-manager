@@ -21,6 +21,12 @@ class StudentForm(forms.ModelForm):
         return matrikel
 
 
+class ExamForm(forms.ModelForm):
+    class Meta:
+        model = models.Exam
+        exclude = ('mark', 'final_mark')
+
+
 ExamFormSet = modelformset_factory(
     models.Exam,
     form=modelform_factory(models.Exam, fields=('points',)),
