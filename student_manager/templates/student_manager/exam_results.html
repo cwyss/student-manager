@@ -39,10 +39,10 @@
 	      </tr>
 	    </thead>
 	    {% for form in formset %}
-	      <tr onchange="updateTotal(this)">
+	      <tr>
 		<td>{{ form.instance.student }}</td>
 		{% for num in num_exercises %}
-		<td class="subpoints"><input type="text" /></td>
+		<td onchange="updateTotal(this)" class="subpoints"><input type="text" /></td>
 		{% endfor %}
 		<td class="total">{{ form.points }}{{ form.points.errors }}
 		  {% for field in form.hidden_fields %}
@@ -61,7 +61,8 @@
 </div>
 
 <script>
-function updateTotal(row) {
+function updateTotal(element) {
+  var row = element.parentNode;
   var subpoints = row.getElementsByClassName("subpoints");
   var sum = 0;
   for (var i = 0; i < subpoints.length; i++) {
