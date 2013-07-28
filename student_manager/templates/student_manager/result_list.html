@@ -5,7 +5,25 @@
   </head>
   <body>
     <h3>Ergebnis {{ examtitle|safe|default:"Klausur" }}</h3>
-    <p>Die Liste ist sortiert nach den letzten 4 Stellen der Matrikelnummer.
+    <p>Die Klausur hat insgesamt {{ max_points }} Punkte und ist bestanden ab 
+      {{ pass_points }} Punkten. Notenverteilung:</p>
+    <table>
+      <thead>
+	<tr>
+	  <th>Punkte</th>
+	  <th>Note</th>
+	</tr>
+      </thead>
+      {% for entry in mark_ranges %}
+      <tr>
+	<td>{{ entry.0 }} bis {{ entry.1 }}</td>
+	<td>{{ entry.2 }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+    <p>Bei bestandener Klausur kommt zur Note noch der Bonus aus den
+      &Uuml;bungsbl&auml;ttern hinzu und ergibt die Endnote.
+      Die Liste ist sortiert nach den letzten 4 Stellen der Matrikelnummer.
       Wenn n&ouml;tig sind weitere Stellen angegeben.</p>
     <table>
       <thead>

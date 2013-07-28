@@ -1,6 +1,6 @@
 """Views"""
 
-import csv, re
+import csv, re, json
 from decimal import Decimal
 
 from django.contrib import messages
@@ -384,6 +384,20 @@ class PrintExamsView(ListView):
         examnr = self.request.GET.get('examnr')
         masterexam = models.MasterExam.objects.get(id=examnr)
         context['examtitle'] = masterexam.title
+        context['max_points'] = masterexam.max_points
+        mark_ranges = []
+        if masterexam.mark_limits:
+            mark_limits = json.loads(masterexam.mark_limits)
+            entry = mark_limits[0]
+            mark_ranges.append((masterexam.max_points, 
+                                entry[0], entry[1]))
+            last_limit = entry[0]
+            for entry in mark_limits[1:]:
+                mark_ranges.append((last_limit-.5, entry[0], entry[1]))
+                last_limit = entry[0]
+                if entry[1] == 4.0:
+                    context['pass_points'] = entry[0]
+        context['mark_ranges'] = mark_ranges
         return context
 
 print_exams = staff_member_required(PrintExamsView.as_view())

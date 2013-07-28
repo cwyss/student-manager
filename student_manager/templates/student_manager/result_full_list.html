@@ -8,6 +8,21 @@
     <table>
       <thead>
 	<tr>
+	  <th>Punkte</th>
+	  <th>Note</th>
+	</tr>
+      </thead>
+      {% for entry in mark_ranges %}
+      <tr>
+	<td>{{ entry.0 }} bis {{ entry.1 }}</td>
+	<td>{{ entry.2 }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+    <p></p>
+    <table>
+      <thead>
+	<tr>
 	  <th>Matr.</th>
 	  <th>Name</th>
 	  <th>Bonus</th>
