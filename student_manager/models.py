@@ -51,7 +51,12 @@ class Student(models.Model):
     number_of_exercises.short_description = 'Exercises'
 
     def total_points(self):
-        return self._total_points or Decimal('0.0')
+        if hasattr(self, '_total_points'):
+            _total_points = self._total_points
+        else:
+            _total_points = self.exercise_set.aggregate(
+                Sum('points'))['points__sum']
+        return _total_points or Decimal('0.0')
     
     total_points.admin_order_field = '_total_points'
 
