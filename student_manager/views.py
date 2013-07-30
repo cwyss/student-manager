@@ -7,13 +7,14 @@ from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse, reverse_lazy
-from django.db.models import Max
+from django.db.models import Max, Count
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.views.decorators.http import require_POST
 from django.views.generic.edit import FormView
 from django.views.generic.list import ListView
+from django.views.generic import TemplateView
 
 from student_manager import forms, models
 
@@ -433,3 +434,26 @@ def save_exam_results(request, queryset=None):
          'num_exercises': range(1, num_exercises + 1),
          'num_exercises_form': num_exercises_form},
         context_instance=RequestContext(request))
+
+
+class QueryExamsView(TemplateView):
+    template_name = 'student_manager/query_exams.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(QueryExamsView, self).get_context_data(**kwargs)
+        examobjs = models.Exam.objects
+        markcounts = examobjs.values('mark').order_by() \
+            .annotate(count=Count('id'))
+        context['markcounts'] = markcounts
+
+        context['missing_count'] = examobjs.filter(points=None).count()
+        examlist = examobjs.exclude(points=None)
+        context.update(
+            attend_count = examlist.count(),
+            pass_count = examlist.filter(mark__lte=4.0).count(),
+            fail_count = examlist.filter(mark=5.0).count()
+            )
+        print examlist.count()
+        return context
+
+query_exams = staff_member_required(QueryExamsView.as_view())

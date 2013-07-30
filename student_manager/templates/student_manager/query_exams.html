@@ -1,0 +1,42 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}" />{% endblock %}
+
+{% block title %}Query Exam Data | {% trans 'Django site admin' %}{% endblock %}
+
+{% block content_title %}<h1>Query Exam Data</h1>{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:app_list' app_label='student_manager' %}">Student_manager</a>
+&rsaquo; <a href="{% url 'admin:student_manager_exam_changelist' %}">Exams</a>
+&rsaquo; Query exam data
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <p>attending students: {{ attend_count }},
+    missing students: {{ missing_count }} <br />
+    pass: {{ pass_count }},
+    fail: {{ fail_count }}
+  </p>
+  <table>
+    <thead>
+      <tr>
+	<th>Mark</th>
+	<th>Count</th>
+      </tr>
+    </thead>
+    {% for item in markcounts %}
+    <tr>
+      <td class="center">{{ item.mark }}</td>
+      <td class="right">{{ item.count }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}
