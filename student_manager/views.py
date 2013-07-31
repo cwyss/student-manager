@@ -436,24 +436,61 @@ def save_exam_results(request, queryset=None):
         context_instance=RequestContext(request))
 
 
+query_exams_opt = staff_member_required(FormView.as_view(
+    template_name='student_manager/query_exams_opt.html',
+    form_class=forms.QueryExamsOptForm))
+
+
 class QueryExamsView(TemplateView):
     template_name = 'student_manager/query_exams.html'
 
     def get_context_data(self, **kwargs):
         context = super(QueryExamsView, self).get_context_data(**kwargs)
-        examobjs = models.Exam.objects
-        markcounts = examobjs.values('mark').order_by() \
+        examnr = self.request.GET.get('examnr')
+
+        exams = models.Exam.objects.filter(examnr=examnr)
+        markcounts = exams.values('mark').order_by('mark') \
             .annotate(count=Count('id'))
         context['markcounts'] = markcounts
 
-        context['missing_count'] = examobjs.filter(points=None).count()
-        examlist = examobjs.exclude(points=None)
+        context['missing_count'] = exams.filter(points=None).count()
+        examlist = exams.exclude(points=None)
         context.update(
             attend_count = examlist.count(),
             pass_count = examlist.filter(mark__lte=4.0).count(),
             fail_count = examlist.filter(mark=5.0).count()
             )
-        print examlist.count()
+
+        context['pointgroups'] = self.get_pointgroups(examnr)
         return context
+
+    def get_pointgroups(self, examnr):
+        masterexam = models.MasterExam.objects.get(id=examnr)
+        try:
+            pointstep = int(models.StaticData.objects.get(
+                    key='query_exam_pointstep').value)
+        except models.StaticData.DoesNotExist:
+            pointstep = 2
+
+        examlist = models.Exam.objects.filter(examnr=examnr) \
+            .exclude(points=None)
+        pointcounts = examlist.values('points').order_by('points') \
+            .annotate(count=Count('id'))
+
+        group = {'lower': 0, 'upper': pointstep, 'count': 0}
+        pointgroups = [group]
+        for item in pointcounts:
+            while item['points'] >= group['upper']:
+                nextgroup = {'lower': group['upper'],
+                             'upper': group['upper']+pointstep, 
+                             'count': 0}
+                pointgroups.append(nextgroup)
+                group = nextgroup
+            group['count'] += item['count']
+        if masterexam.max_points and group['upper'] > masterexam.max_points:
+            del pointgroups[-1]
+            pointgroups[-1]['count'] += group['count']
+        return pointgroups
+
 
 query_exams = staff_member_required(QueryExamsView.as_view())

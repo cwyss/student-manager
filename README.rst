@@ -30,8 +30,12 @@ static data keys
 
 lecture::
   lecture name for headings
+
 bonus1, bonus2::
   minimal points for 1/3, 2/3 bonus on exam mark
+
+query_exam_pointstep::
+  stepsize for grouping exam points
 
 master exam data
 ----------------

@@ -97,3 +97,8 @@ class PrintExamsOptForm(forms.Form):
                  ('result_obscured', 'result list - with obscured matrikel'),
                  ('result_full', 'result list - with full data')))
 
+
+class QueryExamsOptForm(forms.Form):
+    examnr = forms.ModelChoiceField(
+        label='Exam number', 
+        queryset=models.MasterExam.objects.all())

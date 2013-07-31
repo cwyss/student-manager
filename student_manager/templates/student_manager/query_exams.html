@@ -38,5 +38,22 @@
     </tr>
     {% endfor %}
   </table>
+
+  <p></p>
+
+  <table>
+    <thead>
+      <tr>
+	<th>Points &ge;</th>
+	<th>Count</th>
+      </tr>
+    </thead>
+    {% for item in pointgroups %}
+    <tr>
+      <td class="center">{{ item.lower }}</td>
+      <td class="right">{{ item.count }}</td>
+    </tr>
+    {% endfor %}
+  </table>
 </div>
 {% endblock %}
