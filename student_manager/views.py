@@ -254,11 +254,11 @@ class ImportExamsView(FormView):
         if self.stats['newstud']:
             messages.success(
                 self.request,
-                '%d new students.' % len(self.stats['newstud']))
+                '%d new exams with new students.' % len(self.stats['newstud']))
         if self.stats['new']:
             messages.success(
                 self.request,
-                '%d new exams.' % len(self.stats['new']))
+                '%d new exams with known students.' % len(self.stats['new']))
         if self.stats['updated']:
             messages.success(
                 self.request,

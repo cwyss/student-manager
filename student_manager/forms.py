@@ -82,8 +82,9 @@ class PrintStudentsOptForm(forms.Form):
 
 
 class ImportExamsForm(forms.Form):
-    examnr = forms.ChoiceField(label='Exam number', 
-                             choices=((1, '1'), (2, '2')))
+    examnr = forms.ModelChoiceField(
+        label='Exam number', 
+        queryset=models.MasterExam.objects.all())
     file = forms.FileField(label=_('File'))
 
 
