@@ -1,0 +1,9 @@
+nach Rückkehr von enter exam results wieder auf dieselbe Seite der Exams
+kommen (wenn exams über mehrere Seiten geht) und aktuelle Sortierung
+beibehalten
+
+schnelles Selektieren einer Gruppe/Intervall von exams
+
+durch klick auf student direkt zum student in der student Liste, z.B. aus der
+exams oder exercises liste...?
+

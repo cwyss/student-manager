@@ -61,7 +61,7 @@ class RoomAdmin(admin.ModelAdmin):
 class ExamAdmin(admin.ModelAdmin):
     list_display = ('examnr', 'student', 'subject', 'number', 
                     'room', 'resit', 'points', 'mark', 'final_mark')
-    list_filter = ('examnr', 'subject', 'room')
+    list_filter = ('examnr', 'subject', 'room', 'resit')
     raw_id_fields = ('student',)
     search_fields = ('student__matrikel', 'student__last_name',
                      'student__first_name')
