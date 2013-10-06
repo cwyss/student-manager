@@ -15,7 +15,7 @@
       {% for entry in mark_ranges %}
       <tr>
 	<td>{{ entry.0 }} bis {{ entry.1 }}</td>
-	<td>{{ entry.2 }}</td>
+	<td>{{ entry.2|floatformat:1 }}</td>
       </tr>
       {% endfor %}
     </table>
@@ -25,6 +25,7 @@
 	<tr>
 	  <th>Matr.</th>
 	  <th>Name</th>
+	  <th>Fach</th>
 	  <th>Bonus</th>
 	  <th>Punkte</th>
 	  <th>Note</th>
@@ -35,6 +36,7 @@
       <tr class="{% cycle 'odd' 'even' %}">
 	<td class="right">{{ exam.student.matrikel }}</td>
 	<td>{{ exam.student.last_name }}, {{ exam.student.first_name }}</td>
+	<td>{{ exam.subject }}</td>
 	<td class="center">{{ exam.student.bonus }}</td>
 	<td class="right">{{ exam.points|floatformat:1|default:"n.t." }}</td>
 	<td class="center">{{ exam.mark|floatformat:1 }}</td>

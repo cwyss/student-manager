@@ -429,7 +429,7 @@ def save_exam_results(request, queryset=None):
             raise ValidationError('Can\'t determine number of exercises')
 
     return render_to_response(
-        'student_manager/exam_results.html',
+        'student_manager/enter_exam_results.html',
         {'formset': formset,
          'num_exercises': range(1, num_exercises + 1),
          'num_exercises_form': num_exercises_form},
