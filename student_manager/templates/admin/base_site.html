@@ -2,6 +2,8 @@
 {% load i18n %}
 {% load student_manager_extras %}
 
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{{ STATIC_URL}}extra.css">{% endblock %}
+
 {% block title %}{{ title }} | {% trans 'Student Manager' %}{% endblock %}
 
 {% block branding %}
@@ -9,11 +11,27 @@
 {% endblock %}
 
 {% block nav-global %}
-<a href="{% url admin:index %}">Admin Home</a> |
-<a href="{% url print_students_opt %}">Print student list</a> |
-<a href="{% url print_exams_opt %}">Print exam list</a> |
-<a href="{% url import_exercises %}?return_url={{ request.path }}">Import exercise data</a> |
-<a href="{% url import_students %}?return_url={{ request.path }}">Import student data</a> |
-<a href="{% url import_exams %}?return_url={{ request.path }}">Import exam data</a> |
-<a href="{% url query_exams_opt %}">Query exam data</a>
+<ul class="navbar">
+  <li><a href="{% url admin:index %}">Admin Home</a></li>
+  <li>
+    Print
+    <ul>
+      <li><a href="{% url print_students_opt %}">Student list</a></li>
+      <li><a href="{% url print_exams_opt %}">Exam list</a></li>
+    </ul>
+  </li>
+  <li>
+    Import
+    <ul>
+      <li><a href="{% url import_exercises %}?return_url={{ request.path }}">Exercise data</a></li>
+      <li><a href="{% url import_students %}?return_url={{ request.path }}">Student data</a></li>
+      <li><a href="{% url import_exams %}?return_url={{ request.path }}">Exam data</a></li>
+    </ul>
+  </li>
+  <li>
+    <a href="{% url query_exams_opt %}">Query exam data</a>
+  </li>
+</ul>
+
+<div class="clearfix"></div>
 {% endblock %}
