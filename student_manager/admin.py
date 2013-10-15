@@ -109,6 +109,38 @@ class ExamAdmin(admin.ModelAdmin):
 class StaticDataAdmin(admin.ModelAdmin):
     list_display = ('key', 'value')
 
+
+class AssignedGroupListFilter(admin.SimpleListFilter):
+    title = 'assigned group'
+    parameter_name = 'assigned_group'
+
+    def lookups(self, request, model_admin):
+        groupset = models.Registration.objects \
+            .values('student__group') \
+            .order_by('student__group') \
+            .annotate(Count('id'))
+        lookups = []
+        for x in groupset:
+            group = x['student__group']
+            if group!=None:
+                lookups.append((group, str(group)))
+            else:
+                lookups.append((False, 'None'))
+        return lookups
+
+    def queryset(self, request, queryset):
+        if self.value()==None:
+            return queryset
+        elif self.value()=='False':
+            return queryset.filter(student__group__isnull=True)
+        else:
+            return queryset.filter(student__group=self.value())
+
+class RegistrationAdmin(admin.ModelAdmin):
+    list_display = ('student', 'group', 'priority', 'status',
+                    'assigned_group')
+    list_filter = ('group', AssignedGroupListFilter)
+
         
 admin.site.register(models.Student, StudentAdmin)
 admin.site.register(models.Exercise, ExerciseAdmin)
@@ -116,3 +148,4 @@ admin.site.register(models.MasterExam, MasterExamAdmin)
 admin.site.register(models.Room, RoomAdmin)
 admin.site.register(models.Exam, ExamAdmin)
 admin.site.register(models.StaticData, StaticDataAdmin)
+admin.site.register(models.Registration, RegistrationAdmin)

@@ -31,6 +31,16 @@ static data keys
 lecture::
   lecture name for headings
 
+subject_translation::
+  translation from long subject name to short name,
+  used in import registration data,
+  json dictionary: {"Electrical Engineering": "ET", "Optionalbereich": "Opt"}
+
+group_translation::
+  translation from group name to group number,
+  used in import registration data,
+  json dictionary: {"Gruppe 4 Mi 10-12": 4, ...}
+
 bonus1, bonus2::
   minimal points for 1/3, 2/3 bonus on exam mark
 
@@ -76,6 +86,19 @@ import exam data::
     first name
     matrikel number
     resit count
+
+import registration data (CSV)::
+  matrikel number
+  last name
+  first name
+  email (ignored)
+  subject ('translation' via static data key subject_translation)
+  p version (ignored)
+  semester
+  status
+  priority
+  group ('translation' via static data key group_translation)
+
 
 
 Development notes

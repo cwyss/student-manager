@@ -494,3 +494,155 @@ class QueryExamsView(TemplateView):
 
 
 query_exams = staff_member_required(QueryExamsView.as_view())
+
+
+class ImportRegistrationsView(FormView):
+    template_name = 'student_manager/import_registration.html'
+    form_class = forms.ImportRegistrationsForm
+
+    def get_success_url(self):
+        return self.request.GET.get('return_url', '/')
+
+    def form_valid(self, form):
+        csv_file = form.cleaned_data['csv_file']
+        column_sep = str(form.cleaned_data['column_separator'])
+        import_choice = str(form.cleaned_data['import_choice'])
+        update_choice = str(form.cleaned_data['update_choice'])
+        try:
+            jstr = models.StaticData.objects. \
+                get(key='subject_translation').value
+            jstr = jstr.translate({0xa0: 32})
+            self.subject_translation = json.loads(jstr)
+        except models.StaticData.DoesNotExist:
+            self.subject_translation = {}
+        try:
+            jstr = models.StaticData.objects. \
+                get(key='group_translation').value
+            jstr = jstr.translate({0xa0: 32})
+            self.group_translation = json.loads(jstr)
+        except models.StaticData.DoesNotExist:
+            self.group_translation = {}
+        self.stats = {'new': [],
+                      'update': [],
+                      'nogroup': []
+                      }
+
+        self.read_csv(csv_file, column_sep)
+        # if update_choice in ('regist', 'all'):
+        #     self.clear_existing_registrations()
+        self.import_data(import_choice, update_choice)
+
+        # messages.info(
+        #     self.request,
+        #     '%s entries processed.' % sum(map(len, self.stats.itervalues())))
+        if import_choice!='none':
+            msg = '%s new students created.'
+            if import_choice=='stud':
+                msg = 'Import student data: ' + msg
+            else:
+                msg = 'Import student and registration data: ' + msg
+            messages.success(
+                self.request,
+                msg % len(self.stats['new']))
+        if update_choice!='none':
+            msg = 'data for %s existing students updated.'
+            if update_choice=='stud':
+                msg = 'Update student data: ' + msg
+            elif update_choice=='regist':
+                msg = 'Update registration data: ' + msg
+            else:
+                msg = 'Update student and registration data: ' + msg
+            messages.success(
+                self.request,
+                msg % len(self.stats['update']))
+        if self.stats['nogroup']:
+            messages.warning(
+                self.request,
+                'no such group in translation: %s' \
+                    % ', '.join(self.stats['nogroup'][:10]))
+
+        return super(ImportRegistrationsView, self).form_valid(form)
+
+    def read_csv(self, csv_file, column_sep):
+        self.student_dict = {}
+        csvreader = csv.reader(csv_file, delimiter=column_sep)
+        header = True
+        for line, row in enumerate(csvreader):
+            if header:
+                if len(row)==0 or not row[0].isdigit():
+                    # We seem to have a header; ignore.
+                    continue
+                else:
+                    header = False
+            matrikel = int(row[0])
+            if self.student_dict.has_key(matrikel):
+                stud = self.student_dict[matrikel]
+            else:
+                long_subject = row[4].decode('UTF-8').translate({0xa0: 32})
+                try:
+                    subject = self.subject_translation[long_subject]
+                except KeyError:
+                    subject = long_subject
+                stud = [row[1].decode('UTF-8'),  # last name
+                        row[2].decode('UTF-8'),  # first name
+                        subject,
+                        int(row[6]),             # semester
+                        []                       # registrations
+                        ]
+                self.student_dict[matrikel] = stud
+            long_group = row[9].decode('UTF-8').translate({0xa0: 32})
+            try:
+                group = self.group_translation[long_group]
+            except KeyError:
+                self.stats['nogroup'].append(long_group)
+                continue
+            stud[4].append((group, 
+                            row[7].decode('UTF-8'),  # status
+                            int(row[8])              # priority
+                            ))
+
+    # def clear_existing_registrations(self):
+    #     for matrikel in self.student_dict:
+    #         try:
+    #             student = models.Student.objects.get(matrikel=matrikel)
+    #         except models.Student.DoesNotExist:
+    #             continue
+    #         models.Registration.objects.filter(student=student).delete()
+
+    def import_data(self, import_choice, update_choice):
+        for matrikel, stud in self.student_dict.iteritems():
+            try:
+                student = models.Student.objects.get(matrikel=matrikel)
+                if update_choice=='none':
+                    continue
+                state = 'update'
+                if update_choice in ('stud', 'all'):
+                    student.last_name = stud[0]
+                    student.first_name = stud[1]
+                    student.subject = stud[2]
+                    student.semester = stud[3]
+                    student.save()
+            except models.Student.DoesNotExist:
+                if import_choice=='none':
+                    continue
+                student = models.Student(matrikel=matrikel,
+                                         last_name=stud[0],
+                                         first_name=stud[1],
+                                         subject=stud[2],
+                                         semester=stud[3])
+                student.save()
+                state = 'new'
+
+            if update_choice in ('regist', 'all'):
+                if state=='update':
+                    models.Registration.objects.filter(student=student).delete()
+                for regist in stud[4]:
+                    registration = models.Registration(student=student,
+                                                       group=regist[0],
+                                                       status=regist[1],
+                                                       priority=regist[2])
+                    registration.save()
+            self.stats[state].append(matrikel)
+
+
+import_registrations = staff_member_required(ImportRegistrationsView.as_view())

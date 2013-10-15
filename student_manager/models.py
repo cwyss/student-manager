@@ -191,3 +191,24 @@ class StaticData(models.Model):
     def __unicode__(self):
         return u'%s' % self.key
 
+
+class Registration(models.Model):
+    student = models.ForeignKey(Student)
+    group = models.IntegerField()
+    priority = models.IntegerField(null=True, blank=True)
+    status = models.CharField(max_length=2, null=True, blank=True,
+                              choices=[(u'HP','HP'),(u'NP','NP'),
+                                       (u'ST','ST'),(u'ZU','ZU')])
+
+    def assigned_group(self):
+        return self.student.group
+
+    assigned_group.short_description = 'assigned'
+
+    class Meta:
+        ordering = ('group','priority')
+        unique_together = (('student','group'),)
+
+    def __unicode__(self):
+        return u'%s: %d %s' % (self.student, self.group, self.status)
+

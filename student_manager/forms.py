@@ -103,3 +103,22 @@ class QueryExamsOptForm(forms.Form):
     examnr = forms.ModelChoiceField(
         label='Exam number', 
         queryset=models.MasterExam.objects.all())
+
+
+class ImportRegistrationsForm(forms.Form):
+    column_separator = forms.CharField(max_length=1, initial=';')
+    csv_file = forms.FileField(label=_('CSV file'))
+    update_choice = forms.ChoiceField(
+        label='Update data for existing students?',
+        choices=(('none', "don't update existing data"),
+                 ('stud', 'update only student data'),
+                 ('regist', 'update only registration data'),
+                 ('all', 'update student and registration data'))
+        )
+    import_choice = forms.ChoiceField(
+        label='Import data for new students?',
+        choices=(('none', "don't import new data"),
+                 ('stud', 'import only student data'),
+                 ('all', 'import student and registration data'))
+        )
+
