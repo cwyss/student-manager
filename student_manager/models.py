@@ -197,8 +197,10 @@ class Registration(models.Model):
     group = models.IntegerField()
     priority = models.IntegerField(null=True, blank=True)
     status = models.CharField(max_length=2, null=True, blank=True,
-                              choices=[(u'HP','HP'),(u'NP','NP'),
-                                       (u'ST','ST'),(u'ZU','ZU')])
+                              choices=[(u'AN','AN'),(u'ZU','ZU'),
+                                       (u'ST','ST'),
+                                       (u'HP','HP'),(u'NP','NP')])
+                                       
 
     def assigned_group(self):
         return self.student.group

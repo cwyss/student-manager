@@ -87,7 +87,7 @@ import exam data::
     matrikel number
     resit count
 
-import registration data (CSV)::
+import registration data (CSV or Wusel-style XLS)::
   matrikel number
   last name
   first name

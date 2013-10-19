@@ -140,6 +140,9 @@ class RegistrationAdmin(admin.ModelAdmin):
     list_display = ('student', 'group', 'priority', 'status',
                     'assigned_group')
     list_filter = ('group', AssignedGroupListFilter)
+    raw_id_fields = ('student',)
+    search_fields = ('student__matrikel', 'student__last_name',
+                     'student__first_name')
 
         
 admin.site.register(models.Student, StudentAdmin)

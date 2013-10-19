@@ -106,8 +106,8 @@ class QueryExamsOptForm(forms.Form):
 
 
 class ImportRegistrationsForm(forms.Form):
-    column_separator = forms.CharField(max_length=1, initial=';')
-    csv_file = forms.FileField(label=_('CSV file'))
+    file = forms.FileField(label=_('CSV or Wusel XLS file'))
+    csv_separator = forms.CharField(max_length=1, initial=';')
     update_choice = forms.ChoiceField(
         label='Update data for existing students?',
         choices=(('none', "don't update existing data"),

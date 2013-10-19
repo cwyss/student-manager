@@ -3,6 +3,7 @@
 *.db
 *.db.bak*
 *.csv
+*.xls
 south
 settings_local.py
 exam-import*
