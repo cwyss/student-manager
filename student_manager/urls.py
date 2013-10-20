@@ -29,5 +29,7 @@ urlpatterns = patterns('',
         name='query_exams_opt'),
     url(r'^query_exams/$', 'student_manager.views.query_exams',
         name='query_exams'),
+    url(r'^query_regist/$', 'student_manager.views.query_regist',
+        name='query_regist'),
     url(r'^admin/', include(admin.site.urls)),
 )

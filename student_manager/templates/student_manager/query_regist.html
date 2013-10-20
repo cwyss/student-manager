@@ -1,0 +1,53 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}" />{% endblock %}
+
+{% block title %}Query Registrations | {% trans 'Django site admin' %}{% endblock %}
+
+{% block content_title %}<h1>Query Registrations</h1>{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:app_list' app_label='student_manager' %}">Student_manager</a>
+&rsaquo; <a href="{% url 'admin:student_manager_registration_changelist' %}">Registrations</a>
+&rsaquo; Query registration
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <p>
+    Each row lists the number of students registered to one particular group.
+    Each column contains the students assigned to the specified group, with
+    no assigned group and, in the last column, all students.
+    The last row counts all students irrespective of their registrations.
+  </p>
+  <table>
+    <thead>
+      <tr>
+	<th>Group</th>
+	{% for cell in headline %}
+  	<th>{{ cell }}</th>
+	{% endfor %}
+	<th>not assigned</th>
+  	<th>&#8721;</th>
+      </tr>
+    </thead>
+    {% for row in registrations %}
+    <tr>
+      {% for cell in row %}
+      <td class="center">{{ cell }}</td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
+    <tr>
+      {% for cell in bottomline %}
+      <td class="center">{{ cell }}</td>
+      {% endfor %}
+    </tr>
+  </table>
+</div>
+{% endblock %}

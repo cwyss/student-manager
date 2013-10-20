@@ -736,3 +736,75 @@ class ImportRegistrationsView(FormView):
 
 
 import_registrations = staff_member_required(ImportRegistrationsView.as_view())
+
+
+class QueryRegistrationsView(TemplateView):
+    template_name = 'student_manager/query_regist.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(QueryRegistrationsView, self).get_context_data(**kwargs)
+
+        groups_max = models.Registration.objects.aggregate(
+            Max('group'),
+            Max('student__group'))
+        maxgroup = max(groups_max.values())
+        context['maxgroup'] = maxgroup
+
+        context['headline'] = ['AGrp %d' % i for i in range(1,maxgroup+1)]
+        context['registrations'] = []
+        for group in range(1,maxgroup+1):
+            regist_cnt = models.Registration.objects.filter(group=group) \
+                .values('student__group').order_by('student__group') \
+                .annotate(count=Count('id'))
+            row = (maxgroup+1) * [0]
+            for d in regist_cnt:
+                if d['student__group']==None:
+                    i = maxgroup
+                else:
+                    i = d['student__group'] - 1
+                row[i] = d['count']
+            context['registrations'].append([group] + row + [sum(row)])
+
+        total_cnt = models.Student.objects \
+            .values('group').order_by('group') \
+            .annotate(count=Count('id'))
+        row = (maxgroup+1) * [0]
+        for d in total_cnt:
+            if d['group']==None:
+                i = maxgroup
+            else:
+                i = d['group'] - 1
+            row[i] = d['count']
+        context['bottomline'] = ['total'] + row + [sum(row)]
+        return context
+
+    def get_pointgroups(self, examnr):
+        masterexam = models.MasterExam.objects.get(id=examnr)
+        try:
+            pointstep = int(models.StaticData.objects.get(
+                    key='query_exam_pointstep').value)
+        except models.StaticData.DoesNotExist:
+            pointstep = 2
+
+        examlist = models.Exam.objects.filter(examnr=examnr) \
+            .exclude(points=None)
+        pointcounts = examlist.values('points').order_by('points') \
+            .annotate(count=Count('id'))
+
+        group = {'lower': 0, 'upper': pointstep, 'count': 0}
+        pointgroups = [group]
+        for item in pointcounts:
+            while item['points'] >= group['upper']:
+                nextgroup = {'lower': group['upper'],
+                             'upper': group['upper']+pointstep, 
+                             'count': 0}
+                pointgroups.append(nextgroup)
+                group = nextgroup
+            group['count'] += item['count']
+        if masterexam.max_points and group['upper'] > masterexam.max_points:
+            del pointgroups[-1]
+            pointgroups[-1]['count'] += group['count']
+        return pointgroups
+
+
+query_regist = staff_member_required(QueryRegistrationsView.as_view())

@@ -10,3 +10,4 @@ exams oder exercises liste...?
 
 subject_translation nachtraeglich durchfuehren
 
+ValueError bei json strings group_translation, subject_translation abfangen
