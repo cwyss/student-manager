@@ -7,6 +7,7 @@ from decimal import Decimal
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.db.models import Max, Count
 from django.http import HttpResponseRedirect
@@ -509,6 +510,7 @@ class ImportRegistrationsView(FormView):
         column_sep = str(form.cleaned_data['csv_separator'])
         import_choice = str(form.cleaned_data['import_choice'])
         update_choice = str(form.cleaned_data['update_choice'])
+        list_groups = form.cleaned_data['list_group_names']
         try:
             jstr = models.StaticData.objects. \
                 get(key='subject_translation').value
@@ -526,12 +528,13 @@ class ImportRegistrationsView(FormView):
 
         self.stats = {'new': [],
                       'update': [],
-                      'nogroup': [],
+                      'nogroup': {},
                       'regist_new': 0,
                       'regist_update': 0,
-                      'dupl_regist': []
+                      'dupl_regist': [],
                       }
         self.worksheet_name = None
+        self.group_dict = {}
         self.student_dict = {}
         if not self.read_xls(file):
             self.read_csv(file, column_sep)
@@ -543,7 +546,10 @@ class ImportRegistrationsView(FormView):
                 'Worksheet "%s" from xls file read.' % self.worksheet_name)
         else:
             messages.success(self.request, 'csv file read.')
-        if self.stats['nogroup']:
+        if self.stats['nogroup'] and \
+                (import_choice!='none' or update_choice!='none'):
+            nogrp_out = ['%s: %d' % x \
+                             for x in self.stats['nogroup'].iteritems()]
             messages.warning(
                 self.request,
                 'No such group in translation: %s' \
@@ -576,7 +582,12 @@ class ImportRegistrationsView(FormView):
                 '%d registrations for %d existing students added/updated.'  % \
                     (self.stats['regist_update'],
                      len(self.stats['update'])))
-
+        if list_groups:
+            grp_out = ['%s: %d' % item for item in self.group_dict.iteritems()]
+            messages.success(
+                self.request,
+                'Groups with number of registrations: ' + \
+                    ', '.join(grp_out))
         return super(ImportRegistrationsView, self).form_valid(form)
 
     def add_registration(self, matrikel,
@@ -603,13 +614,17 @@ class ImportRegistrationsView(FormView):
             self.student_dict[matrikel] = stud
         if type(group_str)==unicode:
             group_str = group_str.translate({0xa0: 32})
+        if self.group_dict.has_key(group_str):
+            self.group_dict[group_str] += 1
+        else:
+            self.group_dict[group_str] = 1
         if self.group_translation.has_key(group_str):
             group = self.group_translation[group_str]
             if not priority.isdigit():
                 priority = None
             stud[4].append((group, status, priority))
         else:
-            self.stats['nogroup'].append(group_str)
+            self.stats['nogroup'][group_str] = matrikel
 
     def add_table(self, table):
         header = True

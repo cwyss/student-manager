@@ -121,4 +121,5 @@ class ImportRegistrationsForm(forms.Form):
                  ('stud', 'import only student data'),
                  ('all', 'import student and registration data'))
         )
+    list_group_names = forms.BooleanField(required=False)
 
