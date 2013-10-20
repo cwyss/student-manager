@@ -143,6 +143,30 @@ class RegistrationAdmin(admin.ModelAdmin):
     raw_id_fields = ('student',)
     search_fields = ('student__matrikel', 'student__last_name',
                      'student__first_name')
+    actions = ('assign_groups',)
+
+    def assign_groups(self, request, queryset):
+        duplicates = queryset.values('student') \
+            .order_by('student') \
+            .annotate(count=Count('id')).filter(count__gte=2)
+        if duplicates: 
+            out = []
+            for e in duplicates:
+                student = models.Student.objects.get(id=e['student'])
+                out.append(str(student))
+            messages.error(
+                request,
+                'Selection contains multiple registrations for ' + \
+                    ', '.join(out))
+            return
+        for regist in queryset:
+            student = regist.student
+            student.group = regist.group
+            student.save()
+        messages.success(
+            request, 
+            'Assigned groups to %d students' % queryset.count())
+
 
         
 admin.site.register(models.Student, StudentAdmin)
