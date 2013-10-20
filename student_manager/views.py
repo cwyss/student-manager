@@ -9,7 +9,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.core.urlresolvers import reverse, reverse_lazy
-from django.db.models import Max, Count
+from django.db.models import Max, Count, F
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
@@ -778,33 +778,20 @@ class QueryRegistrationsView(TemplateView):
         context['bottomline'] = ['total'] + row + [sum(row)]
         return context
 
-    def get_pointgroups(self, examnr):
-        masterexam = models.MasterExam.objects.get(id=examnr)
-        try:
-            pointstep = int(models.StaticData.objects.get(
-                    key='query_exam_pointstep').value)
-        except models.StaticData.DoesNotExist:
-            pointstep = 2
-
-        examlist = models.Exam.objects.filter(examnr=examnr) \
-            .exclude(points=None)
-        pointcounts = examlist.values('points').order_by('points') \
-            .annotate(count=Count('id'))
-
-        group = {'lower': 0, 'upper': pointstep, 'count': 0}
-        pointgroups = [group]
-        for item in pointcounts:
-            while item['points'] >= group['upper']:
-                nextgroup = {'lower': group['upper'],
-                             'upper': group['upper']+pointstep, 
-                             'count': 0}
-                pointgroups.append(nextgroup)
-                group = nextgroup
-            group['count'] += item['count']
-        if masterexam.max_points and group['upper'] > masterexam.max_points:
-            del pointgroups[-1]
-            pointgroups[-1]['count'] += group['count']
-        return pointgroups
-
-
 query_regist = staff_member_required(QueryRegistrationsView.as_view())
+
+
+class QueryAssignedGroupView(TemplateView):
+    template_name = 'student_manager/query_assigned_group.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(QueryAssignedGroupView, self).get_context_data(**kwargs)
+
+        new_assigned = models.Registration.objects.filter(status='ZU') \
+            .exclude(group=F('student__group')) \
+            .values('student__matrikel', 'student__group', 'group') \
+            .order_by('student__matrikel')
+        context['new_assigned'] = new_assigned
+        return context
+
+query_assigned_group = staff_member_required(QueryAssignedGroupView.as_view())
