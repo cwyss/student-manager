@@ -8,5 +8,5 @@ durch klick auf student direkt zum student in der student Liste, z.B. aus der
 exams oder exercises liste...?
 
 
-group_translation autom. generieren
+subject_translation nachtraeglich durchfuehren
 
