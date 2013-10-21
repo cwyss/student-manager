@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL}}print.css">
+  </head>
+  <body>
+    <table>
+      <thead>
+	<tr>
+	  <th>Matr.</th>
+	  <th>Name</th>
+	  <th>Stud.gang</th>
+	  <th>Gruppe</th>
+	</tr>
+      </thead>
+      {% for student in object_list %}
+      <tr class="{% cycle 'odd' 'even' %}">
+	<td class="right">{{ student.matrikel|default:"&ndash;" }}</td>
+	<td>{% if student.last_name %}{{ student.last_name }}, {{ student.first_name }}{% else %}&mdash;{% endif %}</td>
+	<td class="center">{{ student.subject|default:"&ndash;" }}</td>
+	<td class="center">{{ student.group|default:"&ndash;" }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </body>
+</html>

@@ -255,6 +255,25 @@ class PrintExercisesView(ListView):
 print_exercises = staff_member_required(PrintExercisesView.as_view())
 
 
+print_students_opt = staff_member_required(FormView.as_view(
+    template_name='student_manager/print_students_opt.html',
+    form_class=forms.PrintStudentsOptForm))
+
+
+class PrintStudentsView(ListView):
+    template_name = 'student_manager/student_list.html'
+
+    def get_queryset(self):
+        if self.request.GET.get('order_by')=='matrikel':
+            students = models.Student.objects.order_by('matrikel')
+        else:
+            students = models.Student.objects.order_by(
+                'last_name', 'first_name')
+        return students
+
+print_students = staff_member_required(PrintStudentsView.as_view())
+
+
 class ImportExamsView(FormView):
     template_name = 'student_manager/import_exam.html'
     form_class = forms.ImportExamsForm

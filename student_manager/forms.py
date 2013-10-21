@@ -88,6 +88,11 @@ class PrintExercisesOptForm(forms.Form):
     total = forms.BooleanField(label=_('Display total/bonus columns'))
 
 
+class PrintStudentsOptForm(forms.Form):
+    order_by = forms.ChoiceField(choices=(('matrikel', 'matrikel number'),
+                                          ('name', 'name')))
+
+
 class ImportExamsForm(forms.Form):
     examnr = forms.ModelChoiceField(
         label='Exam number', 
