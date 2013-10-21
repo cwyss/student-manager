@@ -73,7 +73,14 @@ class ImportStudentsForm(forms.Form):
     csv_file = forms.FileField(label=_('CSV file'))
 
 
-class PrintStudentsOptForm(forms.Form):
+class PrintGroupsOptForm(forms.Form):
+    matrikel = forms.ChoiceField(label=_('Selection'),
+                                 choices=(('on', 'Students with matrikel'),
+                                          ('', 'Students without matrikel')),
+                                 initial='on')
+
+
+class PrintExercisesOptForm(forms.Form):
     matrikel = forms.ChoiceField(label=_('Selection'),
                                  choices=(('on', 'Students with matrikel'),
                                           ('', 'Students without matrikel')),

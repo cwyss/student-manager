@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL}}print.css">
+  </head>
+  <body>
+    <h3>&Uuml;bungsgruppeneinteilung</h3>
+    <table>
+      <thead>
+	<tr>
+	  <th>{% if request.GET.matrikel %}Matr.{% else %}Name{% endif %}</th>
+	  <th>Gruppe</th>
+	</tr>
+      </thead>
+      {% for student in object_list %}
+      <tr class="{% cycle 'odd' 'even' %}">
+	<td class="right">{% if request.GET.matrikel %}{{ student.matrikel }}{% else %}{{ student.last_name }}, {{ student.first_name }}{% endif %}</td>
+	<td class="center">{{ student.group }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </body>
+</html>

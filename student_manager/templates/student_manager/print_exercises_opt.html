@@ -4,21 +4,21 @@
 
 {% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}" />{% endblock %}
 
-{% block title %}Print Student List | {% trans 'Django site admin' %}{% endblock %}
+{% block title %}Print Exercise List | {% trans 'Django site admin' %}{% endblock %}
 
-{% block content_title %}<h1>Print Student List</h1>{% endblock %}
+{% block content_title %}<h1>Print Exercise List</h1>{% endblock %}
 
 {% block breadcrumbs %}
 <div class="breadcrumbs">
 <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
 &rsaquo; <a href="{% url 'admin:app_list' app_label='student_manager' %}">Student_manager</a>
-&rsaquo; <a href="{% url 'admin:student_manager_student_changelist' %}">Students</a> &rsaquo; Print student list
+&rsaquo; <a href="{% url 'admin:student_manager_student_changelist' %}">Students</a> &rsaquo; Print exercise list
 </div>
 {% endblock %}
 
 {% block content %}
 <div id="content-main">
-    <form action="{% url 'print_students' %}" method="get">
+    <form action="{% url 'print_exercises' %}" method="get">
       <div>
 	<fieldset>
 	  <table>

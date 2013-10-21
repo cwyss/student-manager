@@ -188,13 +188,46 @@ class ImportStudentsView(FormView):
 import_students = staff_member_required(ImportStudentsView.as_view())
 
 
-print_students_opt = staff_member_required(FormView.as_view(
-    template_name='student_manager/print_students_opt.html',
-    form_class=forms.PrintStudentsOptForm))
+print_groups_opt = staff_member_required(FormView.as_view(
+    template_name='student_manager/print_groups_opt.html',
+    form_class=forms.PrintGroupsOptForm))
 
 
-class PrintStudentsView(ListView):
-    template_name = 'student_manager/student_list.html'
+class PrintGroupsView(ListView):
+    template_name = 'student_manager/group_list.html'
+
+    def get_queryset(self):
+        students = models.Student.objects.exclude(group=None)
+        if self.request.GET.get('matrikel'):
+            students = students.exclude(matrikel=None)
+            students = students.order_by('matrikel')
+        else:
+            students = students.filter(matrikel=None)
+            students = students.order_by('last_name', 'first_name')
+        return students
+
+        # student_data = []
+
+        # for student in list(students):
+        #     if not student.exercise_set.all():
+        #         continue
+        #     student.exercises = [None] * total_exercises
+        #     for exercise in student.exercise_set.all():
+        #         student.exercises[exercise.sheet-1] = exercise
+        #     student_data.append(student)
+
+        # return student_data
+
+print_groups = staff_member_required(PrintGroupsView.as_view())
+
+
+print_exercises_opt = staff_member_required(FormView.as_view(
+    template_name='student_manager/print_exercises_opt.html',
+    form_class=forms.PrintExercisesOptForm))
+
+
+class PrintExercisesView(ListView):
+    template_name = 'student_manager/exercise_list.html'
 
     def get_queryset(self):
         total_exercises = models.Exercise.total_num_exercises()
@@ -219,7 +252,7 @@ class PrintStudentsView(ListView):
 
         return student_data
 
-print_students = staff_member_required(PrintStudentsView.as_view())
+print_exercises = staff_member_required(PrintExercisesView.as_view())
 
 
 class ImportExamsView(FormView):
