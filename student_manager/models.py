@@ -180,6 +180,14 @@ class Exam(models.Model):
         return super(Exam, self).save(*args, **kwargs)
 
 
+def make_translation_dict(jstr):
+    try:
+        jstr = jstr.translate({0xa0: 32})
+        transl = json.loads(jstr)
+        return transl
+    except cls.DoesNotExist:
+            return {}
+
 class StaticData(models.Model):
     key = models.CharField(max_length=100)
     value = models.TextField(null=True, blank=True)
@@ -190,6 +198,26 @@ class StaticData(models.Model):
 
     def __unicode__(self):
         return u'%s' % self.key
+
+    @classmethod
+    def get_subject_transl(cls):
+        try:
+            jstr = cls.objects.get(key='subject_translation').value
+            jstr = jstr.translate({0xa0: 32})
+            transl = json.loads(jstr)
+            return transl
+        except cls.DoesNotExist:
+            return {}
+
+    @classmethod
+    def get_group_transl(cls):
+        try:
+            jstr = cls.objects.get(key='group_translation').value
+            jstr = jstr.translate({0xa0: 32})
+            transl = json.loads(jstr)
+            return transl
+        except cls.DoesNotExist:
+            return {}
 
 
 class Registration(models.Model):

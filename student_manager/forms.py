@@ -23,6 +23,24 @@ class StudentForm(forms.ModelForm):
         return matrikel
 
 
+class StaticDataForm(forms.ModelForm):
+    class Meta:
+        model = models.StaticData
+
+    def clean_value(self):
+        key = self.cleaned_data['key']
+        value = self.cleaned_data['value']
+        if key=='subject_translation' or \
+                key=='group_translation':
+            try:
+                transl = json.loads(value)
+                if type(transl)!=dict:
+                    raise ValueError
+            except ValueError:
+                raise ValidationError('Invalid translation.')
+        return value
+
+
 class MasterExamForm(forms.ModelForm):
     class Meta:
         model = models.MasterExam

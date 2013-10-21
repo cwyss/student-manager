@@ -563,20 +563,10 @@ class ImportRegistrationsView(FormView):
         import_choice = str(form.cleaned_data['import_choice'])
         update_choice = str(form.cleaned_data['update_choice'])
         list_groups = form.cleaned_data['list_group_names']
-        try:
-            jstr = models.StaticData.objects. \
-                get(key='subject_translation').value
-            jstr = jstr.translate({0xa0: 32})
-            self.subject_translation = json.loads(jstr)
-        except models.StaticData.DoesNotExist:
-            self.subject_translation = {}
-        try:
-            jstr = models.StaticData.objects. \
-                get(key='group_translation').value
-            jstr = jstr.translate({0xa0: 32})
-            self.group_translation = json.loads(jstr)
-        except models.StaticData.DoesNotExist:
-            self.group_translation = {}
+        self.subject_translation = \
+            models.StaticData.get_subject_transl()
+        self.group_translation = \
+            models.StaticData.get_group_transl()
 
         self.stats = {'new': [],
                       'update': [],
@@ -605,7 +595,7 @@ class ImportRegistrationsView(FormView):
             messages.warning(
                 self.request,
                 'No such group in translation: %s' \
-                    % ', '.join(self.stats['nogroup'][:10]))
+                    % ', '.join(nogrp_out))
         if self.stats['dupl_regist']:
             dupl_out = ['%d: Grp %s' % (d[0],d[1]) 
                         for d in self.stats['dupl_regist']]

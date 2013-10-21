@@ -108,6 +108,7 @@ class ExamAdmin(admin.ModelAdmin):
 
 class StaticDataAdmin(admin.ModelAdmin):
     list_display = ('key', 'value')
+    form = forms.StaticDataForm
 
 
 class AssignedGroupListFilter(admin.SimpleListFilter):
