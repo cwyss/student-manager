@@ -824,9 +824,18 @@ class QueryAssignedGroupView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(QueryAssignedGroupView, self).get_context_data(**kwargs)
 
-        new_assigned = models.Registration.objects.filter(status='ZU') \
-            .exclude(group=F('student__group')) \
-            .values('student__matrikel', 'student__group', 'group') \
+        # changed_assigned = models.Registration.objects.filter(status='ZU') \
+        #     .exclude(group=F('student__group')) \
+        #     .values('student__matrikel', 'student__group', 'group') \
+        #     .order_by('student__matrikel')
+        # context['changed_assigned'] = changed_assigned
+
+        new_assigned = models.Registration.objects \
+            .filter(group=F('student__group')) \
+            .exclude(status='ZU') \
+            .exclude(student__matrikel=None) \
+            .values('student__matrikel', 'student__last_name',
+                    'student__first_name', 'group') \
             .order_by('student__matrikel')
         context['new_assigned'] = new_assigned
         return context

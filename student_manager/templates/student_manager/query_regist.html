@@ -20,9 +20,14 @@
 {% block content %}
 <div id="content-main">
   <p>
-    Each row lists the number of students registered to one particular group.
-    Each column contains the students assigned to the specified group, with
-    no assigned group and, in the last column, all students.
+    Rows correspond to the &quot;registration&quot; group,
+    columns to the assigned group.
+    Each cell lists the number of students with a registration for 
+    the group given by the row, and which are assigned to the group
+    given by the column.
+    The second to last column counts the
+    students with no assigned group,
+    and the last column contains the sum of all registrations.
     The last row counts all students irrespective of their registrations.
   </p>
   <table>
