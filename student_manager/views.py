@@ -838,6 +838,7 @@ class QueryAssignedGroupView(TemplateView):
                     'student__first_name', 'group') \
             .order_by('student__matrikel')
         context['new_assigned'] = new_assigned
+        context['new_count'] = new_assigned.count()
         return context
 
 query_assigned_group = staff_member_required(QueryAssignedGroupView.as_view())
