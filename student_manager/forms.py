@@ -151,5 +151,7 @@ class ImportRegistrationsForm(forms.Form):
                  ('stud', 'import only student data'),
                  ('all', 'import student and registration data'))
         )
-    list_group_names = forms.BooleanField(required=False)
+    update_group_names = forms.BooleanField(
+        label='Update group names to group_translation?',
+        required=False)
 

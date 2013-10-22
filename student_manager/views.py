@@ -562,7 +562,7 @@ class ImportRegistrationsView(FormView):
         column_sep = str(form.cleaned_data['csv_separator'])
         import_choice = str(form.cleaned_data['import_choice'])
         update_choice = str(form.cleaned_data['update_choice'])
-        list_groups = form.cleaned_data['list_group_names']
+        update_groups = form.cleaned_data['update_group_names']
         self.subject_translation = \
             models.StaticData.get_subject_transl()
         self.group_translation = \
@@ -576,10 +576,12 @@ class ImportRegistrationsView(FormView):
                       'dupl_regist': [],
                       }
         self.worksheet_name = None
-        self.group_dict = {}
+        self.groups = []
         self.student_dict = {}
         if not self.read_xls(file):
             self.read_csv(file, column_sep)
+        if update_groups:
+            models.StaticData.update_group_transl(self.groups)
         self.import_data(import_choice, update_choice)
 
         if self.worksheet_name:
@@ -624,12 +626,6 @@ class ImportRegistrationsView(FormView):
                 '%d registrations for %d existing students added/updated.'  % \
                     (self.stats['regist_update'],
                      len(self.stats['update'])))
-        if list_groups:
-            grp_out = ['%s: %d' % item for item in self.group_dict.iteritems()]
-            messages.success(
-                self.request,
-                'Groups with number of registrations: ' + \
-                    ', '.join(grp_out))
         return super(ImportRegistrationsView, self).form_valid(form)
 
     def add_registration(self, matrikel,
@@ -656,17 +652,11 @@ class ImportRegistrationsView(FormView):
             self.student_dict[matrikel] = stud
         if type(group_str)==unicode:
             group_str = group_str.translate({0xa0: 32})
-        if self.group_dict.has_key(group_str):
-            self.group_dict[group_str] += 1
-        else:
-            self.group_dict[group_str] = 1
-        if self.group_translation.has_key(group_str):
-            group = self.group_translation[group_str]
-            if not priority.isdigit():
-                priority = None
-            stud[4].append((group, status, priority))
-        else:
-            self.stats['nogroup'][group_str] = matrikel
+        if group_str not in self.groups:
+            self.groups.append(group_str)
+        if not priority.isdigit():
+            priority = None
+        stud[4].append((group_str, status, priority))
 
     def add_table(self, table):
         header = True
@@ -760,14 +750,19 @@ class ImportRegistrationsView(FormView):
                     models.Registration.objects.filter(student=student).delete()
                 count = 0
                 for regist in stud[4]:
+                    try:
+                        group = self.group_translation[regist[0]]
+                    except KeyError:
+                        self.stats['nogroup'][regist[0]] = matrikel
+                        continue
                     registration = models.Registration(student=student,
-                                                       group=regist[0],
+                                                       group=group,
                                                        status=regist[1],
                                                        priority=regist[2])
                     try:
                         registration.save()
                     except IntegrityError:
-                        self.stats['dupl_regist'].append((student.matrikel,
+                        self.stats['dupl_regist'].append((matrikel,
                                                           regist[0]))
                         continue
                     count += 1

@@ -219,6 +219,29 @@ class StaticData(models.Model):
         except cls.DoesNotExist:
             return {}
 
+    @classmethod
+    def update_group_transl(cls, groups):
+        grp_transl = cls.get_group_transl()
+        if len(grp_transl)>0:
+            grpcnt = max(grp_transl.values())
+        else:
+            grpcnt = 0
+        for grpstr in groups:
+            if not grp_transl.has_key(grpstr):
+                grpcnt += 1
+                grp_transl[grpstr] = grpcnt
+        transl_list = grp_transl.items()
+        transl_list.sort(key=lambda x:x[1])
+        transl_str = '{'
+        transl_str += ',\n'.join(['"%s": %d' % item for item in transl_list])
+        transl_str += '}'
+        try:
+            transl_data = cls.objects.get(key='group_translation')
+        except cls.DoesNotExist:
+            transl_data = cls(key='group_translation')
+        transl_data.value = transl_str
+        transl_data.save()
+
 
 class Registration(models.Model):
     student = models.ForeignKey(Student)
