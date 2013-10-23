@@ -1,0 +1,84 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}" />{% endblock %}
+
+{% block title %}New assigned groups | {% trans 'Django site admin' %}{% endblock %}
+
+{% block content_title %}<h1>New assigned groups</h1>{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:app_list' app_label='student_manager' %}">Student_manager</a>
+&rsaquo; <a href="{% url 'admin:student_manager_registration_changelist' %}">Registrations</a>
+&rsaquo; New assigned groups
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <br />
+  <p>
+    {{ changed_count }} students with changed assigned group
+  </p>
+  <table>
+    <thead>
+      <tr>
+  	<th>Matrikel</th>
+	<th>Name</th>
+  	<th>New group</th>
+  	<th>Old group</th>
+      </tr>
+    </thead>
+    {% for entry in changed_assigned %}
+    <tr>
+      <td class="center">{{ entry.student__matrikel }}</td>
+      <td>{% if entry.student__last_name %}{{ entry.student__last_name }}, {{ entry.student__first_name }}{% else %}&mdash;{% endif %}</td>
+      <td class="center">{{ entry.student__group }}</td>
+      <td class="center">{{ entry.group }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  <!-- <p> -->
+  <!--   {{ new_count }} students with new assigned groups -->
+  <!-- </p> -->
+  <!-- <table> -->
+  <!--   <thead> -->
+  <!--     <tr> -->
+  <!-- 	<th>Matrikel</th> -->
+  <!-- 	<th>Name</th> -->
+  <!-- 	<th>New group</th> -->
+  <!--     </tr> -->
+  <!--   </thead> -->
+  <!--   {% for entry in new_assigned %} -->
+  <!--   <tr> -->
+  <!--     <td class="center">{{ entry.student__matrikel }}</td> -->
+  <!--     <td>{% if entry.student__last_name %}{{ entry.student__last_name }}, {{ entry.student__first_name }}{% else %}&mdash;{% endif %}</td> -->
+  <!--     <td class="center">{{ entry.group }}</td> -->
+  <!--   </tr> -->
+  <!--   {% endfor %} -->
+  <!-- </table> -->
+  <br />
+  <p>
+    {{ not_assigned_count }} students without previously assigned group
+  </p>
+  <table>
+    <thead>
+      <tr>
+  	<th>Matrikel</th>
+	<th>Name</th>
+  	<th>New group</th>
+      </tr>
+    </thead>
+    {% for entry in not_assigned %}
+    <tr>
+      <td class="center">{{ entry.matrikel }}</td>
+      <td>{% if entry.last_name %}{{ entry.last_name }}, {{ entry.first_name }}{% else %}&mdash;{% endif %}</td>
+      <td class="center">{{ entry.group }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

@@ -206,18 +206,6 @@ class PrintGroupsView(ListView):
             students = students.order_by('last_name', 'first_name')
         return students
 
-        # student_data = []
-
-        # for student in list(students):
-        #     if not student.exercise_set.all():
-        #         continue
-        #     student.exercises = [None] * total_exercises
-        #     for exercise in student.exercise_set.all():
-        #         student.exercises[exercise.sheet-1] = exercise
-        #     student_data.append(student)
-
-        # return student_data
-
 print_groups = staff_member_required(PrintGroupsView.as_view())
 
 
@@ -818,27 +806,39 @@ class QueryRegistrationsView(TemplateView):
 query_regist = staff_member_required(QueryRegistrationsView.as_view())
 
 
-class QueryAssignedGroupView(TemplateView):
-    template_name = 'student_manager/query_assigned_group.html'
+class QueryAssignedGroupsView(TemplateView):
+    template_name = 'student_manager/query_assigned_groups.html'
 
     def get_context_data(self, **kwargs):
-        context = super(QueryAssignedGroupView, self).get_context_data(**kwargs)
+        context = super(QueryAssignedGroupsView, self) \
+            .get_context_data(**kwargs)
 
-        # changed_assigned = models.Registration.objects.filter(status='ZU') \
-        #     .exclude(group=F('student__group')) \
-        #     .values('student__matrikel', 'student__group', 'group') \
-        #     .order_by('student__matrikel')
-        # context['changed_assigned'] = changed_assigned
-
-        new_assigned = models.Registration.objects \
-            .filter(group=F('student__group')) \
-            .exclude(status='ZU') \
-            .exclude(student__matrikel=None) \
+        changed_assigned = models.Registration.objects.filter(status='ZU') \
+            .exclude(group=F('student__group')) \
             .values('student__matrikel', 'student__last_name',
-                    'student__first_name', 'group') \
+                    'student__first_name', 'student__group', 'group') \
             .order_by('student__matrikel')
-        context['new_assigned'] = new_assigned
-        context['new_count'] = new_assigned.count()
+        context['changed_assigned'] = changed_assigned
+        context['changed_count'] = changed_assigned.count()
+
+        # new_assigned = models.Registration.objects \
+        #     .filter(group=F('student__group')) \
+        #     .exclude(status='ZU') \
+        #     .exclude(student__matrikel=None) \
+        #     .values('student__matrikel', 'student__last_name',
+        #             'student__first_name', 'group') \
+        #     .order_by('student__matrikel')
+        # context['new_assigned'] = new_assigned
+        # context['new_count'] = new_assigned.count()
+
+        assigned_regist = models.Registration.objects.filter(status='ZU') \
+            .values('student')
+        not_assigned = models.Student.objects \
+            .exclude(group=None) \
+            .exclude(id__in=assigned_regist)
+        context['not_assigned'] = not_assigned
+        context['not_assigned_count'] = not_assigned.count()
+
         return context
 
-query_assigned_group = staff_member_required(QueryAssignedGroupView.as_view())
+query_assigned_groups = staff_member_required(QueryAssignedGroupsView.as_view())
