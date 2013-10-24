@@ -23,20 +23,26 @@
     </ul>
   </li>
   <li>
+    Query
+    <ul>
+      <li><a href="{% url query_regist %}">Registrations</a></li>
+      <li><a href="{% url query_assigned_groups %}">New assigned groups</a></li>
+      <li><a href="{% url query_exams_opt %}">Exam data</a></li>
+    </ul>
+  </li>
+  <li>
+    Export
+    <ul>
+      <li><a href="{% url export_students_opt %}">Students</a></li>
+    </ul>
+  </li>
+  <li>
     Import
     <ul>
       <li><a href="{% url import_exercises %}?return_url={{ request.path }}">Exercise data</a></li>
       <li><a href="{% url import_registrations %}?return_url={{ request.path }}">Registration data</a></li>
       <li><a href="{% url import_students %}?return_url={{ request.path }}">Student data</a></li>
       <li><a href="{% url import_exams %}?return_url={{ request.path }}">Exam data</a></li>
-    </ul>
-  </li>
-  <li>
-    Query
-    <ul>
-      <li><a href="{% url query_regist %}">Registrations</a></li>
-      <li><a href="{% url query_assigned_groups %}">New assigned groups</a></li>
-      <li><a href="{% url query_exams_opt %}">Exam data</a></li>
     </ul>
   </li>
 </ul>

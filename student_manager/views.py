@@ -10,7 +10,7 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.db.models import Max, Count, F
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.views.decorators.http import require_POST
@@ -842,3 +842,27 @@ class QueryAssignedGroupsView(TemplateView):
         return context
 
 query_assigned_groups = staff_member_required(QueryAssignedGroupsView.as_view())
+
+
+export_students_opt = staff_member_required(FormView.as_view(
+    template_name='student_manager/export_students_opt.html',
+    form_class=forms.ExportStudentsOptForm))
+
+def export_students(request):
+    try:
+        group = int(request.GET.get('group'))
+        if group<=0:
+            raise ValueError
+    except ValueError:
+        group = 1
+
+    response = HttpResponse(mimetype='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="somefilename.csv"'
+
+    qset = model.Student.objects.filter(group=group)
+    writer = csv.writer(response)
+    writer.writerow(['First row', 'Foo', 'Bar', 'Baz'])
+    for student in qset:
+        writer.writerow([student.matrikel, student.last_name])
+#    messages.success(request, 'bla')
+    return response

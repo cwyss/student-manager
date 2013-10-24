@@ -155,3 +155,6 @@ class ImportRegistrationsForm(forms.Form):
         label='Update group names to group_translation?',
         required=False)
 
+
+class ExportStudentsOptForm(forms.Form):
+    group = forms.IntegerField()
