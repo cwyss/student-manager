@@ -834,8 +834,10 @@ class QueryAssignedGroupsView(TemplateView):
         assigned_regist = models.Registration.objects.filter(status='ZU') \
             .values('student')
         not_assigned = models.Student.objects \
+            .exclude(matrikel=None) \
             .exclude(group=None) \
-            .exclude(id__in=assigned_regist)
+            .exclude(id__in=assigned_regist) \
+            .order_by('matrikel')
         context['not_assigned'] = not_assigned
         context['not_assigned_count'] = not_assigned.count()
 
