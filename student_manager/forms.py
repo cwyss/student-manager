@@ -162,9 +162,19 @@ class ExportStudentsForm(forms.Form):
                  ('all', 'All students')))
     group = forms.IntegerField(initial=1)
 
-    def clean_group(self):
-        group = self.cleaned_data['group']
-        if self.cleaned_data['export_choice']=='group' and \
+    def clean(self):
+        group = self.cleaned_data.get('group')
+        if self.cleaned_data.get('export_choice')=='group' and \
                 not models.Student.objects.filter(group=group).exists():
             raise ValidationError('No students in this group.')
+        return self.cleaned_data
+
+
+class PrintExsheetOptForm(forms.Form):
+    group = forms.IntegerField(initial=1)
+
+    def clean_group(self):
+        group = self.cleaned_data['group']
+        if not models.Student.objects.filter(group=group, active=True).exists():
+            raise ValidationError('No active students in this group.')
         return group

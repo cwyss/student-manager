@@ -2,6 +2,10 @@ body {
     font-size: 12px;
 }
 
+body.big {
+    font-size: 16px;
+}
+
 table {
     border-collapse: collapse;
     border: 1px solid;
@@ -12,6 +16,11 @@ td, th {
     border-left: 1px solid;
     padding: 3px 5px;
     border-color: #AAA;
+}
+
+.big td, .big th {
+    border-bottom: 1px solid #AAA;
+    padding: 6px 5px;
 }
 
 thead {
@@ -34,4 +43,13 @@ thead {
 
 .even {
     background-color: #F5F5F5;
+}
+
+.box {
+    width: 2.5em;
+    height: 1.5em;
+    margin-left: 0.2em;
+    vertical-align: middle;
+    border: 1px solid black;
+    display: inline-block;
 }

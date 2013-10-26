@@ -1,7 +1,3 @@
-nach Rückkehr von enter exam results wieder auf dieselbe Seite der Exams
-kommen (wenn exams über mehrere Seiten geht) und aktuelle Sortierung
-beibehalten
-
 schnelles Selektieren einer Gruppe/Intervall von exams
 
 durch klick auf student direkt zum student in der student Liste, z.B. aus der
@@ -10,4 +6,5 @@ exams oder exercises liste...?
 
 subject_translation nachtraeglich durchfuehren
 
-ValueError bei json strings group_translation, subject_translation abfangen
+
+enter exercises analog zu enter exam results

@@ -879,3 +879,35 @@ class ExportStudentsView(FormView):
         return response
 
 export_students = staff_member_required(ExportStudentsView.as_view())
+
+
+print_exsheet_opt = staff_member_required(FormView.as_view(
+    template_name='student_manager/print_exsheet_opt.html',
+    form_class=forms.PrintExsheetOptForm))
+
+
+class PrintExsheetView(ListView):
+    template_name = 'student_manager/exsheet.html'
+
+    def get(self, request):
+        self.form = forms.PrintExsheetOptForm(request.GET)
+        if self.form.is_valid():
+            return super(PrintExsheetView, self).get(request)
+        else:
+            return render_to_response(
+                'student_manager/print_exsheet_opt.html',
+                {'form': self.form},
+                 context_instance=RequestContext(request))
+
+    def get_queryset(self):
+        group = self.form.cleaned_data['group']
+        students = models.Student.objects.filter(group=group, active=True) \
+            .order_by('last_name', 'first_name')
+        return students
+
+    def get_context_data(self, **kwargs):
+        context = super(PrintExsheetView, self).get_context_data(**kwargs)
+        context['group'] = self.form.cleaned_data['group']
+        return context
+
+print_exsheet = staff_member_required(PrintExsheetView.as_view())
