@@ -18,7 +18,8 @@
 
 {% block content %}
 <div id="content-main">
-    <form action="{% url 'export_students' %}" method="get">
+    <form action="{% url 'export_students' %}" method="post">
+      {% csrf_token %}
       <div>
 	<fieldset>
 	  <table>

@@ -156,5 +156,15 @@ class ImportRegistrationsForm(forms.Form):
         required=False)
 
 
-class ExportStudentsOptForm(forms.Form):
-    group = forms.IntegerField()
+class ExportStudentsForm(forms.Form):
+    export_choice = forms.ChoiceField(
+        choices=(('group', 'Students from group...'),
+                 ('all', 'All students')))
+    group = forms.IntegerField(initial=1)
+
+    def clean_group(self):
+        group = self.cleaned_data['group']
+        if self.cleaned_data['export_choice']=='group' and \
+                not models.Student.objects.filter(group=group).exists():
+            raise ValidationError('No students in this group.')
+        return group

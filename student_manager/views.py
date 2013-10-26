@@ -846,25 +846,36 @@ class QueryAssignedGroupsView(TemplateView):
 query_assigned_groups = staff_member_required(QueryAssignedGroupsView.as_view())
 
 
-export_students_opt = staff_member_required(FormView.as_view(
-    template_name='student_manager/export_students_opt.html',
-    form_class=forms.ExportStudentsOptForm))
 
-def export_students(request):
-    try:
-        group = int(request.GET.get('group'))
-        if group<=0:
-            raise ValueError
-    except ValueError:
-        group = 1
+class ExportStudentsView(FormView):
+    template_name = 'student_manager/export_students.html'
+    form_class = forms.ExportStudentsForm
 
-    response = HttpResponse(mimetype='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="somefilename.csv"'
+    def form_valid(self, form):
+        export_choice = form.cleaned_data['export_choice']
+        group = form.cleaned_data['group']
+        if export_choice=='group':
+            filename = 'gruppe%d.csv' % group
+        else:
+            filename = 'studenten.csv'
 
-    qset = model.Student.objects.filter(group=group)
-    writer = csv.writer(response)
-    writer.writerow(['First row', 'Foo', 'Bar', 'Baz'])
-    for student in qset:
-        writer.writerow([student.matrikel, student.last_name])
-#    messages.success(request, 'bla')
-    return response
+        response = HttpResponse(mimetype='text/csv')
+        response['Content-Disposition'] = \
+            'attachment; filename="%s"' % filename
+
+        if export_choice=='group':
+            qset = models.Student.objects.filter(group=group)
+        else:
+            qset = models.Student.objects.all()
+        writer = csv.writer(response, delimiter=';')
+        writer.writerow(['Matrikel', 'Name', 'Vorname', 
+                         'Fach', 'Semester', 'Gruppe'])
+        for student in qset:
+            writer.writerow([student.matrikel, 
+                             student.last_name.encode('utf-8'),
+                             student.first_name.encode('utf-8'), 
+                             student.subject.encode('utf-8'),
+                             student.semester, student.group])
+        return response
+
+export_students = staff_member_required(ExportStudentsView.as_view())
