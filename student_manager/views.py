@@ -649,6 +649,14 @@ class ImportRegistrationsView(FormView):
                      len(self.stats['update'])))
         return super(ImportRegistrationsView, self).form_valid(form)
 
+    def transl_subj(self, subject):
+        if type(subject)==unicode:
+            subject = subject.translate({0xa0: 32})
+        if  self.subject_translation.has_key(subject):
+            return self.subject_translation[subject]
+        else:
+            return subject
+
     def add_registration(self, matrikel,
                          last_name, first_name,
                          subject, semester,
@@ -656,20 +664,18 @@ class ImportRegistrationsView(FormView):
         matrikel = int(matrikel)
         if self.student_dict.has_key(matrikel):
             stud = self.student_dict[matrikel]
+            if not stud[2]:
+                stud[2] = self.transl_subj(subject)
+            if not stud[3] and semester.isdigit():
+                stud[3] = semester
         else:
-            if type(subject)==unicode:
-                subject = subject.translate({0xa0: 32})
-            if  self.subject_translation.has_key(subject):
-                subject_transl = self.subject_translation[subject]
-            else:
-                subject_transl = subject
             if not semester.isdigit():
                 semester = None
-            stud = (last_name, first_name,
-                    subject_transl,
+            stud = [last_name, first_name,
+                    self.transl_subj(subject),
                     semester,
                     []                    # registrations
-                    )
+                    ]
             self.student_dict[matrikel] = stud
         if type(group_str)==unicode:
             group_str = group_str.translate({0xa0: 32})
