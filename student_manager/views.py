@@ -806,11 +806,11 @@ class QueryRegistrationsView(TemplateView):
 query_regist = staff_member_required(QueryRegistrationsView.as_view())
 
 
-class QueryAssignedGroupsView(TemplateView):
-    template_name = 'student_manager/query_assigned_groups.html'
+class QueryNewAssignedView(TemplateView):
+    template_name = 'student_manager/query_new_assigned.html'
 
     def get_context_data(self, **kwargs):
-        context = super(QueryAssignedGroupsView, self) \
+        context = super(QueryNewAssignedView, self) \
             .get_context_data(**kwargs)
 
         changed_assigned = models.Registration.objects.filter(status='ZU') \
@@ -843,8 +843,7 @@ class QueryAssignedGroupsView(TemplateView):
 
         return context
 
-query_assigned_groups = staff_member_required(QueryAssignedGroupsView.as_view())
-
+query_new_assigned = staff_member_required(QueryNewAssignedView.as_view())
 
 
 class ExportStudentsView(FormView):
