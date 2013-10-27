@@ -1,0 +1,46 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}" />{% endblock %}
+
+{% block title %}Generic Query | {% trans 'Django site admin' %}{% endblock %}
+
+{% block content_title %}<h1>Generic Query</h1>{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:app_list' app_label='student_manager' %}">Student_manager</a>
+&rsaquo; <a href="{% url 'admin:student_manager_student_changelist' %}">Students</a>
+&rsaquo; Generic query
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <table>
+    <thead>
+      <tr>
+	{% for cell in headline %}
+  	<th>{{ cell|safe }}</th>
+	{% endfor %}
+      </tr>
+    </thead>
+    {% for row in data %}
+    <tr>
+      {% for cell in row %}
+      <td class="center">{{ cell }}</td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
+    {% if bottomline %}
+    <tr>
+      {% for cell in bottomline %}
+      <td class="center">{{ cell }}</td>
+      {% endfor %}
+    </tr>
+    {% endif %}
+  </table>
+</div>
+{% endblock %}

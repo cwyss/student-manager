@@ -538,6 +538,39 @@ class QueryExamsView(TemplateView):
 query_exams = staff_member_required(QueryExamsView.as_view())
 
 
+query_students_opt = staff_member_required(FormView.as_view(
+    template_name='student_manager/query_students_opt.html',
+    form_class=forms.QueryStudentsOptForm))
+
+
+class QueryStudentsView(TemplateView):
+    template_name = 'student_manager/generic_query.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(QueryStudentsView, self).get_context_data(**kwargs)
+        first_field = self.request.GET.get('first_field')
+        only_active = self.request.GET.get('only_active')
+
+        headline = [first_field, '&#8721;']
+        context['headline'] = headline
+        if only_active:
+            qset = models.Student.objects.filter(active=True)
+        else:
+            qset = models.Student.objects
+        context['data'] = self.make_data1(qset, first_field)
+        return context
+
+    def make_data1(self, qset, field):
+        qset = qset.values(field).order_by(field) \
+            .annotate(count=Count('id'))
+        data = []
+        for agrp in qset:
+            data.append((agrp[field], agrp['count']))
+        return data
+
+query_students = staff_member_required(QueryStudentsView.as_view())
+
+
 class ImportRegistrationsView(FormView):
     template_name = 'student_manager/import_registration.html'
     form_class = forms.ImportRegistrationsForm

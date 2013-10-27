@@ -135,6 +135,15 @@ class QueryExamsOptForm(forms.Form):
         queryset=models.MasterExam.objects.all())
 
 
+class QueryStudentsOptForm(forms.Form):
+    first_field = forms.ChoiceField(
+        choices=(('subject', 'Subject'),
+                 ('semester', 'Semester'),
+                 ('group', 'Group')))
+    only_active = forms.BooleanField(label=_('Include only active students'),
+                                     initial=True)
+
+
 class ImportRegistrationsForm(forms.Form):
     file = forms.FileField(label=_('CSV or Wusel XLS file'))
     csv_separator = forms.CharField(max_length=1, initial=';')
