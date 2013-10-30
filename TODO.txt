@@ -10,3 +10,7 @@ exams oder exercises liste...?
 students generic query -> zwei Felder
 
 enter exercises analog zu enter exam results
+
+model Group mit Feldern number, time, assistent
+-> benutzen fuer group translation und 
+bei query registrations: assigned students per assistent
