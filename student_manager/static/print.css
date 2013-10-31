@@ -2,8 +2,8 @@ body {
     font-size: 12px;
 }
 
-body.big {
-    font-size: 16px;
+body.exsheet {
+    font-size: 12px;
 }
 
 table {
@@ -18,7 +18,7 @@ td, th {
     border-color: #AAA;
 }
 
-.big td, .big th {
+.exsheet td, .exsheet th {
     border-bottom: 1px solid #AAA;
     padding: 6px 5px;
 }

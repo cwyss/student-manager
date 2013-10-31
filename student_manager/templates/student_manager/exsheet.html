@@ -3,7 +3,7 @@
   <head>
     <link rel="stylesheet" type="text/css" href="{{ STATIC_URL}}print.css">
   </head>
-  <body class="big">
+  <body class="exsheet">
     <h3>Gruppe {{ group }}, Blatt <div class="box"></div></h3>
     <table>
       <thead>
@@ -16,7 +16,7 @@
       {% for student in object_list %}
       <tr>
       <!-- <tr class="{% cycle 'odd' 'even' %}"> -->
-	<td class="right">{{ student.matrikel }}</td>
+	<td class="right">{{ student.matrikel|default:"" }}</td>
 	<td>{{ student.last_name }}, {{ student.first_name }}</td>
 	<td></td>
       </tr>
