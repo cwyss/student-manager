@@ -14,3 +14,6 @@ enter exercises analog zu enter exam results
 model Group mit Feldern number, time, assistent
 -> benutzen fuer group translation und 
 bei query registrations: assigned students per assistent
+
+Infotext fuer "Uebungsgruppeneinteilung" print Ausgabe (sortiert nach...,
+Studenten mit/ohne Matr)
