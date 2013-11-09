@@ -1,0 +1,61 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}" />
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL}}main.css" %}" />
+{% endblock %}
+
+{% block title %}Enter exercise results | {% trans 'Django site admin' %}{% endblock %}
+
+{% block content_title %}<h1>Enter exercise results</h1>{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:app_list' app_label='student_manager' %}">Student_manager</a>
+&rsaquo; <a href="{% url 'admin:student_manager_group_changelist' %}">Groups</a> &rsaquo; Enter exam results
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <form action="{% url 'save_exercise_results' %}" method="post">
+      {{ formset.management_form }}
+      {{ sheet_form }}
+      {{ formset.nonfield_errors }}
+      <div>
+	{% csrf_token %}
+	<fieldset>
+	  <table class="exam-results">
+	    <thead>
+	      <tr>
+		<th>Matrikel</th>
+		<th>Last name</th>
+		<th>First name</th>
+		<th>Points</th>
+	      </tr>
+	    </thead>
+	    {% for form in formset %}
+	      <tr>
+		<td>{{ form.instance.matrikel }}</td>
+		<td>{{ form.instance.last_name }}</td>
+		<td>{{ form.instance.first_name }}</td>
+		<td>{{ form.points }}{{ form.points.errors }}
+		  {% for field in form.hidden_fields %}
+		  {{ field }}{{ field.errors }}
+		  {% endfor %}
+		</td>
+	      </tr>
+	    {% endfor %}
+	  </table>
+	</fieldset>
+	<div class="submit-row">
+	  <input type="submit" value="Submit">
+	</div>
+    </div>
+  </form>
+</div>
+
+{% endblock %}

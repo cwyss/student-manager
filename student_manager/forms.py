@@ -1,8 +1,13 @@
 """Forms."""
 
+from decimal import Decimal
 import json
 from django import forms
-from django.forms.models import modelformset_factory, modelform_factory
+from django.forms.util import ErrorList
+from django.forms.models import (
+    modelformset_factory,
+    modelform_factory,
+    BaseModelFormSet)
 from django.forms.widgets import HiddenInput
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ValidationError
@@ -113,14 +118,14 @@ class PrintStudentsOptForm(forms.Form):
 
 class ImportExamsForm(forms.Form):
     examnr = forms.ModelChoiceField(
-        label='Exam number', 
+        label='Exam number',
         queryset=models.MasterExam.objects.all())
     file = forms.FileField(label=_('File'))
 
 
 class PrintExamsOptForm(forms.Form):
     examnr = forms.ModelChoiceField(
-        label='Exam number', 
+        label='Exam number',
         queryset=models.MasterExam.objects.all())
     format = forms.ChoiceField(
         choices=(('exam_obscured', 'seat list - with obscured matrikel'),
@@ -131,7 +136,7 @@ class PrintExamsOptForm(forms.Form):
 
 class QueryExamsOptForm(forms.Form):
     examnr = forms.ModelChoiceField(
-        label='Exam number', 
+        label='Exam number',
         queryset=models.MasterExam.objects.all())
 
 
@@ -192,3 +197,41 @@ class PrintExsheetOptForm(forms.Form):
         if not models.Student.objects.filter(group=group, active=True).exists():
             raise ValidationError('No active students in this group.')
         return group
+
+
+class StudentExerciseForm(forms.ModelForm):
+    points = forms.TypedChoiceField(
+        required=False,
+        choices=[('', '')] + models.POINTS_CHOICES,
+        coerce=Decimal)
+
+    class Meta:
+        model = models.Student
+        fields = ('points',)
+
+    def clean(self):
+        cleaned_data = super(StudentExerciseForm, self).clean()
+        student = self.cleaned_data['id']
+        if cleaned_data['points'] != '' and models.Exercise.objects.filter(
+            student=student, group=student.group, sheet=self.sheet).exists():
+            self._errors['points'] = ErrorList(
+                ['Exercise %s for this student already exists.' % self.sheet])
+        return cleaned_data
+
+    def save(self, commit=True):
+        if self.sheet is None:
+            raise ValueError('No sheet given')
+        student = self.cleaned_data['id']
+        return models.Exercise.objects.create(
+            student=student, group=student.group,
+            sheet=self.sheet, points=self.cleaned_data['points'])
+
+
+ExerciseFormSet = modelformset_factory(
+    models.Student,
+    form=StudentExerciseForm,
+    extra=0)
+
+
+class SheetForm(forms.Form):
+    sheet = forms.IntegerField()

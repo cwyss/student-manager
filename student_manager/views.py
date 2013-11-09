@@ -89,7 +89,7 @@ class ImportExercisesView(FormView):
                 self.request,
                 '%s entries without matrikel skipped.' \
                     % len(self.stats['no_matrikel']))
-        
+
         return super(ImportExercisesView, self).form_valid(form)
 
     def save_exercise(self, group, student, sheet, points):
@@ -112,7 +112,7 @@ class ImportExercisesView(FormView):
             status = 'invalid_points'
 
         self.stats[status].append(str(student.matrikel))
-                    
+
 import_exercises = staff_member_required(ImportExercisesView.as_view())
 
 
@@ -290,7 +290,7 @@ class ImportExamsView(FormView):
 
         messages.info(
             self.request,
-            '%d exam entries with %d subjects processed.' % 
+            '%d exam entries with %d subjects processed.' %
             (sum(map(len, self.stats.itervalues())),
              self.subjectcnt))
         if self.stats['newstud']:
@@ -385,13 +385,13 @@ class ImportExamsView(FormView):
             else:
                 status = 'updated'
         except models.Exam.DoesNotExist:
-            exam = models.Exam(student=student, 
+            exam = models.Exam(student=student,
                                examnr=self.examnr)
         exam.subject = self.subject
         exam.resit = resit
         exam.save()
         self.stats[status].append(line)
-                    
+
 import_exams = staff_member_required(ImportExamsView.as_view())
 
 
@@ -432,7 +432,7 @@ class PrintExamsView(ListView):
         if masterexam.mark_limits:
             mark_limits = json.loads(masterexam.mark_limits)
             entry = mark_limits[0]
-            mark_ranges.append((masterexam.max_points, 
+            mark_ranges.append((masterexam.max_points,
                                 entry[0], entry[1]))
             last_limit = entry[0]
             for entry in mark_limits[1:]:
@@ -524,7 +524,7 @@ class QueryExamsView(TemplateView):
         for item in pointcounts:
             while item['points'] >= group['upper']:
                 nextgroup = {'lower': group['upper'],
-                             'upper': group['upper']+pointstep, 
+                             'upper': group['upper']+pointstep,
                              'count': 0}
                 pointgroups.append(nextgroup)
                 group = nextgroup
@@ -582,9 +582,9 @@ class QueryStudentsView(TemplateView):
         qf2 = qset.values(field2).order_by(field2) \
             .annotate(count=Count('id'))
         field2_dict = {}
-        context['headline'] = [field1] 
+        context['headline'] = [field1]
         for (i,d) in enumerate(qf2):
-            field2_dict[d[field2]] = i 
+            field2_dict[d[field2]] = i
             context['headline'].append(d[field2])
         context['headline'].append('&#8721;')
 
@@ -604,7 +604,7 @@ class QueryStudentsView(TemplateView):
 
         counts = [d['count'] for d in qf2]
         context['bottomline'] = ['&#8721;'] + counts + [sum(counts)]
-            
+
 query_students = staff_member_required(QueryStudentsView.as_view())
 
 
@@ -660,7 +660,7 @@ class ImportRegistrationsView(FormView):
                 'No such group in translation: %s' \
                     % ', '.join(nogrp_out))
         if self.stats['dupl_regist']:
-            dupl_out = ['%d: Grp %s' % (d[0],d[1]) 
+            dupl_out = ['%d: Grp %s' % (d[0],d[1])
                         for d in self.stats['dupl_regist']]
             messages.warning(
                 self.request,
@@ -948,12 +948,12 @@ class ExportStudentsView(FormView):
         else:
             qset = models.Student.objects.all()
         writer = csv.writer(response, delimiter=';')
-        writer.writerow(['Matrikel', 'Name', 'Vorname', 
+        writer.writerow(['Matrikel', 'Name', 'Vorname',
                          'Fach', 'Semester', 'Gruppe'])
         for student in qset:
-            writer.writerow([student.matrikel, 
+            writer.writerow([student.matrikel,
                              student.last_name.encode('utf-8'),
-                             student.first_name.encode('utf-8'), 
+                             student.first_name.encode('utf-8'),
                              student.subject.encode('utf-8'),
                              student.semester, student.group])
         return response
@@ -991,3 +991,33 @@ class PrintExsheetView(ListView):
         return context
 
 print_exsheet = staff_member_required(PrintExsheetView.as_view())
+
+
+@staff_member_required
+@require_POST
+def save_exercise_results(request, queryset=None):
+    if queryset is not None:
+        # initial form
+        students = models.Student.objects.filter(group__in=queryset)
+        formset = forms.ExerciseFormSet(queryset=students)
+        sheet_form = forms.SheetForm()
+    else:
+        # submitted form
+        sheet_form = forms.SheetForm(request.POST)
+        formset = forms.ExerciseFormSet(request.POST)
+        if sheet_form.is_valid():
+            for form in formset:
+                form.sheet = sheet_form.cleaned_data['sheet']
+            if formset.is_valid():
+                formset.save()
+                messages.success(request, 'Exercises updated.')
+                return HttpResponseRedirect(
+                    reverse('admin:student_manager_group_changelist'))
+
+    return render_to_response(
+        'student_manager/enter_exercise_results.html',
+        {'formset': formset,
+         'sheet_form': sheet_form},
+        context_instance=RequestContext(request))
+
+

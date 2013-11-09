@@ -12,6 +12,11 @@ from student_manager import forms, models, views
 
 class GroupAdmin(admin.ModelAdmin):
     list_display = ('number', 'time', 'assistent')
+    actions = ('enter_exercise_results',)
+
+    def enter_exercise_results(self, request, queryset):
+        return views.save_exercise_results(request, queryset)
+
 
 
 class NonuniqueModuloMatrikelListFilter(admin.SimpleListFilter):
@@ -63,7 +68,7 @@ class RoomAdmin(admin.ModelAdmin):
 
 
 class ExamAdmin(admin.ModelAdmin):
-    list_display = ('examnr', 'student', 'subject', 'number', 
+    list_display = ('examnr', 'student', 'subject', 'number',
                     'room', 'resit', 'points', 'mark', 'final_mark')
     list_filter = ('examnr', 'subject', 'room', 'resit')
     raw_id_fields = ('student',)
@@ -105,7 +110,7 @@ class ExamAdmin(admin.ModelAdmin):
             exam.save()
         messages.success(request, 'Assigned %s seats' % queryset.count())
 
-        
+
     def enter_results(self, request, queryset):
         return views.save_exam_results(request, queryset)
 
@@ -154,7 +159,7 @@ class RegistrationAdmin(admin.ModelAdmin):
         duplicates = queryset.values('student') \
             .order_by('student') \
             .annotate(count=Count('id')).filter(count__gte=2)
-        if duplicates: 
+        if duplicates:
             out = []
             for e in duplicates:
                 student = models.Student.objects.get(id=e['student'])
@@ -169,11 +174,11 @@ class RegistrationAdmin(admin.ModelAdmin):
             student.group = regist.group
             student.save()
         messages.success(
-            request, 
+            request,
             'Assigned groups to %d students' % queryset.count())
 
 
-        
+
 admin.site.register(models.Group, GroupAdmin)
 admin.site.register(models.Student, StudentAdmin)
 admin.site.register(models.Exercise, ExerciseAdmin)
