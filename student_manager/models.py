@@ -53,8 +53,7 @@ class Student(models.Model):
     first_name = models.CharField(max_length=200, null=True, blank=True)
     subject = models.CharField(max_length=200, null=True, blank=True)
     semester = models.IntegerField(null=True, blank=True)
-    group = models.IntegerField(null=True, blank=True)
-    # group = models.ForeignKey(Group, null=True, blank=True)
+    group = models.ForeignKey(Group, null=True, blank=True)
     active = models.BooleanField(default=True)
 
     objects = StudentManager()
@@ -108,7 +107,7 @@ VALID_POINTS = [x[0] for x in POINTS_CHOICES]
 
 class Exercise(models.Model):
     student = models.ForeignKey(Student)
-    group = models.IntegerField(null=True, blank=True)
+    group = models.ForeignKey(Group, null=True, blank=True)
     sheet = models.IntegerField()
     points = models.DecimalField(
         max_digits=2, decimal_places=1,
@@ -257,7 +256,7 @@ class StaticData(models.Model):
 
 class Registration(models.Model):
     student = models.ForeignKey(Student)
-    group = models.IntegerField()
+    group = models.ForeignKey(Group)
     priority = models.IntegerField(null=True, blank=True)
     status = models.CharField(max_length=2, null=True, blank=True,
                               choices=[(u'AN','AN'),(u'ZU','ZU'),
