@@ -549,25 +549,62 @@ class QueryStudentsView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(QueryStudentsView, self).get_context_data(**kwargs)
         first_field = self.request.GET.get('first_field')
+        second_field = self.request.GET.get('second_field')
         only_active = self.request.GET.get('only_active')
 
-        headline = [first_field, '&#8721;']
-        context['headline'] = headline
         if only_active:
             qset = models.Student.objects.filter(active=True)
         else:
             qset = models.Student.objects
-        context['data'] = self.make_data1(qset, first_field)
+        context['first_field'] = first_field
+        if second_field=='None':
+            self.make_data1(qset, first_field, context)
+        else:
+            context['second_field'] = second_field
+            self.make_data2(qset, first_field, second_field, context)
         return context
 
-    def make_data1(self, qset, field):
-        qset = qset.values(field).order_by(field) \
-            .annotate(count=Count('id'))
+    def make_data1(self, qset, field, context):
+        context['headline'] = [field, '&#8721;']
+        #qset = qset.values(field).order_by(field) \
+        qset = models.Student.objects.values('subject').order_by('subject') \
+            .annotate(count=Count('subject'))
+        print qset.query
+        print qset, models.Student.objects.all().count()
         data = []
         for agrp in qset:
             data.append((agrp[field], agrp['count']))
-        return data
+        context['data'] = data
 
+    def make_data2(self, qset, field1, field2, context):
+        qf1 = qset.values(field1).order_by(field1) \
+            .annotate(count=Count('id'))
+        qf2 = qset.values(field2).order_by(field2) \
+            .annotate(count=Count('id'))
+        field2_dict = {}
+        context['headline'] = [field1] 
+        for (i,d) in enumerate(qf2):
+            field2_dict[d[field2]] = i 
+            context['headline'].append(d[field2])
+        context['headline'].append('&#8721;')
+
+        context['data'] = []
+        for df1 in qf1:
+            line = [df1[field1]]
+            qf = qset.filter(**{field1: df1[field1]}) \
+                .values(field2).order_by(field2) \
+                .annotate(count=Count('id'))
+            counts = [0] * len(field2_dict)
+            for d in qf:
+                i = field2_dict[d[field2]]
+                counts[i] = d['count']
+            line.extend(counts)
+            line.append(df1['count'])
+            context['data'].append(line)
+
+        counts = [d['count'] for d in qf2]
+        context['bottomline'] = ['&#8721;'] + counts + [sum(counts)]
+            
 query_students = staff_member_required(QueryStudentsView.as_view())
 
 

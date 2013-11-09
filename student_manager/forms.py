@@ -140,6 +140,11 @@ class QueryStudentsOptForm(forms.Form):
         choices=(('subject', 'Subject'),
                  ('semester', 'Semester'),
                  ('group', 'Group')))
+    second_field = forms.ChoiceField(
+        choices=((None, 'None'),
+                 ('subject', 'Subject'),
+                 ('semester', 'Semester'),
+                 ('group', 'Group')))
     only_active = forms.BooleanField(label=_('Include only active students'),
                                      initial=True)
 

@@ -19,6 +19,12 @@
 
 {% block content %}
 <div id="content-main">
+  <p>
+    {% if second_field %}
+    Rows: {{ first_field }}<br />
+    Columns: {{ second_field }}
+    {% endif %}
+  </p>
   <table>
     <thead>
       <tr>
@@ -37,7 +43,7 @@
     {% if bottomline %}
     <tr>
       {% for cell in bottomline %}
-      <td class="center">{{ cell }}</td>
+      <td class="center">{{ cell|safe }}</td>
       {% endfor %}
     </tr>
     {% endif %}

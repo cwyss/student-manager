@@ -23,8 +23,9 @@ def validate_matrikel(matrikel, student_id):
 
 class StudentManager(models.Manager):
     def get_query_set(self):
+        print 'query overwrite'
         query = super(StudentManager, self).get_query_set()
-        return query.annotate(_total_points=Sum('exercise__points'))
+        return query.annotate(_total_points=Sum('exercise__points')).distinct()
 
 
 class Student(models.Model):

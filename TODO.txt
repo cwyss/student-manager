@@ -7,8 +7,6 @@ exams oder exercises liste...?
 ?? subject_translation nachtraeglich durchfuehren -> import registration data
     mit 'update only student data'
 
-students generic query -> zwei Felder
-
 enter exercises analog zu enter exam results
 
 model Group mit Feldern number, time, assistent
