@@ -552,10 +552,13 @@ class QueryStudentsView(TemplateView):
         second_field = self.request.GET.get('second_field')
         only_active = self.request.GET.get('only_active')
 
+        """ cannot use
+              qset = models.Student.object
+            here, because of annotation with Exercise in Student model
+            (class StudentManager) """
+        qset = models.Student.objects.get_pure_query_set()
         if only_active:
-            qset = models.Student.objects.filter(active=True)
-        else:
-            qset = models.Student.objects
+            qset = qset.filter(active=True)
         context['first_field'] = first_field
         if second_field=='None':
             self.make_data1(qset, first_field, context)
@@ -566,11 +569,8 @@ class QueryStudentsView(TemplateView):
 
     def make_data1(self, qset, field, context):
         context['headline'] = [field, '&#8721;']
-        #qset = qset.values(field).order_by(field) \
-        qset = models.Student.objects.values('subject').order_by('subject') \
-            .annotate(count=Count('subject'))
-        print qset.query
-        print qset, models.Student.objects.all().count()
+        qset = qset.values(field).order_by(field) \
+            .annotate(count=Count('id'))
         data = []
         for agrp in qset:
             data.append((agrp[field], agrp['count']))
