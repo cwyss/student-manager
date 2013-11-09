@@ -10,6 +10,10 @@ from django.utils.translation import ugettext_lazy as _
 from student_manager import forms, models, views
 
 
+class GroupAdmin(admin.ModelAdmin):
+    list_display = ('number', 'time', 'assistent')
+
+
 class NonuniqueModuloMatrikelListFilter(admin.SimpleListFilter):
     title = _('modulo matrikel')
     parameter_name = 'modulo_matrikel'
@@ -170,6 +174,7 @@ class RegistrationAdmin(admin.ModelAdmin):
 
 
         
+admin.site.register(models.Group, GroupAdmin)
 admin.site.register(models.Student, StudentAdmin)
 admin.site.register(models.Exercise, ExerciseAdmin)
 admin.site.register(models.MasterExam, MasterExamAdmin)

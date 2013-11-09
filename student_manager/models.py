@@ -7,8 +7,17 @@ from django.core.exceptions import ValidationError
 import json
 
 
-POINTS_CHOICES = [(i/Decimal('2'), str(i/2.0)) for i in range(11)]
-VALID_POINTS = [x[0] for x in POINTS_CHOICES]
+class Group(models.Model):
+    number = models.IntegerField()
+    time = models.CharField(max_length=200, null=True, blank=True)
+    assistent = models.CharField(max_length=200, null=True, blank=True)
+
+    def __unicode__(self):
+        return u'%d' % self.number
+
+    class Meta:
+        ordering = ('number',)
+
 
 def validate_matrikel(matrikel, student_id):
     if matrikel:
@@ -45,6 +54,7 @@ class Student(models.Model):
     subject = models.CharField(max_length=200, null=True, blank=True)
     semester = models.IntegerField(null=True, blank=True)
     group = models.IntegerField(null=True, blank=True)
+    # group = models.ForeignKey(Group, null=True, blank=True)
     active = models.BooleanField(default=True)
 
     objects = StudentManager()
@@ -92,6 +102,9 @@ class Student(models.Model):
     class Meta:
         ordering = ('last_name', 'first_name')
 
+
+POINTS_CHOICES = [(i/Decimal('2'), str(i/2.0)) for i in range(11)]
+VALID_POINTS = [x[0] for x in POINTS_CHOICES]
 
 class Exercise(models.Model):
     student = models.ForeignKey(Student)
