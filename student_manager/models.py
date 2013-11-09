@@ -187,14 +187,6 @@ class Exam(models.Model):
         return super(Exam, self).save(*args, **kwargs)
 
 
-def make_translation_dict(jstr):
-    try:
-        jstr = jstr.translate({0xa0: 32})
-        transl = json.loads(jstr)
-        return transl
-    except cls.DoesNotExist:
-            return {}
-
 class StaticData(models.Model):
     key = models.CharField(max_length=100)
     value = models.TextField(null=True, blank=True)

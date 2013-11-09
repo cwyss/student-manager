@@ -621,10 +621,6 @@ class ImportRegistrationsView(FormView):
         import_choice = str(form.cleaned_data['import_choice'])
         update_choice = str(form.cleaned_data['update_choice'])
         update_groups = form.cleaned_data['update_group_names']
-        self.subject_translation = \
-            models.StaticData.get_subject_transl()
-        self.group_translation = \
-            models.StaticData.get_group_transl()
 
         self.stats = {'new': [],
                       'update': [],
@@ -636,10 +632,17 @@ class ImportRegistrationsView(FormView):
         self.worksheet_name = None
         self.groups = []
         self.student_dict = {}
+
+        self.subject_translation = \
+            models.StaticData.get_subject_transl()
         if not self.read_xls(file):
             self.read_csv(file, column_sep)
+
         if update_groups:
             models.StaticData.update_group_transl(self.groups)
+        self.group_translation = \
+            models.StaticData.get_group_transl()
+
         self.import_data(import_choice, update_choice)
 
         if self.worksheet_name:
@@ -849,6 +852,8 @@ class QueryRegistrationsView(TemplateView):
             Max('group'),
             Max('student__group'))
         maxgroup = max(groups_max.values())
+        if not maxgroup:              # no registrations
+            return context
         context['maxgroup'] = maxgroup
 
         context['headline'] = ['AGrp %d' % i for i in range(1,maxgroup+1)]
