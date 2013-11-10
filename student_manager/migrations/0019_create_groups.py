@@ -12,8 +12,11 @@ class Migration(DataMigration):
         # Use orm.ModelName to refer to models in this application,
         # and orm['appname.ModelName'] for models in other applications.
 
-        groups_max = orm.Student.objects.aggregate(models.Max('group'))
-        maxgroup = max(groups_max.values())
+        std_groups_max = orm.Student.objects.aggregate(models.Max('group'))
+        reg_groups_max = orm.Registration.objects.aggregate(models.Max('group'))
+        exr_groups_max = orm.Exercise.objects.aggregate(models.Max('group'))
+        maxgroup = max(std_groups_max.values() + reg_groups_max.values()
+                       + exr_groups_max.values())
 
         for grp in range(1,maxgroup+1):
             orm.Group.objects.create(number=grp)
