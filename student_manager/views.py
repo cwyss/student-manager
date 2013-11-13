@@ -52,14 +52,12 @@ class ImportExercisesView(FormView):
             except models.Student.DoesNotExist:
                 self.stats['unknown_student'].append(row[0])
                 continue
-            if form.cleaned_data['format'] == '1':
+            if form.cleaned_data['format'] == 'exerc':
                 self.save_exercise(group, student, row[1], row[2])
-            elif form.cleaned_data['format'] == '2':
-                for sheet, points in enumerate(row[1:]):
-                    sheet += 1
+            elif form.cleaned_data['format'] == 'sheet':
+                for i, points in enumerate(row[1:]):
+                    sheet = i+1
                     self.save_exercise(group, student, sheet, points)
-            else:
-                raise ValueError('Unknown format.')
 
         messages.info(
             self.request,
@@ -148,7 +146,7 @@ class ImportStudentsView(FormView):
             else:
                 semester = None
             if row[5].isdigit():
-                group = row[5]
+                group = models.Group.get_group(int(row[5]), create=True)
             else:
                 group = None
             student = models.Student(matrikel=matrikel,
@@ -569,6 +567,8 @@ class QueryStudentsView(TemplateView):
 
     def make_data1(self, qset, field, context):
         context['headline'] = [field, '&#8721;']
+        if field=='group':
+            field = 'group__number'
         qset = qset.values(field).order_by(field) \
             .annotate(count=Count('id'))
         data = []
@@ -577,12 +577,16 @@ class QueryStudentsView(TemplateView):
         context['data'] = data
 
     def make_data2(self, qset, field1, field2, context):
+        context['headline'] = [field1]
+        if field1=='group':
+            field1 = 'group__number'
+        if field2=='group':
+            field2 = 'group__number'
         qf1 = qset.values(field1).order_by(field1) \
             .annotate(count=Count('id'))
         qf2 = qset.values(field2).order_by(field2) \
             .annotate(count=Count('id'))
         field2_dict = {}
-        context['headline'] = [field1]
         for (i,d) in enumerate(qf2):
             field2_dict[d[field2]] = i
             context['headline'].append(d[field2])
@@ -620,7 +624,7 @@ class ImportRegistrationsView(FormView):
         column_sep = str(form.cleaned_data['csv_separator'])
         import_choice = str(form.cleaned_data['import_choice'])
         update_choice = str(form.cleaned_data['update_choice'])
-        update_groups = form.cleaned_data['update_group_names']
+        create_groups = form.cleaned_data['create_groups']
 
         self.stats = {'new': [],
                       'update': [],
@@ -637,12 +641,8 @@ class ImportRegistrationsView(FormView):
             models.StaticData.get_subject_transl()
         if not self.read_xls(file):
             self.read_csv(file, column_sep)
-
-        if update_groups:
-            models.StaticData.update_group_transl(self.groups)
         self.group_translation = \
-            models.StaticData.get_group_transl()
-
+            models.Group.get_group_transl(self.groups, create=create_groups)
         self.import_data(import_choice, update_choice)
 
         if self.worksheet_name:
@@ -849,8 +849,8 @@ class QueryRegistrationsView(TemplateView):
         context = super(QueryRegistrationsView, self).get_context_data(**kwargs)
 
         groups_max = models.Registration.objects.aggregate(
-            Max('group'),
-            Max('student__group'))
+            Max('group__number'),
+            Max('student__group__number'))
         maxgroup = max(groups_max.values())
         if not maxgroup:              # no registrations
             return context
@@ -859,27 +859,29 @@ class QueryRegistrationsView(TemplateView):
         context['headline'] = ['AGrp %d' % i for i in range(1,maxgroup+1)]
         context['registrations'] = []
         for group in range(1,maxgroup+1):
-            regist_cnt = models.Registration.objects.filter(group=group) \
-                .values('student__group').order_by('student__group') \
+            regist_cnt = models.Registration.objects \
+                .filter(group__number=group) \
+                .values('student__group__number') \
+                .order_by('student__group__number') \
                 .annotate(count=Count('id'))
             row = (maxgroup+1) * [0]
             for d in regist_cnt:
-                if d['student__group']==None:
+                if d['student__group__number']==None:
                     i = maxgroup
                 else:
-                    i = d['student__group'] - 1
+                    i = d['student__group__number'] - 1
                 row[i] = d['count']
             context['registrations'].append([group] + row + [sum(row)])
 
         total_cnt = models.Student.objects \
-            .values('group').order_by('group') \
+            .values('group__number').order_by('group__number') \
             .annotate(count=Count('id'))
         row = (maxgroup+1) * [0]
         for d in total_cnt:
-            if d['group']==None:
+            if d['group__number']==None:
                 i = maxgroup
             else:
-                i = d['group'] - 1
+                i = d['group__number'] - 1
             row[i] = d['count']
         context['bottomline'] = ['total'] + row + [sum(row)]
         return context
@@ -897,7 +899,8 @@ class QueryNewAssignedView(TemplateView):
         changed_assigned = models.Registration.objects.filter(status='ZU') \
             .exclude(group=F('student__group')) \
             .values('student__matrikel', 'student__last_name',
-                    'student__first_name', 'student__group', 'group') \
+                    'student__first_name', 
+                    'student__group__number', 'group__number') \
             .order_by('student__matrikel')
         context['changed_assigned'] = changed_assigned
         context['changed_count'] = changed_assigned.count()
@@ -935,7 +938,7 @@ class ExportStudentsView(FormView):
         export_choice = form.cleaned_data['export_choice']
         group = form.cleaned_data['group']
         if export_choice=='group':
-            filename = 'gruppe%d.csv' % group
+            filename = 'gruppe%d.csv' % group.number
         else:
             filename = 'studenten.csv'
 
@@ -955,7 +958,7 @@ class ExportStudentsView(FormView):
                              student.last_name.encode('utf-8'),
                              student.first_name.encode('utf-8'),
                              student.subject.encode('utf-8'),
-                             student.semester, student.group])
+                             student.semester, student.group.number])
         return response
 
 export_students = staff_member_required(ExportStudentsView.as_view())
@@ -987,7 +990,7 @@ class PrintExsheetView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super(PrintExsheetView, self).get_context_data(**kwargs)
-        context['group'] = self.form.cleaned_data['group']
+        context['group'] = self.form.cleaned_data['group'].number
         return context
 
 print_exsheet = staff_member_required(PrintExsheetView.as_view())

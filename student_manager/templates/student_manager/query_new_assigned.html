@@ -36,8 +36,8 @@
     <tr>
       <td class="center">{{ entry.student__matrikel }}</td>
       <td>{% if entry.student__last_name %}{{ entry.student__last_name }}, {{ entry.student__first_name }}{% else %}&mdash;{% endif %}</td>
-      <td class="center">{{ entry.student__group }}</td>
-      <td class="center">{{ entry.group }}</td>
+      <td class="center">{{ entry.student__group__number }}</td>
+      <td class="center">{{ entry.group__number }}</td>
     </tr>
     {% endfor %}
   </table>
@@ -76,7 +76,7 @@
     <tr>
       <td class="center">{{ entry.matrikel }}</td>
       <td>{% if entry.last_name %}{{ entry.last_name }}, {{ entry.first_name }}{% else %}&mdash;{% endif %}</td>
-      <td class="center">{{ entry.group }}</td>
+      <td class="center">{{ entry.group.number }}</td>
     </tr>
     {% endfor %}
   </table>

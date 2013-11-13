@@ -15,8 +15,16 @@ from django.core.exceptions import ValidationError
 from student_manager import models
 
 
-class StudentForm(forms.ModelForm):
+class GroupForm(forms.ModelForm):
+    class Meta:
+        model = models.Group
 
+    def clean_time(self):
+        time = self.cleaned_data['time']
+        return time.translate({0xa0: 32})
+
+
+class StudentForm(forms.ModelForm):
     class Meta:
         model = models.Student
         exclude = ('modulo_matrikel',)
@@ -35,8 +43,7 @@ class StaticDataForm(forms.ModelForm):
     def clean_value(self):
         key = self.cleaned_data['key']
         value = self.cleaned_data['value']
-        if key=='subject_translation' or \
-                key=='group_translation':
+        if key=='subject_translation':
             try:
                 transl = json.loads(value)
                 if type(transl)!=dict:
@@ -82,13 +89,14 @@ class NumberExercisesForm(forms.Form):
 
 
 class ImportExercisesForm(forms.Form):
-    group = forms.IntegerField(required=False)
+    group = forms.ModelChoiceField(
+        queryset=models.Group.objects.all())
     column_separator = forms.CharField(max_length=1, initial=';')
     csv_file = forms.FileField(label=_('CSV file'))
     format = forms.ChoiceField(choices=(
             ('', 'Please select'),
-            (1, 'Exercise table (one entry per exercise)'),
-            (2, 'Big table (one column per sheet)')))
+            ('exerc', 'Exercise table (one entry per exercise)'),
+            ('sheet', 'Big table (one column per sheet)')))
 
 
 class ImportStudentsForm(forms.Form):
@@ -170,8 +178,8 @@ class ImportRegistrationsForm(forms.Form):
                  ('stud', 'import only student data'),
                  ('all', 'import student and registration data'))
         )
-    update_group_names = forms.BooleanField(
-        label='Update group names to group_translation?',
+    create_groups = forms.BooleanField(
+        label='Create non-existing groups?',
         required=False)
 
 
@@ -179,7 +187,8 @@ class ExportStudentsForm(forms.Form):
     export_choice = forms.ChoiceField(
         choices=(('group', 'Students from group...'),
                  ('all', 'All students')))
-    group = forms.IntegerField(initial=1)
+    group = forms.ModelChoiceField(required=False,
+        queryset=models.Group.objects.all())
 
     def clean(self):
         group = self.cleaned_data.get('group')
@@ -190,7 +199,8 @@ class ExportStudentsForm(forms.Form):
 
 
 class PrintExsheetOptForm(forms.Form):
-    group = forms.IntegerField(initial=1)
+    group = forms.ModelChoiceField(
+        queryset=models.Group.objects.all())
 
     def clean_group(self):
         group = self.cleaned_data['group']

@@ -13,6 +13,7 @@ from student_manager import forms, models, views
 class GroupAdmin(admin.ModelAdmin):
     list_display = ('number', 'time', 'assistent')
     actions = ('enter_exercise_results',)
+    form = forms.GroupForm
 
     def enter_exercise_results(self, request, queryset):
         return views.save_exercise_results(request, queryset)
@@ -126,12 +127,12 @@ class AssignedGroupListFilter(admin.SimpleListFilter):
 
     def lookups(self, request, model_admin):
         groupset = models.Registration.objects \
-            .values('student__group') \
-            .order_by('student__group') \
+            .values('student__group__number') \
+            .order_by('student__group__number') \
             .annotate(Count('id'))
         lookups = []
         for x in groupset:
-            group = x['student__group']
+            group = x['student__group__number']
             if group!=None:
                 lookups.append((group, str(group)))
             else:
@@ -144,7 +145,7 @@ class AssignedGroupListFilter(admin.SimpleListFilter):
         elif self.value()=='False':
             return queryset.filter(student__group__isnull=True)
         else:
-            return queryset.filter(student__group=self.value())
+            return queryset.filter(student__group__number=self.value())
 
 class RegistrationAdmin(admin.ModelAdmin):
     list_display = ('student', 'group', 'priority', 'status',

@@ -18,6 +18,59 @@ class Group(models.Model):
     class Meta:
         ordering = ('number',)
 
+    @classmethod
+    def get_group(cls, number, create=False):
+        try:
+            group = cls.objects.get(number=number)
+        except cls.DoesNotExist:
+            if create:
+                group = cls.objects.create(number=number)
+            else:
+                group = None
+        return group
+
+    @classmethod
+    def get_group_transl(cls, groups, create=False):
+        if cls.objects.count()>0:
+            max_group_number = \
+                cls.objects.aggregate(Max('number'))['number__max']
+        else:
+            max_group_number = 0
+        grp_transl = {}
+        for grpstr in groups:
+            try:
+                group = cls.objects.get(time=grpstr)
+            except cls.DoesNotExist:
+                if create:
+                    max_group_number +=  1
+                    group = cls.objects.create(number=max_group_number,
+                                               time=grpstr)
+                else:
+                    group = None
+            if group:
+                grp_transl[grpstr] = group
+        return grp_transl
+
+        # if len(grp_transl)>0:
+        #     grpcnt = max(grp_transl.values())
+        # else:
+        #     grpcnt = 0
+        # for grpstr in groups:
+        #     if not grp_transl.has_key(grpstr):
+        #         grpcnt += 1
+        #         grp_transl[grpstr] = grpcnt
+        # transl_list = grp_transl.items()
+        # transl_list.sort(key=lambda x:x[1])
+        # transl_str = '{'
+        # transl_str += ',\n'.join(['"%s": %d' % item for item in transl_list])
+        # transl_str += '}'
+        # try:
+        #     transl_data = cls.objects.get(key='group_translation')
+        # except cls.DoesNotExist:
+        #     transl_data = cls(key='group_translation')
+        # transl_data.value = transl_str
+        # transl_data.save()
+
 
 def validate_matrikel(matrikel, student_id):
     if matrikel:
@@ -220,39 +273,6 @@ class StaticData(models.Model):
         except cls.DoesNotExist:
             return {}
 
-    @classmethod
-    def get_group_transl(cls):
-        try:
-            jstr = cls.objects.get(key='group_translation').value
-            jstr = jstr.translate({0xa0: 32})
-            transl = json.loads(jstr)
-            return transl
-        except cls.DoesNotExist:
-            return {}
-
-    @classmethod
-    def update_group_transl(cls, groups):
-        grp_transl = cls.get_group_transl()
-        if len(grp_transl)>0:
-            grpcnt = max(grp_transl.values())
-        else:
-            grpcnt = 0
-        for grpstr in groups:
-            if not grp_transl.has_key(grpstr):
-                grpcnt += 1
-                grp_transl[grpstr] = grpcnt
-        transl_list = grp_transl.items()
-        transl_list.sort(key=lambda x:x[1])
-        transl_str = '{'
-        transl_str += ',\n'.join(['"%s": %d' % item for item in transl_list])
-        transl_str += '}'
-        try:
-            transl_data = cls.objects.get(key='group_translation')
-        except cls.DoesNotExist:
-            transl_data = cls(key='group_translation')
-        transl_data.value = transl_str
-        transl_data.save()
-
 
 class Registration(models.Model):
     student = models.ForeignKey(Student)
@@ -262,7 +282,6 @@ class Registration(models.Model):
                               choices=[(u'AN','AN'),(u'ZU','ZU'),
                                        (u'ST','ST'),
                                        (u'HP','HP'),(u'NP','NP')])
-                                       
 
     def assigned_group(self):
         return self.student.group
@@ -274,5 +293,5 @@ class Registration(models.Model):
         unique_together = (('student','group'),)
 
     def __unicode__(self):
-        return u'%s: %d %s' % (self.student, self.group, self.status)
+        return u'%s: %d %s' % (self.student, self.group.number, self.status)
 
