@@ -10,4 +10,4 @@ exams oder exercises liste...?
 
 import exams: neu angelegter Student erhält student.subject = None ?
 -> Fehler bei export students
--> setze student.subject = exam.subject bi neuem Student ?
+-> setze student.subject = exam.subject bei neuem Student ?

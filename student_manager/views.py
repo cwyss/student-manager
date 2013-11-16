@@ -850,14 +850,15 @@ class QueryRegistrationsView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(QueryRegistrationsView, self).get_context_data(**kwargs)
 
-        groups_max = models.Registration.objects.aggregate(
-            Max('group__number'),
-            Max('student__group__number'))
-        maxgroup = max(groups_max.values())
+        reg_groups_max = models.Registration.objects.aggregate(
+            maxgrp=Max('group__number'))
+        stud_groups_max = models.Student.objects.get_pure_query_set() \
+            .aggregate(maxgrp=Max('group__number'))
+        maxgroup = max(reg_groups_max['maxgrp'],
+                       stud_groups_max['maxgrp'])
         if not maxgroup:              # no registrations
             return context
         context['maxgroup'] = maxgroup
-
         context['headline'] = ['AGrp %d' % i for i in range(1,maxgroup+1)]
         context['registrations'] = self.make_registration_table(maxgroup)
         context['total_line'] = self.make_total_line(maxgroup)
@@ -883,7 +884,7 @@ class QueryRegistrationsView(TemplateView):
         return regtab
 
     def make_total_line(self, maxgroup):
-        total_cnt = models.Student.objects \
+        total_cnt = models.Student.objects.get_pure_query_set() \
             .values('group__number').order_by('group__number') \
             .annotate(count=Count('id'))
         row = (maxgroup+1) * [0]
@@ -896,7 +897,7 @@ class QueryRegistrationsView(TemplateView):
         return ['total'] + row + [sum(row)]
 
     def make_assistent_sum(self):
-        aq = models.Student.objects \
+        aq = models.Student.objects.get_pure_query_set() \
             .values('group__assistent').order_by('group__assistent') \
             .annotate(count=Count('id'))
         summary = []
