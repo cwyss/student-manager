@@ -787,10 +787,12 @@ class ImportRegistrationsView(FormView):
                 if update_choice=='none':
                     continue
                 if update_choice in ('stud', 'all'):
-                    student.last_name = stud[0]
-                    student.first_name = stud[1]
-                    student.subject = stud[2]
-                    student.semester = stud[3]
+                    if not student.last_name:
+                        student.last_name = stud[0]
+                        student.first_name = stud[1]
+                    if not student.subject:
+                        student.subject = stud[2]
+                        student.semester = stud[3]
                     student.save()
                 if update_choice in ('regist', 'all'):
                     save_regist = True

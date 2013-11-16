@@ -15,3 +15,7 @@ bei query registrations: assigned students per assistent
 
 Infotext fuer "Uebungsgruppeneinteilung" print Ausgabe (sortiert nach...,
 Studenten mit/ohne Matr)
+
+import exams: neu angelegter Student erhält student.subject = None ?
+-> Fehler bei export students
+-> setze student.subject = exam.subject bi neuem Student ?
