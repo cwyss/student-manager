@@ -859,7 +859,13 @@ class QueryRegistrationsView(TemplateView):
         context['maxgroup'] = maxgroup
 
         context['headline'] = ['AGrp %d' % i for i in range(1,maxgroup+1)]
-        context['registrations'] = []
+        context['registrations'] = self.make_registration_table(maxgroup)
+        context['total_line'] = self.make_total_line(maxgroup)
+        context['assistent_sum'] = self.make_assistent_sum()
+        return context
+
+    def make_registration_table(self, maxgroup):
+        regtab = []
         for group in range(1,maxgroup+1):
             regist_cnt = models.Registration.objects \
                 .filter(group__number=group) \
@@ -873,8 +879,10 @@ class QueryRegistrationsView(TemplateView):
                 else:
                     i = d['student__group__number'] - 1
                 row[i] = d['count']
-            context['registrations'].append([group] + row + [sum(row)])
+            regtab.append([group] + row + [sum(row)])
+        return regtab
 
+    def make_total_line(self, maxgroup):
         total_cnt = models.Student.objects \
             .values('group__number').order_by('group__number') \
             .annotate(count=Count('id'))
@@ -885,8 +893,17 @@ class QueryRegistrationsView(TemplateView):
             else:
                 i = d['group__number'] - 1
             row[i] = d['count']
-        context['bottomline'] = ['total'] + row + [sum(row)]
-        return context
+        return ['total'] + row + [sum(row)]
+
+    def make_assistent_sum(self):
+        aq = models.Student.objects \
+            .values('group__assistent').order_by('group__assistent') \
+            .annotate(count=Count('id'))
+        summary = []
+        for e in aq:
+            if e['group__assistent']:
+                summary.append((e['group__assistent'], e['count']))
+        return summary
 
 query_regist = staff_member_required(QueryRegistrationsView.as_view())
 

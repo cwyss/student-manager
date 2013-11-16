@@ -49,10 +49,25 @@
     </tr>
     {% endfor %}
     <tr>
-      {% for cell in bottomline %}
+      {% for cell in total_line %}
       <td class="center">{{ cell }}</td>
       {% endfor %}
     </tr>
+  </table>
+  <br />
+  <table>
+    <thead>
+      <tr>
+	<th>Assistent</th>
+	<th>Assigned students</th>
+      </tr>
+    </thead>
+    {% for entry in assistent_sum %}
+    <tr>
+      <td>{{ entry.0 }}</td>
+      <td>{{ entry.1 }}</td>
+    </tr>
+    {% endfor %}
   </table>
 </div>
 {% endblock %}

@@ -7,14 +7,6 @@ exams oder exercises liste...?
 ?? subject_translation nachtraeglich durchfuehren -> import registration data
     mit 'update only student data'
 
-enter exercises analog zu enter exam results
-
-model Group mit Feldern number, time, assistent
--> benutzen fuer group translation und 
-bei query registrations: assigned students per assistent
-
-Infotext fuer "Uebungsgruppeneinteilung" print Ausgabe (sortiert nach...,
-Studenten mit/ohne Matr)
 
 import exams: neu angelegter Student erhält student.subject = None ?
 -> Fehler bei export students
