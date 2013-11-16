@@ -7,7 +7,3 @@ exams oder exercises liste...?
 ?? subject_translation nachtraeglich durchfuehren -> import registration data
     mit 'update only student data'
 
-
-import exams: neu angelegter Student erhält student.subject = None ?
--> Fehler bei export students
--> setze student.subject = exam.subject bei neuem Student ?

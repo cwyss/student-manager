@@ -371,7 +371,8 @@ class ImportExamsView(FormView):
         except models.Student.DoesNotExist:
             student = models.Student(matrikel=matr,
                                      last_name=name,
-                                     first_name=first_name)
+                                     first_name=first_name,
+                                     subject=self.subject)
             student.save()
             status = 'newstud'
         else:
@@ -978,7 +979,8 @@ class ExportStudentsView(FormView):
                              student.last_name.encode('utf-8'),
                              student.first_name.encode('utf-8'),
                              student.subject.encode('utf-8'),
-                             student.semester, student.group.number])
+                             student.semester, 
+                             student.group])
         return response
 
 export_students = staff_member_required(ExportStudentsView.as_view())
