@@ -1022,7 +1022,8 @@ def save_exercise_results(request, queryset=None):
     return render_to_response(
         'student_manager/enter_exercise_results.html',
         {'formset': formset,
-         'sheet_form': sheet_form},
+         'sheet_form': sheet_form,
+         'groups': queryset},
         context_instance=RequestContext(request))
 
 

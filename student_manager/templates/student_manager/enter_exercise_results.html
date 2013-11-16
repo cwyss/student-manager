@@ -15,7 +15,7 @@
 <div class="breadcrumbs">
 <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
 &rsaquo; <a href="{% url 'admin:app_list' app_label='student_manager' %}">Student_manager</a>
-&rsaquo; <a href="{% url 'admin:student_manager_group_changelist' %}">Groups</a> &rsaquo; Enter exam results
+&rsaquo; <a href="{% url 'admin:student_manager_group_changelist' %}">Groups</a> &rsaquo; Enter exercise results
 </div>
 {% endblock %}
 
@@ -23,6 +23,10 @@
 <div id="content-main">
     <form action="{% url 'save_exercise_results' %}" method="post">
       {{ formset.management_form }}
+      Group:
+	{% for group in groups %}
+          {{ group }}
+        {% endfor %}
       {{ sheet_form }}
       {{ formset.nonfield_errors }}
       <div>
