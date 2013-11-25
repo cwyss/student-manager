@@ -40,6 +40,9 @@ class ImportExercisesView(FormView):
                       'invalid_points': [],
                       'no_matrikel': []}
         for line, row in enumerate(csvreader):
+            if not row:
+                # ignore empty line
+                continue
             if not row[0].isdigit():
                 if line == 0:
                     # We seem to have a header; ignore.
