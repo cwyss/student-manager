@@ -223,7 +223,7 @@ class StudentExerciseForm(forms.ModelForm):
         cleaned_data = super(StudentExerciseForm, self).clean()
         student = self.cleaned_data['id']
         if cleaned_data['points'] != '' and models.Exercise.objects.filter(
-            student=student, group=student.group, sheet=self.sheet).exists():
+            student=student, sheet=self.sheet).exists():
             self._errors['points'] = ErrorList(
                 ['Exercise %s for this student already exists.' % self.sheet])
         return cleaned_data
