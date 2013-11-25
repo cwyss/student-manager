@@ -93,6 +93,7 @@ class ImportExercisesView(FormView):
     def save_exercise(self, group, student, sheet, points):
         if points.strip()=='':
             return
+        points = points.replace(',', '.')
         try:
             exercise = models.Exercise.objects.get(student=student, sheet=sheet)
             if exercise.points==Decimal(points):
