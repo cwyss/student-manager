@@ -1,0 +1,60 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}" />{% endblock %}
+
+{% block title %}Query Exercise | {% trans 'Django site admin' %}{% endblock %}
+
+{% block content_title %}<h1>Query Exercise</h1>{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:app_list' app_label='student_manager' %}">Student_manager</a>
+&rsaquo; <a href="{% url 'admin:student_manager_exercise_changelist' %}">Exercises</a>
+&rsaquo; Query exercise
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <table>
+    <thead>
+      <tr>
+	{% for cell in head_by_group %}
+  	<th>{{ cell }}</th>
+	{% endfor %}
+      </tr>
+    </thead>
+    {% for row in data_by_group %}
+    <tr>
+      {% for cell in row %}
+      <td class="center">{{ cell }}</td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
+    <tr>
+      <td>&#8721;</td>
+      {% for cell in total %}
+      <td class="center">{{ cell }}</td>
+      {% endfor %}
+    </tr>
+  </table>
+  <!-- <br /> -->
+  <!-- <table> -->
+  <!--   <thead> -->
+  <!--     <tr> -->
+  <!-- 	<th>Assistent</th> -->
+  <!-- 	<th>Assigned students</th> -->
+  <!--     </tr> -->
+  <!--   </thead> -->
+  <!--   {% for entry in assistent_sum %} -->
+  <!--   <tr> -->
+  <!--     <td>{{ entry.0 }}</td> -->
+  <!--     <td>{{ entry.1 }}</td> -->
+  <!--   </tr> -->
+  <!--   {% endfor %} -->
+  <!-- </table> -->
+</div>
+{% endblock %}
