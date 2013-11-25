@@ -1047,7 +1047,7 @@ def save_exercise_results(request, queryset=None):
         'student_manager/enter_exercise_results.html',
         {'formset': formset,
          'sheet_form': sheet_form,
-         'groups': queryset},
+         'groups': ', '.join([str(group) for group in queryset])},
         context_instance=RequestContext(request))
 
 
@@ -1095,16 +1095,6 @@ class QueryExerciseView(TemplateView):
             s = d['sheet']
             row[s-1] = d['count']
         self.context['total'] = row
-
-    # def make_assistent_sum(self):
-    #     aq = models.Student.objects.get_pure_query_set() \
-    #         .values('group__assistent').order_by('group__assistent') \
-    #         .annotate(count=Count('id'))
-    #     summary = []
-    #     for e in aq:
-    #         if e['group__assistent']:
-    #             summary.append((e['group__assistent'], e['count']))
-    #     return summary
 
 query_exercise = staff_member_required(QueryExerciseView.as_view())
 
