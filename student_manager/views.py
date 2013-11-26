@@ -633,6 +633,7 @@ class ImportRegistrationsView(FormView):
 
         self.stats = {'new': [],
                       'update': [],
+                      'unchanged': [],
                       'nogroup': {},
                       'regist_new': 0,
                       'regist_update': 0,
@@ -691,7 +692,7 @@ class ImportRegistrationsView(FormView):
                 self.request,
                 '%d registrations for %d existing students added/updated.'  % \
                     (self.stats['regist_update'],
-                     len(self.stats['update'])))
+                     len(self.stats['update']) + len(self.stats['unchanged'])))
         return super(ImportRegistrationsView, self).form_valid(form)
 
     def transl_subj(self, subject):
@@ -788,25 +789,28 @@ class ImportRegistrationsView(FormView):
         for matrikel, stud in self.student_dict.iteritems():
             try:
                 student = models.Student.objects.get(matrikel=matrikel)
-                state = 'update'
                 if update_choice=='none':
                     continue
+                state = 'unchanged'
                 if update_choice in ('stud', 'all'):
                     if not student.last_name:
                         student.last_name = stud[0]
                         student.first_name = stud[1]
+                        state = 'update'
                     if not student.subject:
                         student.subject = stud[2]
                         student.semester = stud[3]
-                    student.save()
+                        state = 'update'
+                    if state=='update':
+                        student.save()
                 if update_choice in ('regist', 'all'):
                     save_regist = True
                 else:
                     save_regist = False
             except models.Student.DoesNotExist:
-                state = 'new'
                 if import_choice=='none':
                     continue
+                state = 'new'
                 student = models.Student(matrikel=matrikel,
                                          last_name=stud[0],
                                          first_name=stud[1],
@@ -820,8 +824,9 @@ class ImportRegistrationsView(FormView):
             self.stats[state].append(matrikel)
 
             if save_regist:
-                if state=='update':
-                    models.Registration.objects.filter(student=student).delete()
+                # if state!='new':
+                #     models.Registration.objects.filter(student=student).delete()
+                models.Registration.objects.filter(student=student).delete()
                 count = 0
                 for regist in stud[4]:
                     try:
@@ -842,7 +847,7 @@ class ImportRegistrationsView(FormView):
                     count += 1
                 if state=='new':
                     self.stats['regist_new'] += count
-                elif state=='update':
+                else:
                     self.stats['regist_update'] += count
 
 
