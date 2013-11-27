@@ -51,26 +51,6 @@ class Group(models.Model):
                 grp_transl[grpstr] = group
         return grp_transl
 
-        # if len(grp_transl)>0:
-        #     grpcnt = max(grp_transl.values())
-        # else:
-        #     grpcnt = 0
-        # for grpstr in groups:
-        #     if not grp_transl.has_key(grpstr):
-        #         grpcnt += 1
-        #         grp_transl[grpstr] = grpcnt
-        # transl_list = grp_transl.items()
-        # transl_list.sort(key=lambda x:x[1])
-        # transl_str = '{'
-        # transl_str += ',\n'.join(['"%s": %d' % item for item in transl_list])
-        # transl_str += '}'
-        # try:
-        #     transl_data = cls.objects.get(key='group_translation')
-        # except cls.DoesNotExist:
-        #     transl_data = cls(key='group_translation')
-        # transl_data.value = transl_str
-        # transl_data.save()
-
 
 def validate_matrikel(matrikel, student_id):
     if matrikel:
