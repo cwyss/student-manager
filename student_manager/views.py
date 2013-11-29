@@ -1032,7 +1032,8 @@ print_exsheet = staff_member_required(PrintExsheetView.as_view())
 def save_exercise_results(request, queryset=None):
     if queryset is not None:
         # initial form
-        students = models.Student.objects.filter(group__in=queryset)
+        students = models.Student.objects.filter(group__in=queryset) \
+            .filter(active=True)
         formset = forms.ExerciseFormSet(queryset=students)
         sheet_form = forms.SheetForm()
     else:
