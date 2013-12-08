@@ -112,11 +112,19 @@ class PrintGroupsOptForm(forms.Form):
 
 
 class PrintExercisesOptForm(forms.Form):
-    matrikel = forms.ChoiceField(label=_('Selection'),
-                                 choices=(('on', 'Students with matrikel'),
-                                          ('', 'Students without matrikel')),
-                                 initial='on')
+    selection = forms.ChoiceField(
+        label=_('Selection'),
+        choices=(('matrikel', 'Students with matrikel'),
+                 ('nomatrikel', 'Students without matrikel'),
+                 ('group', 'Students from group...')), 
+        initial='matrikel')
+    group = forms.ModelChoiceField(
+        queryset=models.Group.objects.all())
     total = forms.BooleanField(label=_('Display total/bonus columns'))
+    exclude = forms.ChoiceField(
+        choices=(('empty', 'Exclude students without exercises'),
+                 ('inactive', 'Exclude inactive students')),
+        initial='inactive')
 
 
 class PrintStudentsOptForm(forms.Form):

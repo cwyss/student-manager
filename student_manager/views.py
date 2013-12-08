@@ -221,19 +221,31 @@ class PrintExercisesView(ListView):
 
     def get_queryset(self):
         total_exercises = models.Exercise.total_num_exercises()
+        selection = self.request.GET.get('selection')
+        group = self.request.GET.get('group')
+        exclude = self.request.GET.get('exclude')
 
-        if self.request.GET.get('matrikel'):
+        if selection=='matrikel':
             students = models.Student.objects.exclude(matrikel=None)
             students = students.order_by('modulo_matrikel',
                                          'obscured_matrikel')
-        else:
+        elif selection=='nomatrikel':
             students = models.Student.objects.filter(matrikel=None)
             students = students.order_by('last_name', 'first_name')
+        else:
+            if group:
+                students = models.Student.objects.filter(group=group)
+            else:
+                students = models.Student.objects.all()
+            students = students.order_by('last_name', 'first_name')
+
+        if exclude=='inactive':
+            students = students.filter(active=True)
 
         student_data = []
 
         for student in list(students):
-            if not student.exercise_set.all():
+            if exclude=='empty' and not student.exercise_set.all():
                 continue
             student.exercises = [None] * total_exercises
             for exercise in student.exercise_set.all():
@@ -241,6 +253,15 @@ class PrintExercisesView(ListView):
             student_data.append(student)
 
         return student_data
+
+    def get_context_data(self, **kwargs):
+        context = super(PrintExercisesView, self).get_context_data(**kwargs)
+        selection = self.request.GET.get('selection')
+        if selection=='matrikel':
+            context['matrikel'] = True
+        else:
+            context['matrikel'] = False
+        return context
 
 print_exercises = staff_member_required(PrintExercisesView.as_view())
 

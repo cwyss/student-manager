@@ -5,12 +5,14 @@
   </head>
   <body>
     <h3>Bonuspunkte</h3>
+    {% if matrikel %}
     <p>Die Liste ist sortiert nach den letzten 4 Stellen der Matrikelnummer.
       Wenn n&ouml;tig sind weitere Stellen angegeben.</p>
+    {% endif %}
     <table>
       <thead>
 	<tr>
-	  <th>{% if request.GET.matrikel %}Matr.{% else %}Name{% endif %}</th>
+	  <th>{% if matrikel %}Matr.{% else %}Name{% endif %}</th>
 	  {% for exercise in object_list.0.exercises %}
 	  <th>Bl {{ forloop.counter }}</th>
 	  {% endfor %}
@@ -22,7 +24,7 @@
       </thead>
       {% for student in object_list %}
       <tr class="{% cycle 'odd' 'even' %}">
-	<td class="right">{% if request.GET.matrikel %}{{ student.obscured_matrikel }}{% else %}{{ student.last_name }}, {{ student.first_name }}{% endif %}</td>
+	<td class="right">{% if matrikel %}{{ student.obscured_matrikel }}{% else %}{{ student.last_name }}, {{ student.first_name }}{% endif %}</td>
 	{% for exercise in student.exercises %}
 	<td class="center points">{{ exercise.points|floatformat:1 }}</td>
 	{% endfor %}
