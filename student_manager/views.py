@@ -72,7 +72,8 @@ class ImportExercisesView(FormView):
         if self.stats['updated']:
             messages.success(
                 self.request,
-                '%s exercises updated.' % len(self.stats['updated']))
+                '%s exercises updated: %s' % (len(self.stats['updated']),
+                                              ', '.join(self.stats['updated'])))
         if self.stats['unknown_student']:
             ustudset = set(self.stats['unknown_student'])
             messages.warning(
@@ -94,6 +95,7 @@ class ImportExercisesView(FormView):
         return super(ImportExercisesView, self).form_valid(form)
 
     def save_exercise(self, group, student, sheet, points):
+        status_msg = str(student.matrikel)
         if points.strip()=='':
             return
         points = points.replace(',', '.')
@@ -103,6 +105,7 @@ class ImportExercisesView(FormView):
                 status = 'unchanged'
             else:
                 status = 'updated'
+                status_msg += ", %d: %s->%s" % (sheet, exercise.points, points)
         except models.Exercise.DoesNotExist:
             exercise = models.Exercise(student=student, sheet=sheet)
             status = 'new'
@@ -113,7 +116,7 @@ class ImportExercisesView(FormView):
         except ValidationError:
             status = 'invalid_points'
 
-        self.stats[status].append(str(student.matrikel))
+        self.stats[status].append(status_msg)
 
 import_exercises = staff_member_required(ImportExercisesView.as_view())
 
