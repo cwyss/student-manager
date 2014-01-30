@@ -18,6 +18,7 @@
 	  {% endfor %}
 	  {% if request.GET.total %}
 	  <th>&#8721;</th>
+	  <th>%</th>
 	  <th>Bonus</th>
 	  {% endif %}
 	</tr>
@@ -30,6 +31,7 @@
 	{% endfor %}
 	{% if request.GET.total %}
 	<td class="right">{{ student.total_points|floatformat:1 }}</td>
+	<td class="right">{{ student.percent|floatformat:1 }}</td>
 	<td class="center">{{ student.bonus }}</td>
 	{% endif %}
       </tr>

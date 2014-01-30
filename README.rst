@@ -44,6 +44,9 @@ group_translation::
 bonus1, bonus2::
   minimal points for 1/3, 2/3 bonus on exam mark
 
+maxpoints::
+  maximal points over all sheets
+
 query_exam_pointstep::
   stepsize for grouping exam points
 

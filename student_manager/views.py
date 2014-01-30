@@ -227,6 +227,12 @@ class PrintExercisesView(ListView):
         selection = self.request.GET.get('selection')
         group = self.request.GET.get('group')
         exclude = self.request.GET.get('exclude')
+        total = self.request.GET.get('total')
+        try:
+            maxpoints = float(models.StaticData.objects.get(
+                    key='maxpoints').value)
+        except models.StaticData.DoesNotExist:
+            maxpoints = None
 
         if selection=='matrikel':
             students = models.Student.objects.exclude(matrikel=None)
@@ -253,6 +259,12 @@ class PrintExercisesView(ListView):
             student.exercises = [None] * total_exercises
             for exercise in student.exercise_set.all():
                 student.exercises[exercise.sheet-1] = exercise
+            if total:
+                if maxpoints:
+                    student.percent = float(student.total_points()) \
+                        / maxpoints * 100
+                else:
+                    student.percent = None
             student_data.append(student)
 
         return student_data
