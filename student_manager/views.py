@@ -317,14 +317,12 @@ class ImportExamsView(FormView):
                       'error': []
                       }
         self.subjectcnt = 0
-        self.linebuf = []
-        self.columns = None
         self.subject = None
         for line in file:
             line = line.decode('UTF-8')
-            self.examine_line(line)
-            self.process_lines()
-        self.process_lines(final=True)
+            cols = self.examine_line(line)
+            if cols:
+                self.save_exam(line, cols)
 
         messages.info(
             self.request,
@@ -352,49 +350,28 @@ class ImportExamsView(FormView):
 
     def examine_line(self, line):
         if line.startswith('subject:'):
-            if len(self.linebuf)>0:
-                self.stats['error'].extend(self.linebuf)
-                self.linebuf = []
-            self.columns = None
             self.subject = line[8:].strip()
             self.subjectcnt += 1
-            return
+            return None
+        elif line.isspace():
+            return None
         cols = self.find_columns(line)
         if cols:
-            if not self.columns:
-                self.columns = cols
-                self.linebuf.append(line)
-            elif self.columns!=cols:
-                self.stats['error'].append(line)
-            else:
-                self.linebuf.append(line)
-        elif line.isspace():
-            if len(self.linebuf)>0:
-                self.stats['error'].extend(self.linebuf)
-                self.linebuf = []
-            self.columns = None
+            return cols
         else:
-            self.linebuf.append(line)
+            self.stats['error'].append(line)
+            return None
 
     def find_columns(self, line):
-        m = re.match(r"\s*(\d+) (.+?) (\d+) (\d)", line, re.U)
+        m = re.match(r"\s*(\d+) (.+?) (\d+)\s+(\d)", line, re.U)
         if not m:
             return None
-        m2 = re.match(r"(.+?)  \s*(\S.+?)", m.group(2), re.U)
+        m2 = re.match(r"\s*(\S.+?)  \s*(\S.+)", m.group(2), re.U)
         if not m2:
-            m2 = re.match(r"(\S+?) (\S+?)\s*\Z", m.group(2), re.U)
+            m2 = re.match(r"\s*(\S+?) (\S+?)\s*\Z", m.group(2), re.U)
         if not m2:
             return None
         return (m.start(2), m.start(2)+m2.start(2), m.end(3)-7, m.start(4))
-
-    def process_lines(self, final=False):
-        if self.columns:
-            for line in self.linebuf:
-                self.save_exam(line, self.columns)
-            self.linebuf = []
-        elif final and len(self.linebuf)>0:
-            self.stats['error'].extend(self.linebuf)
-            self.linebuf = []
 
     def save_exam(self, line, cols):
 #        nr = int(line[:cols[0]])
