@@ -873,49 +873,50 @@ class QueryRegistrationsView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(QueryRegistrationsView, self).get_context_data(**kwargs)
 
-        reg_groups_max = models.Registration.objects.aggregate(
-            maxgrp=Max('group__number'))
-        stud_groups_max = models.Student.objects.get_pure_query_set() \
-            .aggregate(maxgrp=Max('group__number'))
-        maxgroup = max(reg_groups_max['maxgrp'],
-                       stud_groups_max['maxgrp'])
-        if not maxgroup:              # no registrations
-            return context
-        context['maxgroup'] = maxgroup
-        context['headline'] = ['AGrp %d' % i for i in range(1,maxgroup+1)]
-        context['registrations'] = self.make_registration_table(maxgroup)
-        context['total_line'] = self.make_total_line(maxgroup)
+        groups = models.Group.objects.order_by('number')
+        context['groups'] = groups
+        groupmap = self.make_groupmap(groups)
+        context['registrations'] = self.make_registration_table(groupmap)
+        context['total_line'] = self.make_total_line(groupmap)
         context['assistent_sum'] = self.make_assistent_sum()
         return context
 
-    def make_registration_table(self, maxgroup):
+    def make_groupmap(self, groups):
+        groupmap = {}
+        for (i,g) in enumerate(groups):
+            groupmap[g.number] = i
+        return groupmap
+
+    def make_registration_table(self, groupmap):
         regtab = []
-        for group in range(1,maxgroup+1):
+        groupcnt = len(groupmap)
+        for group in groupmap.keys():
             regist_cnt = models.Registration.objects \
                 .filter(group__number=group) \
                 .values('student__group__number') \
                 .order_by('student__group__number') \
                 .annotate(count=Count('id'))
-            row = (maxgroup+1) * [0]
+            row = (groupcnt+1) * [0]
             for d in regist_cnt:
                 if d['student__group__number']==None:
-                    i = maxgroup
+                    i = groupcnt
                 else:
-                    i = d['student__group__number'] - 1
+                    i = groupmap[d['student__group__number']]
                 row[i] = d['count']
             regtab.append([group] + row + [sum(row)])
         return regtab
 
-    def make_total_line(self, maxgroup):
+    def make_total_line(self, groupmap):
+        groupcnt = len(groupmap)
         total_cnt = models.Student.objects.get_pure_query_set() \
             .values('group__number').order_by('group__number') \
             .annotate(count=Count('id'))
-        row = (maxgroup+1) * [0]
+        row = (groupcnt+1) * [0]
         for d in total_cnt:
             if d['group__number']==None:
-                i = maxgroup
+                i = groupcnt
             else:
-                i = d['group__number'] - 1
+                i = groupmap[d['group__number']]
             row[i] = d['count']
         return ['total'] + row + [sum(row)]
 
