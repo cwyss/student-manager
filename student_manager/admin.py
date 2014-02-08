@@ -48,6 +48,17 @@ class StudentAdmin(admin.ModelAdmin):
     list_filter = (NonuniqueModuloMatrikelListFilter, 'active', 'group')
     search_fields = ('matrikel', 'last_name', 'first_name')
     form = forms.StudentForm
+    actions = ('translate_subjects',)
+
+    def translate_subjects(self, request, queryset):
+        subject_transl = models.StaticData.get_subject_transl()
+        for (longname, shortname) in subject_transl.items():
+            updateset = queryset.filter(subject=longname).values('id')
+            # .values('id') noetig; 
+            # vermutlich wegen annotation "total_points" aus
+            # StudentManager model;
+            # siehe: https://code.djangoproject.com/ticket/18580
+            updateset.update(subject=shortname)
 
 
 class ExerciseAdmin(admin.ModelAdmin):

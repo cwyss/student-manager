@@ -2,11 +2,3 @@ schnelles Selektieren einer Gruppe/Intervall von exams
 
 durch klick auf student direkt zum student in der student Liste, z.B. aus der
 exams oder exercises liste...?
-
-
-subject_translation nachtraeglich durchfuehren -> import registration data
-    veraendert vorhandenes subject nicht!
-
-
-query registrations:  nur Gruppen aus group model benutzen, nicht max_group
-      		      ausrechnen
