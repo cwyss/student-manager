@@ -14,7 +14,7 @@
 	<tr>
 	  <th>{% if matrikel %}Matr.{% else %}Name{% endif %}</th>
 	  {% for exercise in object_list.0.exercises %}
-	  <th>Bl {{ forloop.counter }}</th>
+	  <th>Bl&nbsp;{{ forloop.counter }}</th>
 	  {% endfor %}
 	  {% if request.GET.total %}
 	  <th>&#8721;</th>
