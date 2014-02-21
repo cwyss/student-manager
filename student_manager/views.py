@@ -234,18 +234,19 @@ class PrintExercisesView(ListView):
         except models.StaticData.DoesNotExist:
             maxpoints = None
 
+        students = models.Student.objects.exclude(group=None)
+        # exclude students coming only from exam entries
+
         if selection=='matrikel':
-            students = models.Student.objects.exclude(matrikel=None)
+            students = students.exclude(matrikel=None)
             students = students.order_by('modulo_matrikel',
                                          'obscured_matrikel')
         elif selection=='nomatrikel':
-            students = models.Student.objects.filter(matrikel=None)
+            students = students.filter(matrikel=None)
             students = students.order_by('last_name', 'first_name')
         else:
             if group:
-                students = models.Student.objects.filter(group=group)
-            else:
-                students = models.Student.objects.all()
+                students = students.filter(group=group)
             students = students.order_by('last_name', 'first_name')
 
         if exclude=='inactive':
