@@ -13,6 +13,7 @@
 	  <th>Matr.</th>
 	  <th>Name</th>
 	  <th>Fach</th>
+	  <th>Vers.</th>
 	  <th></th>
 	</tr>
       </thead>
@@ -23,6 +24,7 @@
 	<td class="right">{{ exam.student.matrikel }}</td>
 	<td>{{ exam.student.last_name }}, {{ exam.student.first_name }}</td>
 	<td>{{ exam.subject }}</td>
+	<td class="center">{{ exam.resit }}</td>
 	<td>&#x25a1;</td>
       </tr>
       {% endfor %}

@@ -26,10 +26,11 @@
 	  <th>Matr.</th>
 	  <th>Name</th>
 	  <th>Fach</th>
+	  <th>Vers.</th>
 	  <th>Bonus</th>
-	  <th>Punkte</th>
+	  <th>Pkt.</th>
 	  <th>Note</th>
-	  <th>Endnote</th>
+	  <th>Gesamt</th>
 	</tr>
       </thead>
       {% for exam in object_list %}
@@ -37,6 +38,7 @@
 	<td class="right">{{ exam.student.matrikel }}</td>
 	<td>{{ exam.student.last_name }}, {{ exam.student.first_name }}</td>
 	<td>{{ exam.subject }}</td>
+	<td class="center">{{ exam.resit }}</td>
 	<td class="center">{{ exam.student.bonus }}</td>
 	<td class="right">{{ exam.points|floatformat:1|default:"n.t." }}</td>
 	<td class="center">{{ exam.mark|floatformat:1 }}</td>
