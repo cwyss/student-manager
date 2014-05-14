@@ -59,13 +59,15 @@
     <thead>
       <tr>
 	<th>Assistent</th>
+	<th>Group</th>
 	<th>Assigned students</th>
       </tr>
     </thead>
     {% for entry in assistent_sum %}
     <tr>
       <td>{{ entry.0 }}</td>
-      <td>{{ entry.1 }}</td>
+      <td>{{ entry.1|join:", " }}</td>
+      <td>{{ entry.2 }}</td>
     </tr>
     {% endfor %}
   </table>

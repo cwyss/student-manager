@@ -925,11 +925,29 @@ class QueryRegistrationsView(TemplateView):
         aq = models.Student.objects.get_pure_query_set() \
             .values('group__assistent').order_by('group__assistent') \
             .annotate(count=Count('id'))
-        summary = []
+        assist_info = {}
         for e in aq:
-            if e['group__assistent']:
-                summary.append((e['group__assistent'], e['count']))
-        return summary
+            ass_name = e['group__assistent']
+            if ass_name:
+                assist_info[ass_name] = [None, e['count']]
+
+        group_list = models.Group.objects.all()
+        assist_grp = {}
+        for e in group_list:
+            ai = assist_info[e.assistent]
+            first_grp = ai[0]
+            if not first_grp:
+                ai[0] = e.number
+                assist_grp[e.number] = [e.assistent, [e.number], ai[1]]
+            else:
+                assist_grp[first_grp][1].append(e.number)
+
+        assist_list = []
+        first_groups = assist_grp.keys()
+        first_groups.sort()
+        for grp in first_groups:
+            assist_list.append(assist_grp[grp])
+        return assist_list
 
 query_regist = staff_member_required(QueryRegistrationsView.as_view())
 
