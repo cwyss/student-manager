@@ -48,7 +48,7 @@ class StudentAdmin(admin.ModelAdmin):
     list_filter = (NonuniqueModuloMatrikelListFilter, 'active', 'group')
     search_fields = ('matrikel', 'last_name', 'first_name')
     form = forms.StudentForm
-    actions = ('translate_subjects',)
+    actions = ('translate_subjects', 'toggle_active')
 
     def translate_subjects(self, request, queryset):
         subject_transl = models.StaticData.get_subject_transl()
@@ -59,6 +59,14 @@ class StudentAdmin(admin.ModelAdmin):
             # StudentManager model;
             # siehe: https://code.djangoproject.com/ticket/18580
             updateset.update(subject=shortname)
+
+    def toggle_active(self, request, queryset):
+        make_active = list(queryset.filter(active=False) \
+            .values_list('id', flat=True))
+        update_inactive = queryset.filter(active=True).values('id')
+        update_inactive.update(active=False)
+        update_active = queryset.filter(id__in=make_active).values('id')
+        update_active.update(active=True)
 
 
 class ExerciseAdmin(admin.ModelAdmin):
