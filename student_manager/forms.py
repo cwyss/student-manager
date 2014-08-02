@@ -75,7 +75,8 @@ class MasterExamForm(forms.ModelForm):
 class ExamForm(forms.ModelForm):
     class Meta:
         model = models.Exam
-        exclude = ('mark', 'final_mark')
+        fields = ('examnr', 'student', 'subject', 'number',
+                  'room', 'resit', 'exam_group', 'points')
 
 
 ExamFormSet = modelformset_factory(

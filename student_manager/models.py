@@ -200,6 +200,7 @@ class Exam(models.Model):
                                  null=True, blank=True)
     room = models.ForeignKey(Room, null=True, blank=True)
     number = models.IntegerField(null=True, blank=True)
+    exam_group = models.IntegerField(null=True, blank=True)
     mark = models.DecimalField(max_digits=2, decimal_places=1,
                                null=True, blank=True)
     final_mark = models.DecimalField(max_digits=2, decimal_places=1,
@@ -230,6 +231,17 @@ class Exam(models.Model):
             self.mark = None
             self.final_mark = None
         return super(Exam, self).save(*args, **kwargs)
+
+
+class ExamPart(models.Model):
+    exam = models.ForeignKey(Exam)
+    number = models.IntegerField()
+    points = models.DecimalField(max_digits=3, decimal_places=1, 
+                                 null=True, blank=True)
+
+    class Meta:
+        ordering = ('exam', 'number')
+        unique_together = (('exam', 'number'),)
 
 
 class StaticData(models.Model):

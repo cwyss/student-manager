@@ -2,3 +2,6 @@ schnelles Selektieren einer Gruppe/Intervall von exams
 
 durch klick auf student direkt zum student in der student Liste, z.B. aus der
 exams oder exercises liste...?
+
+
+max_digits=4 bei exam points?

@@ -90,7 +90,8 @@ class RoomAdmin(admin.ModelAdmin):
 
 class ExamAdmin(admin.ModelAdmin):
     list_display = ('examnr', 'student', 'subject', 'number',
-                    'room', 'resit', 'points', 'mark', 'final_mark')
+                    'room', 'resit', 'exam_group', 'points', 
+                    'mark', 'final_mark')
     list_filter = ('examnr', 'subject', 'room', 'resit')
     raw_id_fields = ('student',)
     search_fields = ('student__matrikel', 'student__last_name',
@@ -134,6 +135,13 @@ class ExamAdmin(admin.ModelAdmin):
 
     def enter_results(self, request, queryset):
         return views.save_exam_results(request, queryset)
+
+
+class ExamPartAdmin(admin.ModelAdmin):
+    list_display = ('exam', 'number', 'points')
+    raw_id_fields = ('exam',)
+    search_fields = ('exam__student__matrikel', 'exam__student__last_name',
+                     'exam__student__first_name')
 
 
 class StaticDataAdmin(admin.ModelAdmin):
@@ -206,5 +214,6 @@ admin.site.register(models.Exercise, ExerciseAdmin)
 admin.site.register(models.MasterExam, MasterExamAdmin)
 admin.site.register(models.Room, RoomAdmin)
 admin.site.register(models.Exam, ExamAdmin)
+admin.site.register(models.ExamPart, ExamPartAdmin)
 admin.site.register(models.StaticData, StaticDataAdmin)
 admin.site.register(models.Registration, RegistrationAdmin)
