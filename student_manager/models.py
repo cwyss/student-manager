@@ -243,6 +243,10 @@ class ExamPart(models.Model):
         ordering = ('exam', 'number')
         unique_together = (('exam', 'number'),)
 
+    def __unicode__(self):
+        return u'%i(%i): %s' % (self.exam.examnr.number, self.number,
+                                self.exam.student)
+
 
 class StaticData(models.Model):
     key = models.CharField(max_length=100)

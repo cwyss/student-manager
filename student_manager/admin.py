@@ -2,7 +2,7 @@
 
 from django.contrib import admin
 from django.contrib import messages
-from django.db.models import Count
+from django.db.models import Count, Sum
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.utils.translation import ugettext_lazy as _
@@ -142,6 +142,13 @@ class ExamPartAdmin(admin.ModelAdmin):
     raw_id_fields = ('exam',)
     search_fields = ('exam__student__matrikel', 'exam__student__last_name',
                      'exam__student__first_name')
+
+    def save_model(self, request, obj, form, change):
+        super(ExamPartAdmin, self).save_model(request, obj, form, change)
+        exam = obj.exam
+        total_points = exam.exampart_set.aggregate(Sum('points'))['points__sum']
+        exam.points = total_points
+        exam.save()
 
 
 class StaticDataAdmin(admin.ModelAdmin):
