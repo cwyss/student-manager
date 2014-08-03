@@ -7,7 +7,7 @@
 <link rel="stylesheet" type="text/css" href="{{ STATIC_URL}}main.css" %}" />
 {% endblock %}
 
-{% block title %}Print Student List | {% trans 'Django site admin' %}{% endblock %}
+{% block title %}Enter exam results | {% trans 'Django site admin' %}{% endblock %}
 
 {% block content_title %}<h1>Enter exam results</h1>{% endblock %}
 
@@ -32,6 +32,7 @@
 	    <thead>
 	      <tr>
 		<th>Student</th>
+		<th>Exam Group</th>
 		{% for num in num_exercises %}
 		<th>Exercise {{ num }}</th>
 		{% endfor %}
@@ -41,14 +42,17 @@
 	    {% for form in formset %}
 	      <tr>
 		<td>{{ form.instance.student }}</td>
-		{% for num in num_exercises %}
-		<td onchange="updateTotal(this)" class="subpoints"><input type="text" /></td>
-		{% endfor %}
-		<td class="total">{{ form.points }}{{ form.points.errors }}
-		  {% for field in form.hidden_fields %}
+		{% for field in form.visible_fields %}
+		<td>
 		  {{ field }}{{ field.errors }}
+		  <!-- <td onchange="updateTotal(this)" class="subpoints"> -->
+		  {% if forloop.last %}
+		  {% for hfield in form.hidden_fields %}
+		  {{ hfield }}{{ hfield.errors }}
 		  {% endfor %}
+		  {% endif %}
 		</td>
+		{% endfor %}
 	      </tr>
 	    {% endfor %}
 	  </table>
@@ -62,15 +66,15 @@
 
 <script>
 function updateTotal(element) {
-  var row = element.parentNode;
+  var row = element.parentNode.parentNode;
   var subpoints = row.getElementsByClassName("subpoints");
   var sum = 0;
   for (var i = 0; i < subpoints.length; i++) {
-    val = subpoints[i].getElementsByTagName('input')[0].value;
+    val = subpoints[i].value;
     if (val) sum += parseFloat(val);
   }
   var total = row.getElementsByClassName("total")[0];
-  total.getElementsByTagName('input')[0].value = sum;
+  total.value = sum;
 }
 </script>
 {% endblock %}

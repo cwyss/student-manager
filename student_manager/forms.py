@@ -8,7 +8,7 @@ from django.forms.models import (
     modelformset_factory,
     modelform_factory,
     BaseModelFormSet)
-from django.forms.widgets import HiddenInput
+from django.forms.widgets import HiddenInput, TextInput
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ValidationError
 
@@ -79,9 +79,47 @@ class ExamForm(forms.ModelForm):
                   'room', 'resit', 'exam_group', 'points')
 
 
+class ExamResultForm(forms.ModelForm):
+    class Meta:
+        model = models.Exam
+        fields = ('exam_group',)
+
+    def __init__(self, *args, **kwargs):
+        super(ExamResultForm, self).__init__(*args, **kwargs)
+        exam = kwargs['instance']
+        self.num_exercises = exam.examnr.num_exercises
+        for i in range(self.num_exercises):
+            try:
+                initial = exam.exampart_set.filter(number=i+1)[0].points
+            except IndexError:
+                initial = None
+            self.fields['subpoints_%i' % i] = forms.DecimalField(
+                required=False,
+                initial=initial,
+                widget=TextInput(attrs={'class':'subpoints',
+                                        'onchange': 'updateTotal(this);'}))
+
+        self.fields['points'] = forms.DecimalField(
+            required=False,
+            initial=exam.points,
+            widget=TextInput(attrs={'class':'total'}))
+
+    def save(self, commit=True):
+        instance = super(ExamResultForm, self).save(commit)
+        instance.points = self.cleaned_data['points']
+        if commit:
+            instance.save()
+            for i in range(self.num_exercises):
+                exampart, created = instance.exampart_set.get_or_create(
+                    number=i+1)
+                exampart.points = self.cleaned_data['subpoints_%i' % i]
+                exampart.save()
+        return instance
+
+
 ExamFormSet = modelformset_factory(
     models.Exam,
-    form=modelform_factory(models.Exam, fields=('points',)),
+    form=ExamResultForm,
     extra=0)
 
 
@@ -117,7 +155,7 @@ class PrintExercisesOptForm(forms.Form):
         label=_('Selection'),
         choices=(('matrikel', 'Students with matrikel'),
                  ('nomatrikel', 'Students without matrikel'),
-                 ('group', 'Students from group...')), 
+                 ('group', 'Students from group...')),
         initial='matrikel')
     group = forms.ModelChoiceField(
         queryset=models.Group.objects.all())
