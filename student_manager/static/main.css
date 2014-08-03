@@ -1,8 +1,3 @@
-.exam-results .subpoints input,
-.exam-results .total input {
-    width: 50px;
-}
-
 .exam-results .total {
     background-color: #FFFFCC;
 }
@@ -13,3 +8,6 @@
     vertical-align: middle;
 }
 
+.exam-results input {
+    width: 50px;
+}
