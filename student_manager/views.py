@@ -114,7 +114,12 @@ class ImportExercisesView(FormView):
         try:
             exercise.save()
         except ValidationError:
-            status = 'invalid_points'
+            self.stats['invalid_points'].append(status_msg)
+            return
+        
+        if student.group==None:
+            student.group = group
+            student.save()
 
         self.stats[status].append(status_msg)
 
