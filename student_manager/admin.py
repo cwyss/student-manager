@@ -96,7 +96,7 @@ class ExamAdmin(admin.ModelAdmin):
     raw_id_fields = ('student',)
     search_fields = ('student__matrikel', 'student__last_name',
                      'student__first_name')
-    actions = ('assign_seats', 'enter_results')
+    actions = ('assign_seats', 'enter_results', 'enter_results_range')
     form = forms.ExamForm
 
     def assign_seats(self, request, queryset):
@@ -134,6 +134,17 @@ class ExamAdmin(admin.ModelAdmin):
 
 
     def enter_results(self, request, queryset):
+        return views.save_exam_results(request, queryset)
+
+
+    def enter_results_range(self, request, queryset):
+        exam_selection = list(queryset)
+        name_start = exam_selection[0].student.last_name
+        name_end = exam_selection[-1].student.last_name
+        examnr = exam_selection[0].examnr
+        queryset = models.Exam.objects.filter(examnr=examnr) \
+            .filter(student__last_name__gte=name_start) \
+            .filter(student__last_name__lte=name_end)
         return views.save_exam_results(request, queryset)
 
 
