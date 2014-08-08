@@ -87,6 +87,7 @@ class ExamResultForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(ExamResultForm, self).__init__(*args, **kwargs)
         exam = kwargs['instance']
+        self.fields['exam_group'].widget = TextInput(attrs={'class':'exam_group'})
         self.num_exercises = exam.examnr.num_exercises
         for i in range(self.num_exercises):
             try:

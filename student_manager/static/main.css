@@ -11,3 +11,8 @@
 .exam-results input {
     width: 50px;
 }
+
+.exam-results .exam_group {
+    background-color: #CCFFCC;
+}
+

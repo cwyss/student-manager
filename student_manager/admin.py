@@ -6,6 +6,8 @@ from django.db.models import Count, Sum
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.utils.translation import ugettext_lazy as _
+from django.http import HttpResponseRedirect
+from django.core.urlresolvers import reverse
 
 from student_manager import forms, models, views
 
@@ -145,7 +147,14 @@ class ExamAdmin(admin.ModelAdmin):
         queryset = models.Exam.objects.filter(examnr=examnr) \
             .filter(student__last_name__gte=name_start) \
             .filter(student__last_name__lte=name_end)
-        return views.save_exam_results(request, queryset)
+        if not queryset:
+            messages.warning(
+                request,
+                'Resulting exam range is empty.')
+            return HttpResponseRedirect(
+                reverse('admin:student_manager_exam_changelist'))
+        else:
+            return views.save_exam_results(request, queryset)
 
 
 class ExamPartAdmin(admin.ModelAdmin):

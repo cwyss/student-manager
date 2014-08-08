@@ -21,7 +21,7 @@
 
 {% block content %}
 <div id="content-main">
-    <form action="{% url 'save_exam_results' %}" method="post">
+    <form action="{% url 'save_exam_results' %}?p={{ page }}" method="post">
       {{ formset.management_form }}
       {{ num_exercises_form }}
       {{ formset.nonfield_errors }}
