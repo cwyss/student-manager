@@ -29,14 +29,16 @@
       <tr>
 	<th>Part</th>
   	<th>Count</th>
-  	<th>Sum</th>
+  	<th>Avr. points</th>
+	<th>%</th>
       </tr>
     </thead>
     {% for item in counts %}
     <tr>
       <td class="center">{{ item.number }}</td>
       <td class="right">{{ item.count }}</td>
-      <td class="right">{{ item.sum }}</td>
+      <td class="right">{{ item.average|floatformat:2 }}</td>
+      <td class="right">{{ item.percent|floatformat:1 }}</td>
     </tr>
     {% endfor %}
   </table>

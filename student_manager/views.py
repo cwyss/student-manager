@@ -582,11 +582,17 @@ class QueryExamPartsView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(QueryExamPartsView, self).get_context_data(**kwargs)
         examnr = self.request.GET.get('examnr')
+        masterexam = models.MasterExam.objects.get(number=examnr)
+        part_points = json.loads(masterexam.part_points)
 
         parts = models.ExamPart.objects.filter(exam__examnr=examnr) \
             .exclude(points=None)
         counts = parts.values('number').order_by('number') \
             .annotate(count=Count('id'), sum=Sum('points'))
+        for item in counts:
+            item['average'] = item['sum']/item['count']
+            item['percent'] = \
+                100 * item['average'] / part_points[item['number']-1]
         context['counts'] = counts
 
         return context
