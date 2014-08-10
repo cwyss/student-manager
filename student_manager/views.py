@@ -9,7 +9,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.core.urlresolvers import reverse, reverse_lazy
-from django.db.models import Max, Count, F
+from django.db.models import Max, Count, F, Sum
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
@@ -502,6 +502,32 @@ def save_exam_results(request, queryset=None):
         context_instance=RequestContext(request))
 
 
+class PointGroup(object):
+    def __init__(self, previous=None, step=2):
+        if not previous:
+            self.step = step
+            self.lower = 0
+            self.upper = step
+        else:
+            self.step = previous.step
+            self.lower = previous.upper
+            self.upper = self.lower + self.step
+        self.count = 0
+
+def collect_pointgroups(queryset, pointstep=2, max_points=None):
+        group = PointGroup(step=pointstep)
+        pointgroups = [group]
+        for item in queryset:
+            while item['points'] >= group.upper:
+                group = PointGroup(previous=group)
+                pointgroups.append(group)
+            group.count += item['count']
+        if max_points and group.upper > max_points:
+            del pointgroups[-1]
+            pointgroups[-1].count += group.count
+        return pointgroups
+
+
 query_exams_opt = staff_member_required(FormView.as_view(
     template_name='student_manager/query_exams_opt.html',
     form_class=forms.QueryExamsOptForm))
@@ -527,39 +553,46 @@ class QueryExamsView(TemplateView):
             fail_count = examlist.filter(mark=5.0).count()
             )
 
-        context['pointgroups'] = self.get_pointgroups(examnr)
-        return context
-
-    def get_pointgroups(self, examnr):
+        pointcounts = examlist.values('points').order_by('points') \
+            .annotate(count=Count('id'))
         masterexam = models.MasterExam.objects.get(id=examnr)
         try:
             pointstep = int(models.StaticData.objects.get(
                     key='query_exam_pointstep').value)
         except models.StaticData.DoesNotExist:
             pointstep = 2
-
-        examlist = models.Exam.objects.filter(examnr=examnr) \
-            .exclude(points=None)
-        pointcounts = examlist.values('points').order_by('points') \
-            .annotate(count=Count('id'))
-
-        group = {'lower': 0, 'upper': pointstep, 'count': 0}
-        pointgroups = [group]
-        for item in pointcounts:
-            while item['points'] >= group['upper']:
-                nextgroup = {'lower': group['upper'],
-                             'upper': group['upper']+pointstep,
-                             'count': 0}
-                pointgroups.append(nextgroup)
-                group = nextgroup
-            group['count'] += item['count']
-        if masterexam.max_points and group['upper'] > masterexam.max_points:
-            del pointgroups[-1]
-            pointgroups[-1]['count'] += group['count']
-        return pointgroups
+        context['pointgroups'] = collect_pointgroups(
+            pointcounts,
+            pointstep,
+            max_points = masterexam.max_points)
+        return context
 
 
 query_exams = staff_member_required(QueryExamsView.as_view())
+
+
+query_examparts_opt = staff_member_required(FormView.as_view(
+    template_name='student_manager/query_examparts_opt.html',
+    form_class=forms.QueryExamPartsOptForm))
+
+
+class QueryExamPartsView(TemplateView):
+    template_name = 'student_manager/query_examparts.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(QueryExamPartsView, self).get_context_data(**kwargs)
+        examnr = self.request.GET.get('examnr')
+
+        parts = models.ExamPart.objects.filter(exam__examnr=examnr) \
+            .exclude(points=None)
+        counts = parts.values('number').order_by('number') \
+            .annotate(count=Count('id'), sum=Sum('points'))
+        context['counts'] = counts
+
+        return context
+
+
+query_examparts = staff_member_required(QueryExamPartsView.as_view())
 
 
 query_students_opt = staff_member_required(FormView.as_view(

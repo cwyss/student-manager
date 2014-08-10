@@ -196,6 +196,12 @@ class QueryExamsOptForm(forms.Form):
         queryset=models.MasterExam.objects.all())
 
 
+class QueryExamPartsOptForm(forms.Form):
+    examnr = forms.ModelChoiceField(
+        label='Exam number',
+        queryset=models.MasterExam.objects.all())
+
+
 class QueryStudentsOptForm(forms.Form):
     first_field = forms.ChoiceField(
         choices=(('subject', 'Subject'),
