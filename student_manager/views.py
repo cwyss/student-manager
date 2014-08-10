@@ -583,7 +583,10 @@ class QueryExamPartsView(TemplateView):
         context = super(QueryExamPartsView, self).get_context_data(**kwargs)
         examnr = self.request.GET.get('examnr')
         masterexam = models.MasterExam.objects.get(number=examnr)
-        part_points = json.loads(masterexam.part_points)
+        if masterexam.part_points:
+            part_points = json.loads(masterexam.part_points)
+        else:
+            part_points = None
 
         parts = models.ExamPart.objects.filter(exam__examnr=examnr) \
             .exclude(points=None)
@@ -591,8 +594,9 @@ class QueryExamPartsView(TemplateView):
             .annotate(count=Count('id'), sum=Sum('points'))
         for item in counts:
             item['average'] = item['sum']/item['count']
-            item['percent'] = \
-                100 * item['average'] / part_points[item['number']-1]
+            if part_points:
+                item['percent'] = \
+                    100 * item['average'] / part_points[item['number']-1]
         context['counts'] = counts
 
         return context
