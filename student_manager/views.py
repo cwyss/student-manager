@@ -1,6 +1,6 @@
 """Views"""
 
-import csv, re, json
+import csv, re, json, urllib
 import xml.etree.ElementTree as ElementTree
 from decimal import Decimal
 
@@ -486,7 +486,7 @@ def save_exam_results(request, queryset=None):
             messages.success(request, 'Exam results updated.')
             return HttpResponseRedirect(
                 reverse('admin:student_manager_exam_changelist') \
-                    + '?p=' + request.GET.get('p', ''))
+                    + '?' + urllib.urlencode(request.GET))
         num_exercises_form = forms.NumberExercisesForm(request.POST)
         if num_exercises_form.is_valid():
             num_exercises = num_exercises_form.cleaned_data['num_exercises']
@@ -498,7 +498,7 @@ def save_exam_results(request, queryset=None):
         {'formset': formset,
          'num_exercises': range(1, num_exercises + 1),
          'num_exercises_form': num_exercises_form,
-         'page': request.GET.get('p', '')},
+         'params': urllib.urlencode(request.GET)},
         context_instance=RequestContext(request))
 
 
