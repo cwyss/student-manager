@@ -539,6 +539,7 @@ class QueryExamsView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(QueryExamsView, self).get_context_data(**kwargs)
         examnr = self.request.GET.get('examnr')
+        query_examgroups = self.request.GET.get('query_examgroups')
 
         exams = models.Exam.objects.filter(examnr=examnr)
         markcounts = exams.values('mark').order_by('mark') \
@@ -547,12 +548,17 @@ class QueryExamsView(TemplateView):
 
         context['missing_count'] = exams.filter(points=None).count()
         examlist = exams.exclude(points=None)
-        context.update(
-            attend_count = examlist.count(),
-            pass_count = examlist.filter(mark__lte=4.0).count(),
-            fail_count = examlist.filter(mark=5.0).count()
-            )
+        context['total_count'] = self.count_apf(examlist)
 
+        if query_examgroups:
+            self.get_examgroups(examnr)
+            context['groups_count'] = []
+            for group in self.exam_groups:
+                group_query = examlist.filter(exam_group=group)
+                group_count = self.count_apf(group_query)
+                group_count['group'] = group
+                context['groups_count'].append(group_count)
+                     
         pointcounts = examlist.values('points').order_by('points') \
             .annotate(count=Count('id'))
         masterexam = models.MasterExam.objects.get(id=examnr)
@@ -566,6 +572,21 @@ class QueryExamsView(TemplateView):
             pointstep,
             max_points = masterexam.max_points)
         return context
+
+    def count_apf(self, queryset):
+        return {'attend': queryset.count(),
+                'pass': queryset.filter(mark__lte=4.0).count(),
+                'fail': queryset.filter(mark=5.0).count()
+                }
+
+    def get_examgroups(self, examnr):
+        query = models.Exam.objects.filter(examnr=examnr) \
+            .exclude(points=None) \
+            .values('exam_group').order_by('exam_group') \
+            .annotate(count=Count('id'))
+        self.exam_groups = []
+        for item in query:
+            self.exam_groups.append(item['exam_group'])
 
 
 query_exams = staff_member_required(QueryExamsView.as_view())

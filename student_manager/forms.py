@@ -194,6 +194,8 @@ class QueryExamsOptForm(forms.Form):
     examnr = forms.ModelChoiceField(
         label='Exam number',
         queryset=models.MasterExam.objects.all())
+    query_examgroups = forms.BooleanField(
+        label='Distinguish exam groups')
 
 
 class QueryExamPartsOptForm(forms.Form):

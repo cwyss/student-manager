@@ -19,11 +19,19 @@
 
 {% block content %}
 <div id="content-main">
-  <p>attending students: {{ attend_count }},
+  <p>attending students: {{ total_count.attend }},
     missing students: {{ missing_count }} <br />
-    pass: {{ pass_count }},
-    fail: {{ fail_count }}
+    pass: {{ total_count.pass }},
+    fail: {{ total_count.fail }}
   </p>
+  {% if groups_count %}
+  <p>
+    {% for item in groups_count %}
+    Group {{ item.group }}: attend {{ item.attend }},
+    pass {{ item.pass }}, fail {{ item.fail }}<br />
+    {% endfor %}
+  </p>
+  {% endif %}
   <table>
     <thead>
       <tr>
