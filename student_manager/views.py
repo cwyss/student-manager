@@ -542,23 +542,26 @@ class QueryExamsView(TemplateView):
         query_examgroups = self.request.GET.get('query_examgroups')
 
         exams = models.Exam.objects.filter(examnr=examnr)
-        markcounts = exams.values('mark').order_by('mark') \
-            .annotate(count=Count('id'))
-        context['markcounts'] = markcounts
-
-        context['missing_count'] = exams.filter(points=None).count()
         examlist = exams.exclude(points=None)
         context['total_count'] = self.count_apf(examlist)
+        context['missing_count'] = exams.filter(points=None).count()
 
         if query_examgroups:
-            self.get_examgroups(examnr)
+            self.get_examgroups(examlist)
             context['groups_count'] = []
             for group in self.exam_groups:
                 group_query = examlist.filter(exam_group=group)
                 group_count = self.count_apf(group_query)
                 group_count['group'] = group
                 context['groups_count'].append(group_count)
-                     
+
+        if not query_examgroups:
+            markcounts = examlist.values('mark').order_by('mark') \
+                .annotate(total=Count('id'))
+            context['markcounts'] = markcounts
+        else:
+            context['markcounts'] = self.count_mark_groups(examlist)
+
         pointcounts = examlist.values('points').order_by('points') \
             .annotate(count=Count('id'))
         masterexam = models.MasterExam.objects.get(id=examnr)
@@ -579,14 +582,33 @@ class QueryExamsView(TemplateView):
                 'fail': queryset.filter(mark=5.0).count()
                 }
 
-    def get_examgroups(self, examnr):
-        query = models.Exam.objects.filter(examnr=examnr) \
-            .exclude(points=None) \
-            .values('exam_group').order_by('exam_group') \
+    def get_examgroups(self, examlist):
+        query = examlist.values('exam_group').order_by('exam_group') \
             .annotate(count=Count('id'))
         self.exam_groups = []
         for item in query:
             self.exam_groups.append(item['exam_group'])
+
+    def count_mark_groups(self, examlist):
+        query = examlist.values('mark', 'exam_group') \
+            .order_by('mark', 'exam_group') \
+            .annotate(count=Count('id'))
+        numgroups = len(self.exam_groups)
+        markcounts = [] 
+        mark_entry = {'groupcounts': [0]*numgroups}
+        for item in query:
+            if mark_entry.has_key('mark') and \
+                    mark_entry['mark']!=item['mark']:
+                mark_entry['total'] =  sum(mark_entry['groupcounts'])
+                markcounts.append(mark_entry)
+                mark_entry = {'groupcounts': [0]*numgroups}
+            mark_entry['mark'] = item['mark']
+            group_index = self.exam_groups.index(item['exam_group'])
+            mark_entry['groupcounts'][group_index] = item['count']
+        if mark_entry.has_key('mark'):
+            mark_entry['total'] = sum(mark_entry['groupcounts'])
+            markcounts.append(mark_entry)
+        return markcounts
 
 
 query_exams = staff_member_required(QueryExamsView.as_view())

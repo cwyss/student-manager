@@ -24,25 +24,46 @@
     pass: {{ total_count.pass }},
     fail: {{ total_count.fail }}
   </p>
+
   {% if groups_count %}
-  <p>
+  <table>
+    <thead>
+      <tr>
+	<th>Group</th>
+	<th>attend</th>
+	<th>pass</th>
+	<th>fail</th>
+      </tr>
+    </thead>
     {% for item in groups_count %}
-    Group {{ item.group }}: attend {{ item.attend }},
-    pass {{ item.pass }}, fail {{ item.fail }}<br />
+    <tr>
+      <td>{{ item.group }}</td>
+      <td>{{ item.attend }}</td>
+      <td>{{ item.pass }}</td>
+      <td>{{ item.fail }}</td>
+    </tr>
     {% endfor %}
-  </p>
+  </table>
+  <br />
   {% endif %}
+
   <table>
     <thead>
       <tr>
 	<th>Mark</th>
-	<th>Count</th>
+	{% for item in groups_count %}
+	<th>Group {{ item.group }}</th>
+	{% endfor %}
+	<th>Total</th>
       </tr>
     </thead>
     {% for item in markcounts %}
     <tr>
-      <td class="center">{{ item.mark }}</td>
-      <td class="right">{{ item.count }}</td>
+      <td class="center">{{ item.mark|floatformat:1 }}</td>
+      {% for gc in item.groupcounts %}
+      <td class="right">{{ gc }}</td>
+      {% endfor %}
+      <td class="right">{{ item.total }}</td>
     </tr>
     {% endfor %}
   </table>
