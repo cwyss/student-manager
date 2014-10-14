@@ -33,7 +33,7 @@ lecture::
 
 subject_translation::
   translation from long subject name to short name,
-  used in import registration data,
+  used for import registration data,
   json dictionary: {"Electrical Engineering": "ET", "Optionalbereich": "Opt"}
 
 bonus1, bonus2::

@@ -1023,6 +1023,8 @@ class QueryRegistrationsView(TemplateView):
             ass_name = e['group__assistent']
             if ass_name:
                 assist_info[ass_name] = [None, e['count']]
+        if not assist_info:
+            return []
 
         group_list = models.Group.objects.all()
         assist_grp = {}
