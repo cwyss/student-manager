@@ -95,12 +95,12 @@ import registration data (CSV or Wusel-style XLS)::
   last name
   first name
   email (ignored)
-  subject ('translation' via static data key subject_translation)
+  subject (translated via static data key subject_translation)
   p version (ignored)
   semester
   status
   priority
-  group ('translation' via static data key group_translation)
+  group (translated via group field "time / group name")
 
 
 

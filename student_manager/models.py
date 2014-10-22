@@ -9,7 +9,8 @@ import json
 
 class Group(models.Model):
     number = models.IntegerField()
-    time = models.CharField(max_length=200, null=True, blank=True)
+    time = models.CharField("time / group name (for import regist.)",
+                            max_length=200, null=True, blank=True)
     assistent = models.CharField(max_length=200, null=True, blank=True)
 
     def __unicode__(self):
