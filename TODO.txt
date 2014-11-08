@@ -3,3 +3,7 @@ exams oder exercises liste...?
 
 
 max_digits=4 bei exam points?
+
+exercise points > 5.0 (min. bis 10.0)
+
+enter exercise results by group: leeres 'sheet' Feld abfangen
