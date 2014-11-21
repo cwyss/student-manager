@@ -303,3 +303,9 @@ ExerciseFormSet = modelformset_factory(
 
 class SheetForm(forms.Form):
     sheet = forms.IntegerField()
+
+
+class GroupsForm(forms.Form):
+    groups = forms.ModelMultipleChoiceField(
+        queryset=models.Group.objects.all())
+#        widget=HiddenInput)

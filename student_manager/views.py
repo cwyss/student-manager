@@ -1158,15 +1158,19 @@ print_exsheet = staff_member_required(PrintExsheetView.as_view())
 @staff_member_required
 @require_POST
 def save_exercise_results(request, queryset=None):
+    print queryset
     if queryset is not None:
         # initial form
         students = models.Student.objects.filter(group__in=queryset) \
             .filter(active=True)
         formset = forms.ExerciseFormSet(queryset=students)
         sheet_form = forms.SheetForm()
+        groups_form = forms.GroupsForm()
+        groups_form.fields['groups'].initial = [g.id for g in queryset]
     else:
         # submitted form
         sheet_form = forms.SheetForm(request.POST)
+        groups_form = forms.GroupsForm(request.POST)
         formset = forms.ExerciseFormSet(request.POST)
         if sheet_form.is_valid():
             for form in formset:
@@ -1176,11 +1180,15 @@ def save_exercise_results(request, queryset=None):
                 messages.success(request, 'Exercises updated.')
                 return HttpResponseRedirect(
                     reverse('admin:student_manager_group_changelist'))
+        assert groups_form.is_valid()
+        queryset = groups_form.cleaned_data['groups']
 
+    print queryset
     return render_to_response(
         'student_manager/enter_exercise_results.html',
         {'formset': formset,
          'sheet_form': sheet_form,
+         'groups_form': groups_form,
          'groups': ', '.join([str(group) for group in queryset])},
         context_instance=RequestContext(request))
 
