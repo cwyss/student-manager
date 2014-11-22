@@ -42,6 +42,13 @@ bonus1, bonus2::
 maxpoints::
   maximal points over all sheets
 
+sheet_points::
+  max points per sheet (default: 5)
+
+points_div::
+  divisor for fractional sheet points, i.e. steps of 1/points_div
+  (default: 2)
+
 query_exam_pointstep::
   stepsize for grouping exam points
 

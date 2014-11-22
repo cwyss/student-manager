@@ -53,6 +53,18 @@ class StaticDataForm(forms.ModelForm):
         return value
 
 
+class ExerciseForm(forms.ModelForm):
+    class Meta:
+        model = models.Exercise
+
+    def __init__(self, *args, **kwargs):
+        super(ExerciseForm, self).__init__(*args, **kwargs)
+        self.fields['points'] = forms.TypedChoiceField(
+            required=False,
+            choices=models.points_choices(),
+            coerce=Decimal)
+
+
 class MasterExamForm(forms.ModelForm):
     class Meta:
         model = models.MasterExam
@@ -268,14 +280,19 @@ class PrintExsheetOptForm(forms.Form):
 
 
 class StudentExerciseForm(forms.ModelForm):
-    points = forms.TypedChoiceField(
-        required=False,
-        choices=[('', '')] + models.POINTS_CHOICES,
-        coerce=Decimal)
+    points = forms.IntegerField()  # dummy initialisation
+    # needed for dynamic initialisation in __init__()
 
     class Meta:
         model = models.Student
         fields = ('points',)
+    
+    def __init__(self, *args, **kwargs):
+        super(StudentExerciseForm, self).__init__(*args, **kwargs)
+        self.fields['points'] = forms.TypedChoiceField(
+            required=False,
+            choices=[('', '')] + list(models.points_choices()),
+            coerce=Decimal)
 
     def clean(self):
         cleaned_data = super(StudentExerciseForm, self).clean()

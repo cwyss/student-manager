@@ -1158,7 +1158,6 @@ print_exsheet = staff_member_required(PrintExsheetView.as_view())
 @staff_member_required
 @require_POST
 def save_exercise_results(request, queryset=None):
-    print queryset
     if queryset is not None:
         # initial form
         students = models.Student.objects.filter(group__in=queryset) \
@@ -1183,7 +1182,6 @@ def save_exercise_results(request, queryset=None):
         assert groups_form.is_valid()
         queryset = groups_form.cleaned_data['groups']
 
-    print queryset
     return render_to_response(
         'student_manager/enter_exercise_results.html',
         {'formset': formset,

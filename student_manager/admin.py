@@ -77,6 +77,7 @@ class ExerciseAdmin(admin.ModelAdmin):
     raw_id_fields = ('student',)
     search_fields = ('student__matrikel', 'student__last_name',
                      'student__first_name')
+    form = forms.ExerciseForm
 
 
 class MasterExamAdmin(admin.ModelAdmin):

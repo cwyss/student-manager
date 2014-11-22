@@ -7,6 +7,43 @@ from django.core.exceptions import ValidationError
 import json
 
 
+class StaticData(models.Model):
+    key = models.CharField(max_length=100)
+    value = models.TextField(null=True, blank=True)
+
+    class Meta:
+        ordering = ('key',)
+        verbose_name_plural = 'Static data'
+
+    def __unicode__(self):
+        return u'%s' % self.key
+
+    @classmethod
+    def get_key(cls, key, default=None):
+        try:
+            return cls.objects.get(key=key).value
+        except cls.DoesNotExist:
+            return default
+
+    @classmethod
+    def get_subject_transl(cls):
+        try:
+            jstr = cls.objects.get(key='subject_translation').value
+            jstr = jstr.translate({0xa0: 32})
+            transl = json.loads(jstr)
+            return transl
+        except cls.DoesNotExist:
+            return {}
+
+    @classmethod
+    def get_sheet_points(cls):
+        return int(cls.get_key('sheet_points', 5))
+
+    @classmethod
+    def get_points_div(cls):
+        return int(cls.get_key('point_div', 2))
+
+
 class Group(models.Model):
     number = models.IntegerField()
     time = models.CharField("time / group name (for import regist.)",
@@ -136,16 +173,25 @@ class Student(models.Model):
         ordering = ('last_name', 'first_name')
 
 
-POINTS_CHOICES = [(i/Decimal('2'), str(i/2.0)) for i in range(11)]
-VALID_POINTS = [x[0] for x in POINTS_CHOICES]
+def points_choices():
+    max_points = StaticData.get_sheet_points()
+    points_div = StaticData.get_points_div()
+    n = max_points * points_div + 1
+    for i in range(n):
+        choice = (Decimal(i)/points_div, str(float(i)/points_div))
+        yield choice
+
+def valid_points():
+    for (val, lbl) in points_choices():
+        yield val
+
 
 class Exercise(models.Model):
     student = models.ForeignKey(Student)
     group = models.ForeignKey(Group, null=True, blank=True)
     sheet = models.IntegerField()
     points = models.DecimalField(
-        max_digits=2, decimal_places=1,
-        choices=POINTS_CHOICES)
+        max_digits=4, decimal_places=2)
 
     class Meta:
         unique_together = (('student', 'sheet'),)
@@ -155,7 +201,7 @@ class Exercise(models.Model):
         return u'%i: %1.1f - %s' % (self.sheet, self.points, self.student)
 
     def save(self, *args, **kwargs):
-        if float(self.points) not in VALID_POINTS:
+        if float(self.points) not in valid_points():
             raise ValidationError('invalid point value')
         return super(Exercise, self).save(*args, **kwargs)
 
@@ -248,28 +294,6 @@ class ExamPart(models.Model):
     def __unicode__(self):
         return u'%i(%i): %s' % (self.exam.examnr.number, self.number,
                                 self.exam.student)
-
-
-class StaticData(models.Model):
-    key = models.CharField(max_length=100)
-    value = models.TextField(null=True, blank=True)
-
-    class Meta:
-        ordering = ('key',)
-        verbose_name_plural = 'Static data'
-
-    def __unicode__(self):
-        return u'%s' % self.key
-
-    @classmethod
-    def get_subject_transl(cls):
-        try:
-            jstr = cls.objects.get(key='subject_translation').value
-            jstr = jstr.translate({0xa0: 32})
-            transl = json.loads(jstr)
-            return transl
-        except cls.DoesNotExist:
-            return {}
 
 
 class Registration(models.Model):
