@@ -21,6 +21,11 @@ To start the server::
 
   ./manage.py runserver
 
+Start server with http port different from 8000 (e.g. for two servers running
+simultaniously)::
+
+  ./manage.py runserver PORTNUMBER
+
 
 Usage
 =====
