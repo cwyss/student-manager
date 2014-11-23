@@ -25,7 +25,9 @@
       {{ formset.management_form }}
       Group(s): {{ groups }}
       {{ sheet_form }}
-      {{ groups_form }}
+      <div class="hidden">
+	{{ groups_form }}
+      </div>
       {{ formset.nonfield_errors }}
       <div>
 	{% csrf_token %}
