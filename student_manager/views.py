@@ -1014,35 +1014,49 @@ class QueryRegistrationsView(TemplateView):
             row[i] = d['count']
         return ['total'] + row + [sum(row)]
 
+    class AssistList:
+        class Assistent:
+            def __init__(self, name, first_group):
+                self.name = name
+                self.first_group = first_group
+                self.groups = [first_group]
+                self.students = 0
+                
+            def add_students(self, count):
+                self.students += count
+
+        def __init__(self):
+            self.name_dict = {}
+            # self.group_dict = {}
+
+        def add(self, name, group):
+            if self.name_dict.has_key(name):
+                a = self.name_dict[name]
+                a.groups.append(group)
+            else:
+                a = self.Assistent(name, group)
+                self.name_dict[name] = a
+            # self.group_dict[group] = a
+
     def make_assistent_sum(self):
-        aq = models.Student.objects.get_pure_query_set() \
+        assist_list = self.AssistList()
+        group_list = models.Group.objects.all().order_by('number')
+        for g in group_list:
+            if g.assistent:
+                assist_list.add(g.assistent, g.number)
+        query = models.Student.objects.get_pure_query_set() \
             .values('group__assistent').order_by('group__assistent') \
             .annotate(count=Count('id'))
-        assist_info = {}
-        for e in aq:
-            ass_name = e['group__assistent']
-            if ass_name:
-                assist_info[ass_name] = [None, e['count']]
-        if not assist_info:
-            return []
-
-        group_list = models.Group.objects.all()
-        assist_grp = {}
-        for e in group_list:
-            ai = assist_info[e.assistent]
-            first_grp = ai[0]
-            if not first_grp:
-                ai[0] = e.number
-                assist_grp[e.number] = [e.assistent, [e.number], ai[1]]
-            else:
-                assist_grp[first_grp][1].append(e.number)
-
-        assist_list = []
-        first_groups = assist_grp.keys()
-        first_groups.sort()
-        for grp in first_groups:
-            assist_list.append(assist_grp[grp])
-        return assist_list
+        for e in query:
+            name = e['group__assistent']
+            if name:
+                a = assist_list.name_dict[name]
+                a.add_students(e['count'])
+        assist_sum = []
+        for a in assist_list.name_dict.values():
+            assist_sum.append([a.name, a.groups, a.students])
+        assist_sum.sort(key=lambda e:e[1][0])
+        return assist_sum
 
 query_regist = staff_member_required(QueryRegistrationsView.as_view())
 
