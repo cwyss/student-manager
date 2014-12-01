@@ -41,7 +41,7 @@ class StaticData(models.Model):
 
     @classmethod
     def get_points_div(cls):
-        return int(cls.get_key('point_div', 2))
+        return int(cls.get_key('points_div', 2))
 
 
 class Group(models.Model):
