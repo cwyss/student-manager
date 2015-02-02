@@ -4,7 +4,7 @@
     <link rel="stylesheet" type="text/css" href="{{ STATIC_URL}}print.css">
   </head>
   <body>
-    <h3>Bonuspunkte</h3>
+    <h3>Bonuspunkte {{ lecture|safe|default:"" }}</h3>
     {% if matrikel %}
     <p>Die Liste ist sortiert nach den letzten 4 Stellen der Matrikelnummer.
       Wenn n&ouml;tig sind weitere Stellen angegeben.</p>
@@ -27,10 +27,18 @@
       <tr class="{% cycle 'odd' 'even' %}">
 	<td class="right">{% if matrikel %}{{ student.obscured_matrikel }}{% else %}{{ student.last_name }}, {{ student.first_name }}{% endif %}</td>
 	{% for exercise in student.exercises %}
+	{% if points_doubledigits %}
+	<td class="center points">{{ exercise.points|floatformat:2 }}</td>
+	{% else %}
 	<td class="center points">{{ exercise.points|floatformat:1 }}</td>
+	{% endif %}
 	{% endfor %}
 	{% if request.GET.total %}
+	{% if points_doubledigits %}
+	<td class="right">{{ student.total_points|floatformat:2 }}</td>
+	{% else %}
 	<td class="right">{{ student.total_points|floatformat:1 }}</td>
+	{% endif %}
 	<td class="right">{{ student.percent|floatformat:1 }}</td>
 	<td class="center">{{ student.bonus }}</td>
 	{% endif %}

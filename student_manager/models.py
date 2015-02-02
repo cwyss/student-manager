@@ -43,6 +43,10 @@ class StaticData(models.Model):
     def get_points_div(cls):
         return int(cls.get_key('points_div', 2))
 
+    @classmethod
+    def get_lecture_name(cls):
+        return cls.get_key('lecture')
+
 
 class Group(models.Model):
     number = models.IntegerField()

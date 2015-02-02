@@ -277,11 +277,16 @@ class PrintExercisesView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super(PrintExercisesView, self).get_context_data(**kwargs)
+        context['lecture'] = models.StaticData.get_lecture_name()
         selection = self.request.GET.get('selection')
         if selection=='matrikel':
             context['matrikel'] = True
         else:
             context['matrikel'] = False
+        if models.StaticData.get_points_div()==4:
+            context['points_doubledigits'] = True
+        else:
+            context['points_doubledigits'] = False
         return context
 
 print_exercises = staff_member_required(PrintExercisesView.as_view())
