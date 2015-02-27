@@ -390,7 +390,7 @@ class ImportExamsView(FormView):
             name = line[cols[0]:cols[1]].strip()
             first_name = line[cols[1]:cols[2]].strip()
             matr = int(line[cols[2]:cols[3]])
-            resit = int(line[cols[3]])
+            resit = int(line[cols[3]:].split()[-1])
         except (IndexError, ValueError):
             self.stats['error'].append(line)
             return

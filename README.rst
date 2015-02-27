@@ -94,13 +94,14 @@ import exam data::
     last name
     first name
     matrikel number
+    [more fields, optional, ignored]
     resit count
 
   If last and/or first name contain more than one first/last name,
   then last name must be separated by two or more spaces.
 
   Use 'pdftotext -layout anmeldungen.pdf' to create text file from pdf
-  and preserve table structure.
+  while preserving table structure.
 
 import registration data (CSV or Wusel-style XLS)::
   matrikel number
