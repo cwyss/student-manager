@@ -124,6 +124,9 @@ enter virtualenv::
 
   workon studmgr
 
+  studmgr: django version 1.4.3
+  studmgr2: django version 1.6.5
+
 leave virtualenv::
 
   deactivate
