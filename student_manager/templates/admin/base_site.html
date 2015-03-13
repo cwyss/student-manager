@@ -12,41 +12,41 @@
 
 {% block nav-global %}
 <ul class="navbar">
-  <li><a href="{% url admin:index %}">Admin Home</a></li>
+  <li><a href="{% url 'admin:index' %}">Admin Home</a></li>
   <li>
     Print
     <ul>
-      <li><a href="{% url print_students_opt %}">Student list</a></li>
-      <li><a href="{% url print_groups_opt %}">Group assignment</a></li>
-      <li><a href="{% url print_exsheet_opt %}">Exercise sheet</a></li>
-      <li><a href="{% url print_exercises_opt %}">Exercise list</a></li>
-      <li><a href="{% url print_exams_opt %}">Exam list</a></li>
+      <li><a href="{% url 'print_students_opt' %}">Student list</a></li>
+      <li><a href="{% url 'print_groups_opt' %}">Group assignment</a></li>
+      <li><a href="{% url 'print_exsheet_opt' %}">Exercise sheet</a></li>
+      <li><a href="{% url 'print_exercises_opt' %}">Exercise list</a></li>
+      <li><a href="{% url 'print_exams_opt' %}">Exam list</a></li>
     </ul>
   </li>
   <li>
     Query
     <ul>
-      <li><a href="{% url query_students_opt %}">Students</a></li>
-      <li><a href="{% url query_regist %}">Registrations</a></li>
-      <li><a href="{% url query_new_assigned %}">New assigned groups</a></li>
-      <li><a href="{% url query_exercise %}">Exercise data</a></li>
-      <li><a href="{% url query_exams_opt %}">Exam data</a></li>
-      <li><a href="{% url query_examparts_opt %}">Exam parts data</a></li>
+      <li><a href="{% url 'query_students_opt' %}">Students</a></li>
+      <li><a href="{% url 'query_regist' %}">Registrations</a></li>
+      <li><a href="{% url 'query_new_assigned' %}">New assigned groups</a></li>
+      <li><a href="{% url 'query_exercise' %}">Exercise data</a></li>
+      <li><a href="{% url 'query_exams_opt' %}">Exam data</a></li>
+      <li><a href="{% url 'query_examparts_opt' %}">Exam parts data</a></li>
     </ul>
   </li>
   <li>
     Export
     <ul>
-      <li><a href="{% url export_students %}">Students</a></li>
+      <li><a href="{% url 'export_students' %}">Students</a></li>
     </ul>
   </li>
   <li>
     Import
     <ul>
-      <li><a href="{% url import_exercises %}?return_url={{ request.path }}">Exercise data</a></li>
-      <li><a href="{% url import_registrations %}?return_url={{ request.path }}">Registration data</a></li>
-      <li><a href="{% url import_students %}?return_url={{ request.path }}">Student data</a></li>
-      <li><a href="{% url import_exams %}?return_url={{ request.path }}">Exam data</a></li>
+      <li><a href="{% url 'import_exercises' %}?return_url={{ request.path }}">Exercise data</a></li>
+      <li><a href="{% url 'import_registrations' %}?return_url={{ request.path }}">Registration data</a></li>
+      <li><a href="{% url 'import_students' %}?return_url={{ request.path }}">Student data</a></li>
+      <li><a href="{% url 'import_exams' %}?return_url={{ request.path }}">Exam data</a></li>
     </ul>
   </li>
 </ul>
