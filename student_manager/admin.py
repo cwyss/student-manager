@@ -160,7 +160,7 @@ class ExamAdmin(admin.ModelAdmin):
 
 class ExamPartAdmin(admin.ModelAdmin):
     list_display = ('exam', 'number', 'points')
-    list_filter = ('number',)
+    list_filter = ('exam__examnr', 'number')
     raw_id_fields = ('exam',)
     search_fields = ('exam__student__matrikel', 'exam__student__last_name',
                      'exam__student__first_name')

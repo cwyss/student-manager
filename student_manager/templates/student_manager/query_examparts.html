@@ -11,25 +11,20 @@
 <div class="breadcrumbs">
 <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
 &rsaquo; <a href="{% url 'admin:app_list' app_label='student_manager' %}">Student_manager</a>
-&rsaquo; <a href="{% url 'admin:student_manager_exam_changelist' %}">Exams</a>
+&rsaquo; <a href="{% url 'admin:student_manager_exampart_changelist' %}">Exam parts</a>
 &rsaquo; Query exam part data
 </div>
 {% endblock %}
 
 {% block content %}
 <div id="content-main">
-  <!-- <p>attending students: {{ attend_count }}, -->
-  <!--   missing students: {{ missing_count }} <br /> -->
-  <!--   pass: {{ pass_count }}, -->
-  <!--   fail: {{ fail_count }} -->
-  <!-- </p> -->
   <table>
     <thead>
       <tr>
 	<th>Part</th>
   	<th>Count</th>
   	<th>Avr. points</th>
-	<th>%</th>
+	<th>Avr. pts. %</th>
       </tr>
     </thead>
     {% for item in counts %}
@@ -41,22 +36,5 @@
     </tr>
     {% endfor %}
   </table>
-
-  <!-- <p></p> -->
-
-  <!-- <table> -->
-  <!--   <thead> -->
-  <!--     <tr> -->
-  <!-- 	<th>Points &ge;</th> -->
-  <!-- 	<th>Count</th> -->
-  <!--     </tr> -->
-  <!--   </thead> -->
-  <!--   {% for item in pointgroups %} -->
-  <!--   <tr> -->
-  <!--     <td class="center">{{ item.lower }}</td> -->
-  <!--     <td class="right">{{ item.count }}</td> -->
-  <!--   </tr> -->
-  <!--   {% endfor %} -->
-  <!-- </table> -->
 </div>
 {% endblock %}

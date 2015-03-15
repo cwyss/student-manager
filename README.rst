@@ -65,6 +65,10 @@ mark_limits::
   list in json format: [[point, mark], ...]
   order by decreasing points
 
+part points::
+  list of points of each part of the exam: [points1, points2, ...]
+  (used for query exam parts)
+
 import formats
 --------------
 
