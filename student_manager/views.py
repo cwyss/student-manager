@@ -1119,7 +1119,7 @@ class ExportStudentsView(FormView):
         else:
             filename = 'studenten.csv'
 
-        response = HttpResponse(mimetype='text/csv')
+        response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = \
             'attachment; filename="%s"' % filename
 
