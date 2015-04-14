@@ -211,7 +211,7 @@ class RegistrationAdmin(admin.ModelAdmin):
     raw_id_fields = ('student',)
     search_fields = ('student__matrikel', 'student__last_name',
                      'student__first_name')
-    actions = ('assign_groups',)
+    actions = ('assign_groups','clear_assigned',)
 
     def assign_groups(self, request, queryset):
         duplicates = queryset.values('student') \
@@ -234,6 +234,15 @@ class RegistrationAdmin(admin.ModelAdmin):
         messages.success(
             request,
             'Assigned groups to %d students' % queryset.count())
+
+    def clear_assigned(self, request, queryset):
+        for regist in queryset:
+            student = regist.student
+            student.group = None
+            student.save()
+        messages.success(
+            request,
+            'Assigned groups of %d students cleared' % queryset.count())
 
 
 
