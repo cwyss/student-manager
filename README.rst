@@ -139,3 +139,8 @@ new fields added to db table; generates migration file::
 
   ./manage.py schemamigration student_manager --auto
   ./manage.py migrate
+
+create virtualenv::
+
+  mkvirtualenv studmgr
+  pip install -r path/to/studmgr/requirements.txt
