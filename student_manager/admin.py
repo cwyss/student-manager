@@ -99,10 +99,23 @@ class ExamAdmin(admin.ModelAdmin):
     raw_id_fields = ('student',)
     search_fields = ('student__matrikel', 'student__last_name',
                      'student__first_name')
-    actions = ('assign_seats', 'enter_results', 'enter_results_name_range')
+    actions = ('assign_seats_sort_modulo_matrikel',
+               'assign_seats_sort_matrikel',
+               'assign_seats_sort_first_name',
+               'enter_results', 
+               'enter_results_name_range')
     form = forms.ExamForm
 
-    def assign_seats(self, request, queryset):
+    def assign_seats_sort_modulo_matrikel(self, request, queryset):
+        return self.assign_seats(request, queryset, 'modmatr')
+
+    def assign_seats_sort_matrikel(self, request, queryset):
+        return self.assign_seats(request, queryset, 'matr')
+
+    def assign_seats_sort_first_name(self, request, queryset):
+        return self.assign_seats(request, queryset, 'fstname')
+
+    def assign_seats(self, request, queryset, sort_by):
         examnr = queryset[0].examnr
         if queryset.exclude(examnr=examnr).exists():
             messages.error(request,
@@ -124,8 +137,14 @@ class ExamAdmin(admin.ModelAdmin):
             return
 
         queryset.update(number=None)
-        queryset = queryset.order_by('student__modulo_matrikel',
-                                     'student__obscured_matrikel')
+        if sort_by=='modmatr':
+             queryset = queryset.order_by('student__modulo_matrikel',
+                                         'student__obscured_matrikel')
+        elif sort_by=='matr':
+             queryset = queryset.order_by('student__matrikel')
+        elif sort_by=='fstname':
+             queryset = queryset.order_by('student__first_name')
+
         roomdata = roomlist.pop(0)
         for i, exam in enumerate(queryset):
             if i >= roomdata[0] and roomlist:
