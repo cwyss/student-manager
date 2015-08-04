@@ -231,6 +231,7 @@ class Room(models.Model):
     examnr = models.ForeignKey(MasterExam)
     capacity = models.IntegerField(null=True, blank=True)
     priority = models.IntegerField(null=True, blank=True)
+    first_seat = models.IntegerField(null=True, blank=True)
 
     class Meta:
         ordering = ('examnr', 'priority')

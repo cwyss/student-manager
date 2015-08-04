@@ -87,7 +87,7 @@ class MasterExamAdmin(admin.ModelAdmin):
 
 
 class RoomAdmin(admin.ModelAdmin):
-    list_display = ('examnr', 'name', 'capacity', 'priority')
+    list_display = ('examnr', 'name', 'capacity', 'priority', 'first_seat')
     list_filter = ('examnr',)
 
 
@@ -123,17 +123,27 @@ class ExamAdmin(admin.ModelAdmin):
             return
         rooms = models.Room.objects.filter(examnr=examnr).order_by('priority')
         roomlist = []
+        no_capacity = []
         maxnumber = 0
         for room in rooms:
-            if room.capacity is None:
-                 messages.error(request, 'Room %s has no capacity' % room)
-                 return
-            maxnumber += room.capacity
-            roomlist.append((maxnumber, room))
+            if room.capacity is None or room.capacity<=0:
+                no_capacity.append(str(room))
+                continue
+            if room.first_seat is None:
+                first_seat = maxnumber+1
+            elif room.first_seat > maxnumber:
+                first_seat = room.first_seat
+            else:
+                messages.error(request, 'Seat numbers overlap in room %s' 
+                               % room)
+                return
+            maxnumber = first_seat - 1 + room.capacity
 
-        if maxnumber <= 0:
+            roomlist.append((first_seat, maxnumber, room))
+
+        if not roomlist:
             messages.error(request,
-                           'No rooms with capacity found for exam %s' % examnr)
+                           'No rooms found for exam %s' % examnr)
             return
 
         queryset.update(number=None)
@@ -145,15 +155,18 @@ class ExamAdmin(admin.ModelAdmin):
         elif sort_by=='fstname':
              queryset = queryset.order_by('student__first_name')
 
-        roomdata = roomlist.pop(0)
-        for i, exam in enumerate(queryset):
-            if i >= roomdata[0] and roomlist:
-                roomdata = roomlist.pop(0)
-            exam.number = i+1
-            exam.room = roomdata[1]
+        (seat, maxnumber, room) = roomlist.pop(0)
+        for exam in queryset:
+            if seat > maxnumber and roomlist:
+                (seat, maxnumber, room) = roomlist.pop(0)
+            exam.number = seat
+            exam.room = room
             exam.save()
+            seat += 1
         messages.success(request, 'Assigned %s seats' % queryset.count())
-
+        if no_capacity:
+            messages.warning(request, 'Room(s) %s with no capacity' 
+                             % ', '.join(no_capacity))
 
     def enter_results(self, request, queryset):
         return views.save_exam_results(request, queryset)
