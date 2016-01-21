@@ -62,5 +62,7 @@ urlpatterns = patterns('',
         name='query_examparts_opt'),
     url(r'^query_examparts/$', 'student_manager.views.query_examparts',
         name='query_examparts'),
+    url(r'^query_special/$', 'student_manager.views.query_special',
+        name='query_special'),
     url(r'^admin/', include(admin.site.urls)),
 )

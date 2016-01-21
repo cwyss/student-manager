@@ -1258,3 +1258,23 @@ class QueryExerciseView(TemplateView):
 query_exercise = staff_member_required(QueryExerciseView.as_view())
 
 
+class QuerySpecialView(TemplateView):
+    template_name = 'student_manager/query_special.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(QuerySpecialView, self).get_context_data(**kwargs)
+
+        self.make_query()
+        self.make_info()
+        context['infotext'] = 'bla'
+        context['headline'] = ['a']
+        context['data'] = [['1']]
+        return context
+
+    def make_query(self):
+        pass
+
+    def make_info(self):
+        pass
+    
+query_special = staff_member_required(QuerySpecialView.as_view())
