@@ -1266,15 +1266,31 @@ class QuerySpecialView(TemplateView):
 
         self.make_query()
         self.make_info()
-        context['infotext'] = 'bla'
-        context['headline'] = ['a']
-        context['data'] = [['1']]
+        context['infotext'] = self.infotext
+        context['headline'] = self.headline
+        context['data'] = self.data
         return context
 
     def make_query(self):
-        pass
+        exam = models.Exam.objects \
+               .annotate(exercise_points=Sum('student__exercise__points')) \
+               .filter(points__gte=25) \
+               .values('student__matrikel',
+                       'student__last_name', 'student__semester', 'points',
+                       'exercise_points') \
+               .order_by('points')
+
+        exam = filter(lambda e: e['exercise_points']>=15, exam)
+        self.data = []
+        for e in exam:
+            self.data.append((e['student__matrikel'],
+                              e['student__last_name'],
+                              e['student__semester'],
+                              e['points'],
+                              e['exercise_points']))
+        self.headline = []
 
     def make_info(self):
-        pass
+        self.infotext = len(self.data)
     
 query_special = staff_member_required(QuerySpecialView.as_view())
