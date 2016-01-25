@@ -3,3 +3,6 @@ exams oder exercises liste...?
 
 
 max_digits=4 bei exam points?
+
+
+toggle active (student admin) funktioniert nicht wenn nach total_points sortiert.
