@@ -6,3 +6,9 @@ max_digits=4 bei exam points?
 
 
 toggle active (student admin) funktioniert nicht wenn nach total_points sortiert.
+
+
+Update von modulo_matrikel wenn Matrikelnummer bei Student geändert wird.
+(Ist das schon so?) Sinnvoll wegen Korrektur falscher Matrikelnummer, wo aber
+modulo_matrikel in z.B. Klausur-Platzliste benutzt wird.
+Update bei import registrations?
