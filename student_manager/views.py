@@ -1272,25 +1272,53 @@ class QuerySpecialView(TemplateView):
         return context
 
     def make_query(self):
-        exam = models.Exam.objects \
-               .annotate(exercise_points=Sum('student__exercise__points')) \
-               .filter(points__gte=25) \
-               .values('student__matrikel',
-                       'student__last_name', 'student__semester', 'points',
-                       'exercise_points') \
-               .order_by('points')
+        """ exam pass/fail count by subject"""
+        exams = models.Exam.objects \
+                .filter(examnr=1)
+        
+        exams_pass=exams.filter(mark__lte=4.0) \
+                        .values('subject').order_by('subject') \
+                        .annotate(count=Count('id'))
+        exams_fail=exams.filter(mark=5.0) \
+                        .values('subject').order_by('subject') \
+                        .annotate(count=Count('id'))
 
-        exam = filter(lambda e: e['exercise_points']>=15, exam)
-        self.data = []
-        for e in exam:
-            self.data.append((e['student__matrikel'],
-                              e['student__last_name'],
-                              e['student__semester'],
-                              e['points'],
-                              e['exercise_points']))
-        self.headline = []
+        pfdict = {}
+        for e in exams_pass:
+            pfdict[e['subject']] = (e['count'],0)
+        for e in exams_fail:
+            pf = pfdict.get(e['subject'], (0,0))
+            pfdict[e['subject']] = (pf[0],e['count'])
+            
+        self.data = [(s,v[0],v[1]) for (s,v) in pfdict.iteritems()]
+        self.data.sort(key=lambda x: x[0])
+        
+        self.headline = ['subject','pass','fail']
 
     def make_info(self):
-        self.infotext = len(self.data)
+        self.infotext = 'exam pass/fail count by subject'
+    
+    # def make_query(self):
+    #     """ exam points vs exercise points"""
+    #     exam = models.Exam.objects \
+    #            .annotate(exercise_points=Sum('student__exercise__points')) \
+    #            .filter(points__gte=25) \
+    #            .values('student__matrikel',
+    #                    'student__last_name', 'student__semester', 'points',
+    #                    'exercise_points') \
+    #            .order_by('points')
+
+    #     exam = filter(lambda e: e['exercise_points']>=15, exam)
+    #     self.data = []
+    #     for e in exam:
+    #         self.data.append((e['student__matrikel'],
+    #                           e['student__last_name'],
+    #                           e['student__semester'],
+    #                           e['points'],
+    #                           e['exercise_points']))
+    #     self.headline = []
+
+    # def make_info(self):
+    #     self.infotext = len(self.data)
     
 query_special = staff_member_required(QuerySpecialView.as_view())
