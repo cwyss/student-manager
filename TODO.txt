@@ -12,3 +12,8 @@ Update von modulo_matrikel wenn Matrikelnummer bei Student geändert wird.
 (Ist das schon so?) Sinnvoll wegen Korrektur falscher Matrikelnummer, wo aber
 modulo_matrikel in z.B. Klausur-Platzliste benutzt wird.
 Update bei import registrations?
+
+
+In exams suche nach Name mit Umlaut (ä), die nur einen Treffer liefert.
+Dann Enter results für diesen Treffer (diese Trefferliste)
+-> UnicodeEncodeError at /admin/student_manager/exam
