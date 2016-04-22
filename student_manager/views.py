@@ -1272,31 +1272,57 @@ class QuerySpecialView(TemplateView):
         return context
 
     def make_query(self):
-        """ exam pass/fail count by subject"""
+        """ exam results for first semester students"""
         exams = models.Exam.objects \
-                .filter(examnr=1)
-        
-        exams_pass=exams.filter(mark__lte=4.0) \
-                        .values('subject').order_by('subject') \
-                        .annotate(count=Count('id'))
-        exams_fail=exams.filter(mark=5.0) \
-                        .values('subject').order_by('subject') \
-                        .annotate(count=Count('id'))
+                .filter(examnr=1, student__semester__lte=1, mark__lte=5.0)
 
-        pfdict = {}
-        for e in exams_pass:
-            pfdict[e['subject']] = (e['count'],0)
-        for e in exams_fail:
-            pf = pfdict.get(e['subject'], (0,0))
-            pfdict[e['subject']] = (pf[0],e['count'])
-            
-        self.data = [(s,v[0],v[1]) for (s,v) in pfdict.iteritems()]
-        self.data.sort(key=lambda x: x[0])
-        
-        self.headline = ['subject','pass','fail']
+        exams_fk6 = exams.filter(subject__in=('ET','IT','WIng','Kombi ET'))
+        exams_et = exams.filter(subject='ET')
+        exams_it = exams.filter(subject='IT')
+        exams_wing = exams.filter(subject='WIng')
+                
+        self.headline = ['group','pass','total','%']
+        self.data = []
+
+        for (group, query) in (('ET',exams_et), ('IT',exams_it), ('WIng',exams_wing),
+                               ('FK6',exams_fk6), ('all',exams)):
+            cnt_pass = query.filter(mark__lte=4.0).count()
+            cnt_tot = query.count()
+            rel_pass = Decimal('100.')*cnt_pass/cnt_tot
+            rel_pass = rel_pass.quantize(Decimal('99.0'))              # round to 1 decimal places
+            self.data.append((group, cnt_pass, cnt_tot, rel_pass))
 
     def make_info(self):
-        self.infotext = 'exam pass/fail count by subject'
+        self.infotext = 'exam results for first semester students'
+
+        
+    # def make_query(self):
+    #     """ exam pass/fail count by subject"""
+    #     exams = models.Exam.objects \
+    #             .filter(examnr=1)
+        
+    #     exams_pass=exams.filter(mark__lte=4.0) \
+    #                     .values('subject').order_by('subject') \
+    #                     .annotate(count=Count('id'))
+    #     exams_fail=exams.filter(mark=5.0) \
+    #                     .values('subject').order_by('subject') \
+    #                     .annotate(count=Count('id'))
+
+    #     pfdict = {}
+    #     for e in exams_pass:
+    #         pfdict[e['subject']] = (e['count'],0)
+    #     for e in exams_fail:
+    #         pf = pfdict.get(e['subject'], (0,0))
+    #         pfdict[e['subject']] = (pf[0],e['count'])
+            
+    #     self.data = [(s,v[0],v[1]) for (s,v) in pfdict.iteritems()]
+    #     self.data.sort(key=lambda x: x[0])
+        
+    #     self.headline = ['subject','pass','fail']
+
+    # def make_info(self):
+    #     self.infotext = 'exam pass/fail count by subject'
+
     
     # def make_query(self):
     #     """ exam points vs exercise points"""
