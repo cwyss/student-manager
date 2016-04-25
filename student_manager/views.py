@@ -1258,21 +1258,33 @@ class QueryExerciseView(TemplateView):
 query_exercise = staff_member_required(QueryExerciseView.as_view())
 
 
+query_special_opt = staff_member_required(FormView.as_view(
+    template_name='student_manager/query_special_opt.html',
+    form_class=forms.QuerySpecialOptForm))
+
+
 class QuerySpecialView(TemplateView):
     template_name = 'student_manager/query_special.html'
 
     def get_context_data(self, **kwargs):
         context = super(QuerySpecialView, self).get_context_data(**kwargs)
+        select_query = self.request.GET.get('select_query')
 
-        self.make_query()
-        self.make_info()
+        queries = {'exam_exercise': self.mkque_exam_exercise,
+                   'exam_subject': self.mkque_exam_subject,
+                   'exam_first': self.mkque_exam_first_sem
+               }
+        q = queries[select_query]
+        q()
+
         context['infotext'] = self.infotext
         context['headline'] = self.headline
         context['data'] = self.data
         return context
 
-    def make_query(self):
-        """ exam results for first semester students"""
+    def mkque_exam_first_sem(self):
+        self.infotext = 'exam results for first semester students'
+
         exams = models.Exam.objects \
                 .filter(examnr=1, student__semester__lte=1, mark__lte=5.0)
 
@@ -1291,60 +1303,52 @@ class QuerySpecialView(TemplateView):
             rel_pass = Decimal('100.')*cnt_pass/cnt_tot
             rel_pass = rel_pass.quantize(Decimal('99.0'))              # round to 1 decimal places
             self.data.append((group, cnt_pass, cnt_tot, rel_pass))
-
-    def make_info(self):
-        self.infotext = 'exam results for first semester students'
-
         
-    # def make_query(self):
-    #     """ exam pass/fail count by subject"""
-    #     exams = models.Exam.objects \
-    #             .filter(examnr=1)
-        
-    #     exams_pass=exams.filter(mark__lte=4.0) \
-    #                     .values('subject').order_by('subject') \
-    #                     .annotate(count=Count('id'))
-    #     exams_fail=exams.filter(mark=5.0) \
-    #                     .values('subject').order_by('subject') \
-    #                     .annotate(count=Count('id'))
+    def mkque_exam_subject(self):
+        self.infotext = 'exam pass/fail count by subject'
 
-    #     pfdict = {}
-    #     for e in exams_pass:
-    #         pfdict[e['subject']] = (e['count'],0)
-    #     for e in exams_fail:
-    #         pf = pfdict.get(e['subject'], (0,0))
-    #         pfdict[e['subject']] = (pf[0],e['count'])
+        exams = models.Exam.objects \
+                .filter(examnr=1)
+        
+        exams_pass=exams.filter(mark__lte=4.0) \
+                        .values('subject').order_by('subject') \
+                        .annotate(count=Count('id'))
+        exams_fail=exams.filter(mark=5.0) \
+                        .values('subject').order_by('subject') \
+                        .annotate(count=Count('id'))
+
+        pfdict = {}
+        for e in exams_pass:
+            pfdict[e['subject']] = (e['count'],0)
+        for e in exams_fail:
+            pf = pfdict.get(e['subject'], (0,0))
+            pfdict[e['subject']] = (pf[0],e['count'])
             
-    #     self.data = [(s,v[0],v[1]) for (s,v) in pfdict.iteritems()]
-    #     self.data.sort(key=lambda x: x[0])
+        self.data = [(s,v[0],v[1]) for (s,v) in pfdict.iteritems()]
+        self.data.sort(key=lambda x: x[0])
         
-    #     self.headline = ['subject','pass','fail']
-
-    # def make_info(self):
-    #     self.infotext = 'exam pass/fail count by subject'
-
+        self.headline = ['subject','pass','fail']
     
-    # def make_query(self):
-    #     """ exam points vs exercise points"""
-    #     exam = models.Exam.objects \
-    #            .annotate(exercise_points=Sum('student__exercise__points')) \
-    #            .filter(points__gte=25) \
-    #            .values('student__matrikel',
-    #                    'student__last_name', 'student__semester', 'points',
-    #                    'exercise_points') \
-    #            .order_by('points')
+    def mkque_exam_exercise(self):
+        self.infotext = "exam points vs exercise points"
+        exam = models.Exam.objects \
+               .annotate(exercise_points=Sum('student__exercise__points')) \
+               .filter(points__gte=25) \
+               .values('student__matrikel',
+                       'student__last_name', 'student__semester', 'points',
+                       'exercise_points') \
+               .order_by('points')
 
-    #     exam = filter(lambda e: e['exercise_points']>=15, exam)
-    #     self.data = []
-    #     for e in exam:
-    #         self.data.append((e['student__matrikel'],
-    #                           e['student__last_name'],
-    #                           e['student__semester'],
-    #                           e['points'],
-    #                           e['exercise_points']))
-    #     self.headline = []
+        exam = filter(lambda e: e['exercise_points']>=15, exam)
+        self.data = []
+        for e in exam:
+            self.data.append((e['student__matrikel'],
+                              e['student__last_name'],
+                              e['student__semester'],
+                              e['points'],
+                              e['exercise_points']))
+        self.headline = []
+        self.infotext += " (entries: %d)" % len(self.data)
 
-    # def make_info(self):
-    #     self.infotext = len(self.data)
-    
+        
 query_special = staff_member_required(QuerySpecialView.as_view())
