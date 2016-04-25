@@ -332,5 +332,6 @@ class QuerySpecialOptForm(forms.Form):
     select_query = forms.ChoiceField(
         choices=(('exam_exercise', 'Exam vs exercise points'),
                  ('exam_subject', 'Exam 1 by subject'),
-                 ('exam_first', 'Exam 1 first semester')
+                 ('exam_first', 'Exam 1 first semester'),
+                 ('exam_both', 'both exams')
              ))

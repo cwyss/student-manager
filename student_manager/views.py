@@ -1272,7 +1272,8 @@ class QuerySpecialView(TemplateView):
 
         queries = {'exam_exercise': self.mkque_exam_exercise,
                    'exam_subject': self.mkque_exam_subject,
-                   'exam_first': self.mkque_exam_first_sem
+                   'exam_first': self.mkque_exam_first_sem,
+                   'exam_both': self.mkque_exam_both
                }
         q = queries[select_query]
         q()
@@ -1282,6 +1283,51 @@ class QuerySpecialView(TemplateView):
         context['data'] = self.data
         return context
 
+    def mkque_exam_both(self):
+        self.infotext = "Results for both exams: figures are 'pass' / 'total'; " \
+                        + "column 'jointly' counts each student only once"
+
+        exams_all = models.Exam.objects.all()
+        exams_fk6 = exams_all.filter(subject__in=('ET','IT','WIng','Kombi ET'))
+        exams_sem12 = exams_all.filter(student__semester__lte=2)
+        exams_fk6sem12 = exams_fk6.filter(student__semester__lte=2)
+
+        self.headline = ['group','exam 1','%','exam 2','%','jointly','%']
+        self.data = []
+
+        for (group, query) in (('all',exams_all), ('fk6',exams_fk6), ('1st year all', exams_sem12),
+                               ('1st year fk6', exams_fk6sem12)):
+            line = [group]
+            for i in (1,2):
+                exams = query.filter(examnr=i)
+                cnt_pass = exams.filter(mark__lte=4.0).count()
+                cnt_tot = exams.filter(mark__lte=5.0).count()
+                if cnt_tot>0:
+                    rel_pass = Decimal('100.')*cnt_pass/cnt_tot
+                    rel_pass = rel_pass.quantize(Decimal('99.0'))        # round to 1 decimal place
+                else:
+                    rel_pass = 0
+                line.append("%d/%d" % (cnt_pass,cnt_tot))
+                line.append(rel_pass)
+            
+            exams_pass = query.filter(mark__lte=4.0) \
+                              .values('student__matrikel') \
+                              .annotate(exam_count=Count('id'))
+            cnt_pass = exams_pass.count()
+            exams_tot = query.filter(mark__lte=5.0) \
+                            .values('student__matrikel') \
+                            .annotate(exam_count=Count('id'))
+            cnt_tot = exams_tot.count()
+            if cnt_tot>0:
+                rel_pass = Decimal('100.')*cnt_pass/cnt_tot
+                rel_pass = rel_pass.quantize(Decimal('99.0'))        # round to 1 decimal place
+            else:
+                rel_pass = 0
+            line.append("%d/%d" % (cnt_pass,cnt_tot))
+            line.append(rel_pass)
+
+            self.data.append(line)
+            
     def mkque_exam_first_sem(self):
         self.infotext = 'exam results for first semester students'
 
@@ -1300,12 +1346,15 @@ class QuerySpecialView(TemplateView):
                                ('FK6',exams_fk6), ('all',exams)):
             cnt_pass = query.filter(mark__lte=4.0).count()
             cnt_tot = query.count()
-            rel_pass = Decimal('100.')*cnt_pass/cnt_tot
-            rel_pass = rel_pass.quantize(Decimal('99.0'))              # round to 1 decimal places
+            if cnt_tot>0:
+                rel_pass = Decimal('100.')*cnt_pass/cnt_tot
+                rel_pass = rel_pass.quantize(Decimal('99.0'))              # round to 1 decimal places
+            else:
+                rel_pass = 0
             self.data.append((group, cnt_pass, cnt_tot, rel_pass))
         
     def mkque_exam_subject(self):
-        self.infotext = 'exam pass/fail count by subject'
+        self.infotext = 'exam pass/fail count by subject (for exam 1)'
 
         exams = models.Exam.objects \
                 .filter(examnr=1)
