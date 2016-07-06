@@ -177,7 +177,8 @@ class PrintExercisesOptForm(forms.Form):
         choices=(('empty', 'Exclude students without exercises'),
                  ('inactive', 'Exclude inactive students')),
         initial='inactive')
-
+    maxsheet = forms.IntegerField(label='Sheets up to (optional)')
+    
 
 class PrintStudentsOptForm(forms.Form):
     order_by = forms.ChoiceField(choices=(('matrikel', 'matrikel number'),

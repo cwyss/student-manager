@@ -228,19 +228,25 @@ class PrintExercisesView(ListView):
     template_name = 'student_manager/exercise_list.html'
 
     def get_queryset(self):
-        total_exercises = models.Exercise.total_num_exercises()
         selection = self.request.GET.get('selection')
         group = self.request.GET.get('group')
         exclude = self.request.GET.get('exclude')
         total = self.request.GET.get('total')
+        maxsheet = self.request.GET.get('maxsheet')
+
+        if not maxsheet:
+            maxsheet = models.Exercise.total_num_exercises()
+        else:
+            maxsheet = int(maxsheet)
+            
         try:
             maxpoints = float(models.StaticData.objects.get(
                     key='maxpoints').value)
         except models.StaticData.DoesNotExist:
             maxpoints = None
 
-        students = models.Student.objects.exclude(group=None)
         # exclude students coming only from exam entries
+        students = models.Student.objects.exclude(group=None)
 
         if selection=='matrikel':
             students = students.exclude(matrikel=None)
@@ -262,9 +268,10 @@ class PrintExercisesView(ListView):
         for student in list(students):
             if exclude=='empty' and not student.exercise_set.all():
                 continue
-            student.exercises = [None] * total_exercises
+            student.exercises = [None] * maxsheet
             for exercise in student.exercise_set.all():
-                student.exercises[exercise.sheet-1] = exercise
+                if exercise.sheet<=maxsheet:
+                    student.exercises[exercise.sheet-1] = exercise
             if total:
                 if maxpoints:
                     student.percent = float(student.total_points()) \
