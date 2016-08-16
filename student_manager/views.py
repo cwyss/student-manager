@@ -210,7 +210,8 @@ class PrintGroupsView(ListView):
         students = models.Student.objects.exclude(group=None)
         if self.request.GET.get('matrikel'):
             students = students.exclude(matrikel=None)
-            students = students.order_by('matrikel')
+            students = students.order_by('modulo_matrikel',
+                                         'obscured_matrikel')
         else:
             students = students.filter(matrikel=None)
             students = students.order_by('last_name', 'first_name')

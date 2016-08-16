@@ -5,6 +5,10 @@
   </head>
   <body>
     <h3>&Uuml;bungsgruppeneinteilung</h3>
+    {% if request.GET.matrikel %}
+    <p>Die Liste ist sortiert nach den letzten 4 Stellen der Matrikelnummer.
+      Wenn n&ouml;tig sind weitere Stellen angegeben.</p>
+    {% endif %}
     <table>
       <thead>
 	<tr>
@@ -14,7 +18,7 @@
       </thead>
       {% for student in object_list %}
       <tr class="{% cycle 'odd' 'even' %}">
-	<td class="right">{% if request.GET.matrikel %}{{ student.matrikel }}{% else %}{{ student.last_name }}, {{ student.first_name }}{% endif %}</td>
+	<td class="right">{% if request.GET.matrikel %}{{ student.obscured_matrikel }}{% else %}{{ student.last_name }}, {{ student.first_name }}{% endif %}</td>
 	<td class="center">{{ student.group }}</td>
       </tr>
       {% endfor %}
