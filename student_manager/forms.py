@@ -189,7 +189,8 @@ class ImportExamsForm(forms.Form):
     examnr = forms.ModelChoiceField(
         label='Exam number',
         queryset=models.MasterExam.objects.all())
-    file = forms.FileField(label=_('File'))
+    csv_file = forms.FileField(label=_('CSV File'))
+    column_separator = forms.CharField(max_length=1, initial=';')
 
 
 class PrintExamsOptForm(forms.Form):

@@ -327,7 +327,9 @@ class ImportExamsView(FormView):
         return self.request.GET.get('return_url', '/')
 
     def form_valid(self, form):
-        file = form.cleaned_data['file']
+        csvreader = csv.reader(
+            form.cleaned_data['csv_file'],
+            delimiter=str(form.cleaned_data['column_separator']))
         self.examnr = form.cleaned_data['examnr']
         self.stats = {'newstud': [],
                       'new': [],
@@ -337,11 +339,14 @@ class ImportExamsView(FormView):
                       }
         self.subjectcnt = 0
         self.subject = None
-        for line in file:
-            line = line.decode('UTF-8')
-            cols = self.examine_line(line)
-            if cols:
-                self.save_exam(line, cols)
+        for linenr, row in enumerate(csvreader):
+            if len(row)==0:
+                pass
+            elif row[0].startswith('subject:'):
+                self.subject = row[0][8:].strip()
+                self.subjectcnt += 1
+            else:
+                self.examine_row(linenr, row)
 
         messages.info(
             self.request,
@@ -361,47 +366,25 @@ class ImportExamsView(FormView):
                 self.request,
                 '%d exams updated.' % len(self.stats['updated']))
         if self.stats['error']:
-            for line in self.stats['error'][:10]:
+            for linenr in self.stats['error'][:10]:
                 messages.warning(
                     self.request,
-                    'Format error line: %s' % line)
+                    'Format error line %d' % (linenr+1))
         return super(ImportExamsView, self).form_valid(form)
 
-    def examine_line(self, line):
-        if line.startswith('subject:'):
-            self.subject = line[8:].strip()
-            self.subjectcnt += 1
-            return None
-        elif line.isspace():
-            return None
-        cols = self.find_columns(line)
-        if cols:
-            return cols
-        else:
-            self.stats['error'].append(line)
-            return None
-
-    def find_columns(self, line):
-        m = re.match(r"\s*(\d+) (.+?) (\d+)\s+(\d)", line, re.U)
-        if not m:
-            return None
-        m2 = re.match(r"\s*(\S.+?)  \s*(\S.+)", m.group(2), re.U)
-        if not m2:
-            m2 = re.match(r"\s*(\S+?) (\S+?)\s*\Z", m.group(2), re.U)
-        if not m2:
-            return None
-        return (m.start(2), m.start(2)+m2.start(2), m.end(3)-7, m.start(4))
-
-    def save_exam(self, line, cols):
-#        nr = int(line[:cols[0]])
+    def examine_row(self, linenr, row):
         try:
-            name = line[cols[0]:cols[1]].strip()
-            first_name = line[cols[1]:cols[2]].strip()
-            matr = int(line[cols[2]:cols[3]])
-            resit = int(line[cols[3]:].split()[-1])
+            name = row[1].decode('UTF-8')
+            first_name = row[2].decode('UTF-8')
+            matr = int(row[3])
+            if len(row)>=5 and len(row[-1])>0:
+                resit = int(row[-1])
+            else:
+                resit = None
         except (IndexError, ValueError):
-            self.stats['error'].append(line)
+            self.stats['error'].append(linenr)
             return
+
         try:
             student = models.Student.objects.get(matrikel=matr)
         except models.Student.DoesNotExist:
@@ -413,6 +396,7 @@ class ImportExamsView(FormView):
             status = 'newstud'
         else:
             status = 'new'
+
         try:
             exam = models.Exam.objects.get(student=student, examnr=self.examnr)
             if exam.subject==self.subject and exam.resit==resit:
@@ -425,7 +409,68 @@ class ImportExamsView(FormView):
         exam.subject = self.subject
         exam.resit = resit
         exam.save()
-        self.stats[status].append(line)
+        self.stats[status].append(linenr)
+
+
+#     def examine_line(self, line):
+#         if line.startswith('subject:'):
+#             self.subject = line[8:].strip()
+#             self.subjectcnt += 1
+#             return None
+#         elif line.isspace():
+#             return None
+#         cols = self.find_columns(line)
+#         if cols:
+#             return cols
+#         else:
+#             self.stats['error'].append(line)
+#             return None
+
+#     def find_columns(self, line):
+#         m = re.match(r"\s*(\d+) (.+?) (\d+)\s+(\d)", line, re.U)
+#         if not m:
+#             return None
+#         m2 = re.match(r"\s*(\S.+?)  \s*(\S.+)", m.group(2), re.U)
+#         if not m2:
+#             m2 = re.match(r"\s*(\S+?) (\S+?)\s*\Z", m.group(2), re.U)
+#         if not m2:
+#             return None
+#         return (m.start(2), m.start(2)+m2.start(2), m.end(3)-7, m.start(4))
+
+#     def save_exam(self, line, cols):
+# #        nr = int(line[:cols[0]])
+#         try:
+#             name = line[cols[0]:cols[1]].strip()
+#             first_name = line[cols[1]:cols[2]].strip()
+#             matr = int(line[cols[2]:cols[3]])
+#             resit = int(line[cols[3]:].split()[-1])
+#         except (IndexError, ValueError):
+#             self.stats['error'].append(line)
+#             return
+#         try:
+#             student = models.Student.objects.get(matrikel=matr)
+#         except models.Student.DoesNotExist:
+#             student = models.Student(matrikel=matr,
+#                                      last_name=name,
+#                                      first_name=first_name,
+#                                      subject=self.subject)
+#             student.save()
+#             status = 'newstud'
+#         else:
+#             status = 'new'
+#         try:
+#             exam = models.Exam.objects.get(student=student, examnr=self.examnr)
+#             if exam.subject==self.subject and exam.resit==resit:
+#                 status = 'unchanged'
+#             else:
+#                 status = 'updated'
+#         except models.Exam.DoesNotExist:
+#             exam = models.Exam(student=student,
+#                                examnr=self.examnr)
+#         exam.subject = self.subject
+#         exam.resit = resit
+#         exam.save()
+#         self.stats[status].append(line)
 
 import_exams = staff_member_required(ImportExamsView.as_view())
 

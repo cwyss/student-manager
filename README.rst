@@ -93,20 +93,18 @@ import exercise data, big table (CSV)::
   points sheet n
 
 import exam data::
-  subject line 'subject: <subject>' followed by lines containing::
+  subject line 'subject: <subject>' followed by lines containing the following fields::
     number (ignored)
     last name
     first name
     matrikel number
     [more fields, optional, ignored]
-    resit count
+    resit count [optional: if there are one or more fields after the matrikel number,
+      then the last field is interpreted as the resit count]
 
-  If last and/or first name contain more than one first/last name,
-  then last name must be separated by two or more spaces.
-
-  Use 'pdftotext -layout anmeldungen.pdf' to create text file from pdf
-  while preserving table structure.
-
+  Entries are in CSV style, separated by a separation character.
+  Empty lines are ignored.
+  
 import registration data (CSV or Wusel-style XLS)::
   matrikel number
   last name
