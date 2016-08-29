@@ -1425,11 +1425,16 @@ class QuerySpecialView(TemplateView):
         for e in exams_fail:
             pf = pfdict.get(e['subject'], (0,0))
             pfdict[e['subject']] = (pf[0],e['count'])
-            
-        self.data = [(s,v[0],v[1]) for (s,v) in pfdict.iteritems()]
+
+        self.data = []
+        for (s,v) in pfdict.iteritems():
+            tot = v[0]+v[1]
+            rel = Decimal('100.')*v[0]/tot
+            rel = rel.quantize(Decimal('99.0'))                   # round to 1 decimal place
+            self.data.append((s,v[0],v[1],tot,rel))
         self.data.sort(key=lambda x: x[0])
         
-        self.headline = ['subject','pass','fail']
+        self.headline = ['subject','pass','fail','total','% pass']
     
     def mkque_exam_exercise(self):
         self.infotext = "exam points vs exercise points"
