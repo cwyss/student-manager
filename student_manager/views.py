@@ -1326,7 +1326,8 @@ class QuerySpecialView(TemplateView):
         queries = {'exam_exercise': self.mkque_exam_exercise,
                    'exam_subject': self.mkque_exam_subject,
                    'exam_first': self.mkque_exam_first_sem,
-                   'exam_both': self.mkque_exam_both
+                   'exam_both': self.mkque_exam_both,
+                   'exam_group': self.mkque_exam_group
                }
         q = queries[select_query]
         q()
@@ -1435,6 +1436,42 @@ class QuerySpecialView(TemplateView):
         self.data.sort(key=lambda x: x[0])
         
         self.headline = ['subject','pass','fail','total','% pass']
+    
+    def mkque_exam_group(self):
+        self.infotext = 'exam pass/fail count by group (for exam 1)'
+
+        exams = models.Exam.objects \
+                .filter(examnr=1)
+        
+        exams_pass=exams.filter(mark__lte=4.0) \
+                        .values('student__group').order_by('student__group') \
+                        .annotate(count=Count('id'))
+        exams_fail=exams.filter(mark=5.0) \
+                        .values('student__group').order_by('student__group') \
+                        .annotate(count=Count('id'))
+        exams_lowpass=exams.filter(mark__lte=4.0, mark__gt=3.0) \
+                        .values('student__group').order_by('student__group') \
+                        .annotate(count=Count('id'))
+
+        pfdict = {}
+        for e in exams_pass:
+            pfdict[e['student__group']] = (e['count'],0,0)
+        for e in exams_fail:
+            pf = pfdict.get(e['student__group'], (0,0,0))
+            pfdict[e['student__group']] = (pf[0],e['count'],0)
+        for e in exams_lowpass:
+            pf = pfdict.get(e['student__group'], (0,0,0))
+            pfdict[e['student__group']] = (pf[0],pf[1],e['count'])
+
+        self.data = []
+        for (s,v) in pfdict.iteritems():
+            tot = v[0]+v[1]
+            rel = Decimal('100.')*v[0]/tot
+            rel = rel.quantize(Decimal('99.0'))                   # round to 1 decimal place
+            self.data.append((s,v[0],v[1],tot,rel,v[2]))
+        self.data.sort(key=lambda x: x[0])
+        
+        self.headline = ['group','pass','fail','total','% pass','bad pass (>3.0)']
     
     def mkque_exam_exercise(self):
         self.infotext = "exam points vs exercise points"
