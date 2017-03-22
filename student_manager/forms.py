@@ -336,5 +336,6 @@ class QuerySpecialOptForm(forms.Form):
                  ('exam_subject', 'Exam 1 by subject'),
                  ('exam_first', 'Exam 1 first semester'),
                  ('exam_both', 'both exams'),
-                 ('exam_group', 'Exam 1 by group')
+                 ('exam_group', 'Exam 1 by group'),
+                 ('exgroup_diff', 'Exercise from different group')
              ))

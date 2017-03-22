@@ -1327,7 +1327,8 @@ class QuerySpecialView(TemplateView):
                    'exam_subject': self.mkque_exam_subject,
                    'exam_first': self.mkque_exam_first_sem,
                    'exam_both': self.mkque_exam_both,
-                   'exam_group': self.mkque_exam_group
+                   'exam_group': self.mkque_exam_group,
+                   'exgroup_diff': self.mkque_exgroup_diff
                }
         q = queries[select_query]
         q()
@@ -1444,24 +1445,24 @@ class QuerySpecialView(TemplateView):
                 .filter(examnr=1)
         
         exams_pass=exams.filter(mark__lte=4.0) \
-                        .values('student__group').order_by('student__group') \
+                        .values('student__group__number').order_by('student__group__number') \
                         .annotate(count=Count('id'))
         exams_fail=exams.filter(mark=5.0) \
-                        .values('student__group').order_by('student__group') \
+                        .values('student__group__number').order_by('student__group__number') \
                         .annotate(count=Count('id'))
         exams_lowpass=exams.filter(mark__lte=4.0, mark__gt=3.0) \
-                        .values('student__group').order_by('student__group') \
+                        .values('student__group__number').order_by('student__group__number') \
                         .annotate(count=Count('id'))
 
         pfdict = {}
         for e in exams_pass:
-            pfdict[e['student__group']] = (e['count'],0,0)
+            pfdict[e['student__group__number']] = (e['count'],0,0)
         for e in exams_fail:
-            pf = pfdict.get(e['student__group'], (0,0,0))
-            pfdict[e['student__group']] = (pf[0],e['count'],0)
+            pf = pfdict.get(e['student__group__number'], (0,0,0))
+            pfdict[e['student__group__number']] = (pf[0],e['count'],0)
         for e in exams_lowpass:
-            pf = pfdict.get(e['student__group'], (0,0,0))
-            pfdict[e['student__group']] = (pf[0],pf[1],e['count'])
+            pf = pfdict.get(e['student__group__number'], (0,0,0))
+            pfdict[e['student__group__number']] = (pf[0],pf[1],e['count'])
 
         self.data = []
         for (s,v) in pfdict.iteritems():
@@ -1469,7 +1470,7 @@ class QuerySpecialView(TemplateView):
             rel = Decimal('100.')*v[0]/tot
             rel = rel.quantize(Decimal('99.0'))                   # round to 1 decimal place
             self.data.append((s,v[0],v[1],tot,rel,v[2]))
-        self.data.sort(key=lambda x: x[0])
+        # self.data.sort(key=lambda x: x[0])
         
         self.headline = ['group','pass','fail','total','% pass','bad pass (>3.0)']
     
@@ -1494,5 +1495,23 @@ class QuerySpecialView(TemplateView):
         self.headline = []
         self.infotext += " (entries: %d)" % len(self.data)
 
-        
+    def mkque_exgroup_diff(self):
+        self.infotext = "Exercises of students from different group"
+
+        groups = models.Group.objects.order_by('number')
+        self.data = []
+        for group in groups:
+            line = [group]
+            ex_cnt = models.Exercise.objects \
+                                    .filter(group=group) \
+                                    .exclude(student__group=group) \
+                                    .values('sheet') \
+                                    .order_by('sheet') \
+                                    .annotate(count=Count('id'))
+            for e in ex_cnt:
+                line.append(e['count'])
+            self.data.append(line)
+        self.headline = []
+
+                
 query_special = staff_member_required(QuerySpecialView.as_view())
