@@ -57,6 +57,9 @@ points_div::
 query_exam_pointstep::
   stepsize for grouping exam points
 
+require_etest::
+  if this key exists, passed entry tests are checked for bonus
+  
 master exam data
 ----------------
 

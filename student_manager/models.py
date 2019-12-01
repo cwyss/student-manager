@@ -156,14 +156,30 @@ class Student(models.Model):
             bonus1 = Decimal(StaticData.objects.get(key='bonus1').value)
             bonus2 = Decimal(StaticData.objects.get(key='bonus2').value)
         except StaticData.DoesNotExist:
+            bonus1 = None
+        try:
+            StaticData.objects.get(key='require_etest')
+            etest = True
+        except StaticData.DoesNotExist:
+            etest = False
+
+        if not etest and not bonus1:
             return None
-        total = self.total_points()
-        if total>=bonus2:
-            return '2/3'
-        elif total>=bonus1:
-            return '1/3'
-        else:
-            return ''
+        if etest:
+            if self.entrytest_set.exists():
+                etest = self.entrytest_set.get()
+                if etest.result=='fail':
+                    return 'etest fail'
+            else:
+                return 'no etest'
+        if bonus1:
+            total = self.total_points()
+            if total>=bonus2:
+                return '2/3'
+            elif total>=bonus1:
+                return '1/3'
+
+        return ''
 
     def save(self, *args, **kwargs):
         validate_matrikel(self.matrikel, self.id)
