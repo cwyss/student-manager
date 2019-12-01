@@ -1019,6 +1019,98 @@ class ImportRegistrationsView(FormView):
 import_registrations = staff_member_required(ImportRegistrationsView.as_view())
 
 
+class ImportEntryTestsView(FormView):
+    template_name = 'student_manager/import_entrytest.html'
+    form_class = forms.ImportEntryTestsForm
+
+    def get_success_url(self):
+        return self.request.GET.get('return_url', '/')
+
+    def form_valid(self, form):
+        csvreader = csv.reader(
+            form.cleaned_data['csv_file'],
+            delimiter=str(form.cleaned_data['csv_separator']))
+        results = {'bestanden': 'pass',
+                   'nicht bestanden': 'fail',
+                   'pass': 'pass',
+                   'fail': 'fail',
+                   '-': None,
+                   '': None
+        }
+        self.stats = {'new': [],
+                      'update': [],
+                      'unknown': [],
+                      'error': []
+        }
+
+        for line, row in enumerate(csvreader):
+            if line == 0 and not row[0].isdigit():
+                # We seem to have a header; ignore.
+                continue
+
+            if row[0].isdigit():
+                matrikel = int(row[0])
+                res_field = row[1].decode('UTF-8').strip('"')
+                try:
+                    result = results[res_field]
+                    if not result:
+                        # line without test result
+                        continue
+                    try:
+                        student = models.Student.objects.get(matrikel=matrikel)
+                        status = self.save_etest(student, result)
+                    except models.Student.DoesNotExist:
+                        status = 'unknown'
+                except KeyError:
+                    status = 'error'
+            else:
+                status = 'error'
+
+            if status=='error':
+                self.stats['error'].append(line+1)
+            elif status!=None:
+                self.stats[status].append(matrikel)
+
+        if self.stats['new']:
+            messages.success(
+                self.request,
+                '%d new test(s) created' % len(self.stats['new']))
+        if self.stats['update']:
+            messages.success(
+                self.request,
+                '%d test(s) updated' % len(self.stats['update']))
+        if self.stats['unknown']:
+            lst = ['%d' % m for m in self.stats['unknown']]
+            messages.warning(
+                self.request,
+                "unknown student(s): %s" % ', '.join(lst))
+        if self.stats['error']:
+            lst = ["%d" % m for m in self.stats['error']]
+            messages.warning(
+                self.request,
+                "csv file: error in line(s) %s" % ', '.join(lst))
+        return super(ImportEntryTestsView, self).form_valid(form)
+
+    def save_etest(self, student, result):
+        try:
+            etest = models.EntryTest.objects.get(student=student)
+            if etest.result!=result:
+                etest.result = result
+                status = 'update'
+            else:
+                # unchanged test result
+                return None
+        except models.EntryTest.DoesNotExist:
+            etest = models.EntryTest(student=student,
+                                     result=result)
+            status = 'new'
+        etest.save()
+        return status
+
+    
+import_entrytests = staff_member_required(ImportEntryTestsView.as_view())
+
+
 class QueryRegistrationsView(TemplateView):
     template_name = 'student_manager/query_regist.html'
 

@@ -255,6 +255,11 @@ class ImportRegistrationsForm(forms.Form):
         required=False)
 
 
+class ImportEntryTestsForm(forms.Form):
+    csv_file = forms.FileField(label=_('CSV file'))
+    csv_separator = forms.CharField(max_length=1, initial=';')
+
+
 class ExportStudentsForm(forms.Form):
     export_choice = forms.ChoiceField(
         choices=(('group', 'Students from group...'),

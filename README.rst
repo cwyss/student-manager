@@ -117,7 +117,13 @@ import registration data (CSV or Wusel-style XLS)::
   priority
   group (translated via group field "time / group name")
 
-
+import entry test data (CSV)::
+  matrikel number
+  test result::
+    one of 'bestanden', 'nicht bestanden', 'pass', 'fail'
+    an empty result or '-' are ignored (=> no test created)
+  
+  
 
 Development notes
 =================
