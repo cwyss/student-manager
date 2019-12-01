@@ -50,7 +50,7 @@ class StudentAdmin(admin.ModelAdmin):
     list_filter = (NonuniqueModuloMatrikelListFilter, 'active', 'group')
     search_fields = ('matrikel', 'last_name', 'first_name')
     form = forms.StudentForm
-    actions = ('translate_subjects', 'toggle_active')
+    actions = ('translate_subjects', 'toggle_active', 'make_no_exercs_inactive')
 
     def translate_subjects(self, request, queryset):
         subject_transl = models.StaticData.get_subject_transl()
@@ -69,6 +69,12 @@ class StudentAdmin(admin.ModelAdmin):
         update_inactive.update(active=False)
         update_active = queryset.filter(id__in=make_active).values('id')
         update_active.update(active=True)
+
+    def make_no_exercs_inactive(self, request, queryset):
+        make_inactive = queryset.annotate(numex=Count('exercise')) \
+                                .filter(numex=0) \
+                                .values('id')
+        make_inactive.update(active=False)
 
 
 class ExerciseAdmin(admin.ModelAdmin):
