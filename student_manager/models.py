@@ -322,3 +322,14 @@ class Registration(models.Model):
     def __unicode__(self):
         return u'%s: %d %s' % (self.student, self.group.number, self.status)
 
+
+class EntryTest(models.Model):
+    student = models.ForeignKey(Student, unique=True)
+    result = models.CharField(max_length=4, null=True, blank=True,
+                              choices=[(u'fail','fail'),(u'pass','pass')])
+
+    class Meta:
+        ordering = ('student',)
+        
+    def __unicode__(self):
+        return u'%s: %s' % (self.student, self.result)

@@ -283,6 +283,14 @@ class RegistrationAdmin(admin.ModelAdmin):
             'Assigned groups of %d students cleared' % queryset.count())
 
 
+class EntryTestAdmin(admin.ModelAdmin):
+    list_display = ('student', 'result')
+    list_filter = ('result',)
+    raw_id_fields = ('student',)
+    search_fields = ('student__matrikel', 'student__last_name',
+                     'student__first_name')
+
+
 
 admin.site.register(models.Group, GroupAdmin)
 admin.site.register(models.Student, StudentAdmin)
@@ -293,3 +301,4 @@ admin.site.register(models.Exam, ExamAdmin)
 admin.site.register(models.ExamPart, ExamPartAdmin)
 admin.site.register(models.StaticData, StaticDataAdmin)
 admin.site.register(models.Registration, RegistrationAdmin)
+admin.site.register(models.EntryTest, EntryTestAdmin)
