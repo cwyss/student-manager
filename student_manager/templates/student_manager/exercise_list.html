@@ -21,6 +21,9 @@
 	  <th>%</th>
 	  <th>Bonus</th>
 	  {% endif %}
+	  {% if request.GET.etest %}
+	  <th>Wissenstest</th>
+	  {% endif %}
 	</tr>
       </thead>
       {% for student in object_list %}
@@ -34,6 +37,9 @@
 	{% endif %}
 	{% endfor %}
 	{% if request.GET.total %}
+	{% if student.etest_fail %}
+	<td class="center">&mdash;</td><td class="right">&mdash;</td><td>entf&auml;llt</td>
+	{% else %}
 	{% if points_doubledigits %}
 	<td class="right">{{ student.total_points|floatformat:2 }}</td>
 	{% else %}
@@ -41,6 +47,14 @@
 	{% endif %}
 	<td class="right">{{ student.percent|floatformat:1 }}</td>
 	<td class="center">{{ student.bonus }}</td>
+	{% endif %}
+	{% endif %}
+	{% if request.GET.etest %}
+	{% if student.etest_fail %}
+	<td>fehlt/nicht ok!</td>
+	{% else %}
+	<td>ok</td>
+	{% endif %}
 	{% endif %}
       </tr>
       {% endfor %}

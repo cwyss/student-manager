@@ -233,6 +233,7 @@ class PrintExercisesView(ListView):
         group = self.request.GET.get('group')
         exclude = self.request.GET.get('exclude')
         total = self.request.GET.get('total')
+        etest = self.request.GET.get('etest')
         maxsheet = self.request.GET.get('maxsheet')
 
         if not maxsheet:
@@ -245,6 +246,11 @@ class PrintExercisesView(ListView):
                     key='maxpoints').value)
         except models.StaticData.DoesNotExist:
             maxpoints = None
+        try:
+            models.StaticData.objects.get(key='require_etest')
+            etest_required = True
+        except models.StaticData.DoesNotExist:
+            etest_required = False
 
         # exclude students coming only from exam entries
         students = models.Student.objects.exclude(group=None)
@@ -273,12 +279,15 @@ class PrintExercisesView(ListView):
             for exercise in student.exercise_set.all():
                 if exercise.sheet<=maxsheet:
                     student.exercises[exercise.sheet-1] = exercise
-            if total:
-                if maxpoints:
-                    student.percent = float(student.total_points()) \
-                        / maxpoints * 100
-                else:
-                    student.percent = None
+            if etest_required and \
+               ( not student.entrytest_set.exists() \
+                 or student.entrytest_set.get().result=='fail'):
+                student.etest_fail = True
+            if maxpoints:
+                student.percent = float(student.total_points()) \
+                                  / maxpoints * 100
+            else:
+                student.percent = None
             student_data.append(student)
 
         return student_data

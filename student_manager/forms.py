@@ -173,6 +173,7 @@ class PrintExercisesOptForm(forms.Form):
     group = forms.ModelChoiceField(
         queryset=models.Group.objects.all())
     total = forms.BooleanField(label=_('Display total/bonus columns'))
+    etest = forms.BooleanField(label=_('Display entry test column'))
     exclude = forms.ChoiceField(
         choices=(('empty', 'Exclude students without exercises'),
                  ('inactive', 'Exclude inactive students')),
