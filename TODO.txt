@@ -17,3 +17,7 @@ Update bei import registrations?
 In exams suche nach Name mit Umlaut (ä), die nur einen Treffer liefert.
 Dann Enter results für diesen Treffer (diese Trefferliste)
 -> UnicodeEncodeError at /admin/student_manager/exam
+
+
+Benutze static data->exampartpoints bei Eingabe der exam results: keine
+Punkte>exampartpoints zulaessig
