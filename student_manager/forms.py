@@ -141,14 +141,21 @@ class NumberExercisesForm(forms.Form):
 
 
 class ImportExercisesForm(forms.Form):
-    group = forms.ModelChoiceField(
+    group = forms.ModelChoiceField(required=False,
         queryset=models.Group.objects.all())
     column_separator = forms.CharField(max_length=1, initial=';')
     csv_file = forms.FileField(label=_('CSV file'))
     format = forms.ChoiceField(choices=(
-            ('', 'Please select'),
-            ('exerc', 'Exercise table (one entry per exercise)'),
-            ('sheet', 'Big table (one column per sheet)')))
+        ('', 'Please select'),
+        ('exerc', 'Exercise table (one entry per exercise)'),
+        ('sheet', 'Big table (one column per sheet)'),
+        ('sheet-wgrp', 'Big table with group entry')))
+
+    def clean(self):
+        if self.cleaned_data.get('format')!='sheet-wgrp' and \
+           self.cleaned_data.get('group')==None:
+            raise ValidationError('No group selected.')
+        return self.cleaned_data
 
 
 class ImportStudentsForm(forms.Form):

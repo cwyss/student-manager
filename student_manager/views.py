@@ -29,6 +29,7 @@ class ImportExercisesView(FormView):
         return self.request.GET.get('return_url', '/')
 
     def form_valid(self, form):
+        importformat = form.cleaned_data['format']
         group = form.cleaned_data['group']
         csvreader = csv.reader(
             form.cleaned_data['csv_file'],
@@ -55,10 +56,15 @@ class ImportExercisesView(FormView):
             except models.Student.DoesNotExist:
                 self.stats['unknown_student'].append(row[0])
                 continue
-            if form.cleaned_data['format'] == 'exerc':
+            if importformat == 'exerc':
                 self.save_exercise(group, student, row[1], row[2])
-            elif form.cleaned_data['format'] == 'sheet':
-                for i, points in enumerate(row[1:]):
+            else:
+                if form.cleaned_data['format'] == 'sheet':
+                    pointenum = enumerate(row[1:])
+                else:
+                    group = models.Group.objects.get(number=row[1])
+                    pointenum = enumerate(row[2:])
+                for i, points in pointenum:
                     sheet = i+1
                     self.save_exercise(group, student, sheet, points)
 

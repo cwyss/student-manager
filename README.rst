@@ -95,6 +95,14 @@ import exercise data, big table (CSV)::
   ...
   points sheet n
 
+import exercise data, big table with group entry (CSV)::
+  matrikel number
+  group
+  points sheet 1
+  points sheet 2
+  ...
+  points sheet n
+
 import exam data::
   subject line 'subject: <subject>' followed by lines containing the following fields::
     number (ignored)
