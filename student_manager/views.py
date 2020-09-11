@@ -614,7 +614,7 @@ class QueryExamsView(TemplateView):
         examnr = self.request.GET.get('examnr')
         query_examgroups = self.request.GET.get('query_examgroups')
 
-        exams = models.Exam.objects.filter(examnr=examnr)
+        exams = models.Exam.objects.filter(examnr__number=examnr)
         examlist = exams.exclude(points=None)
         context['total_count'] = self.count_apf(examlist)
         context['missing_count'] = exams.filter(points=None).count()
@@ -1461,7 +1461,7 @@ class QuerySpecialView(TemplateView):
                                ('1st year fk6', exams_fk6sem12)):
             line = [group]
             for i in (1,2):
-                exams = query.filter(examnr=i)
+                exams = query.filter(examnr__number=i)
                 cnt_pass = exams.filter(mark__lte=4.0).count()
                 cnt_tot = exams.filter(mark__lte=5.0).count()
                 if cnt_tot>0:
@@ -1491,10 +1491,10 @@ class QuerySpecialView(TemplateView):
             self.data.append(line)
             
     def mkque_exam_first_sem(self):
-        self.infotext = 'exam results for first semester students'
+        self.infotext = 'exam results for first semester students (for exam 1)'
 
         exams = models.Exam.objects \
-                .filter(examnr=1, student__semester__lte=1, mark__lte=5.0)
+                .filter(examnr__number=1, student__semester__lte=1, mark__lte=5.0)
 
         exams_fk6 = exams.filter(subject__in=('ET','IT','WIng','Kombi ET'))
         exams_et = exams.filter(subject='ET')
@@ -1519,7 +1519,7 @@ class QuerySpecialView(TemplateView):
         self.infotext = 'exam pass/fail count by subject (for exam 1)'
 
         exams = models.Exam.objects \
-                .filter(examnr=1)
+                .filter(examnr__number=1)
         
         exams_pass=exams.filter(mark__lte=4.0) \
                         .values('subject').order_by('subject') \
@@ -1549,7 +1549,7 @@ class QuerySpecialView(TemplateView):
         self.infotext = 'exam pass/fail count by group (for exam 1)'
 
         exams = models.Exam.objects \
-                .filter(examnr=1)
+                .filter(examnr__number=1)
         
         exams_pass=exams.filter(mark__lte=4.0) \
                         .values('student__group__number').order_by('student__group__number') \
