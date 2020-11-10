@@ -8,13 +8,13 @@ def read_slregist_csv(fname):
     reader = csv.reader(csvfile, delimiter=';')
     regist = []
     for row in reader:
-        if len(row)>=5:
+        if len(row)==4:
             matrikel_field = row[1].split('@')[0]
             if matrikel_field.isdigit():
                 regist.append({'matrikel': int(matrikel_field),
                                'name': row[0],
                                'status': row[2],
-                               'subject_long': [row[4]]
+                               'subject_long': [row[3]]
                 })
         elif len(row)==1 and len(regist)>0:
             regist[-1]['subject_long'].append(row[0])
@@ -32,7 +32,8 @@ def translate_status(regist):
         'angemeldet': 'AN',
         'zugelassen': 'ZU',
         'niedrige Priorität': 'NP',
-        'hohe Priorität': 'HP'
+        'hohe Priorität': 'HP',
+        'storniert': 'ST'
     }
     for e in regist:
         e['status'] = status_dict[e['status']]
@@ -122,9 +123,11 @@ def print_registration_data(regist):
 
 if len(sys.argv)==1:
     print("""USAGE: slregist-importer.py gruppe1.csv ... gruppeN.csv
-Convert Studilöwe csv "Belegungen" to Student Manager registration file
+Convert studilöwe Belegungen to student manager registration file
 
-gruppe?.csv: csv export of studilöwe excel file of one parallel group""")
+gruppe?.csv: csv export of studilöwe excel file of one parallel group.
+             fields: "Name", "E-Mail", "Status", "Studiengänge"
+             separator: ';'""")
 else:
     regist = prepare_registration_data(sys.argv[1:])
     print_registration_data(regist)
