@@ -102,7 +102,7 @@ class ImportExercisesView(FormView):
 
     def save_exercise(self, group, student, sheet, points):
         status_msg = str(student.matrikel)
-        if points.strip()=='':
+        if points.strip() in ('','-'):
             return
         points = points.replace(',', '.')
         try:

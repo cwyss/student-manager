@@ -34,7 +34,7 @@ def print_bonuslst(bonus_table,group_dict):
             bonuslst.append(line)
         except KeyError:
             if sum([len(x) for x in bentry[1:]])>0:
-                print("no grp: ", bentry)
+                print("no grp: ", bentry, file=sys.stderr)
             pass
     return bonuslst
 

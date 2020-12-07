@@ -95,6 +95,8 @@ import exercise data, big table (CSV)::
   ...
   points sheet n
 
+  empty point field or '-': no exercise for this sheet
+  
 import exercise data, big table with group entry (CSV)::
   matrikel number
   group
