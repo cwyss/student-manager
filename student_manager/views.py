@@ -543,15 +543,25 @@ class PrintExamsView(ListView):
 
     def map_seats(self, exams, examnr):
         seat_map = {}
+        room_out_of_seats = []
         for room in models.Room.objects.filter(examnr=examnr):
             if room.first_seat and room.seat_map:
                 seat_map[room] = (room.first_seat, json.loads(room.seat_map))
         for e in exams:
             if seat_map.has_key(e.room):
                 (first,seats) = seat_map[e.room]
-                e.seat = seats[e.number-first]
+                try:
+                    e.seat = seats[e.number-first]
+                except IndexError:
+                    if not e.room in room_out_of_seats:
+                        room_out_of_seats.append(e.room)
             else:
                 e.seat = e.number
+        if room_out_of_seats:
+            messages.error(self.request,
+                             'Not enough entries in seat map for room(s) ' + \
+                             ','.join([r.name for r in room_out_of_seats]))
+            self.template_name='student_manager/print_exams_opt.html'
             
 print_exams = staff_member_required(PrintExamsView.as_view())
 
