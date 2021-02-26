@@ -10,6 +10,7 @@
 	<tr>
 	  <th>Nr</th>
 	  <th>H&ouml;rsaal</th>
+	  <th>Platz</th>
 	  <th>Matr.</th>
 	  <th>Name</th>
 	  <th>Fach</th>
@@ -21,6 +22,7 @@
       <tr class="{% cycle 'odd' 'even' %}">
 	<td class="right">{{ exam.number }}</td>
 	<td class="center">{{ exam.room.name }}</td>
+	<td class="right">{{ exam.seat }}</td>
 	<td class="right">{{ exam.student.matrikel }}</td>
 	<td>{{ exam.student.last_name }}, {{ exam.student.first_name }}</td>
 	<td>{{ exam.subject }}</td>

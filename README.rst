@@ -72,6 +72,14 @@ part points::
   list of points of each part of the exam: [points1, points2, ...]
   (used for query exam parts)
 
+room data
+---------
+
+seat_map::
+  list of seat numbers [seatnr1, seatnr2, ...]
+  used only if first_seat also given; exam.number - first_seat is the
+  index into the seat_map
+  
 import formats
 --------------
 

@@ -93,7 +93,8 @@ class MasterExamAdmin(admin.ModelAdmin):
 
 
 class RoomAdmin(admin.ModelAdmin):
-    list_display = ('examnr', 'name', 'capacity', 'priority', 'first_seat')
+    list_display = ('examnr', 'name', 'capacity', 'priority', 'first_seat',
+                    'seat_map')
     list_filter = ('examnr',)
 
 

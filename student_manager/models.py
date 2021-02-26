@@ -248,7 +248,8 @@ class Room(models.Model):
     capacity = models.IntegerField(null=True, blank=True)
     priority = models.IntegerField(null=True, blank=True)
     first_seat = models.IntegerField(null=True, blank=True)
-
+    seat_map = models.TextField(null=True, blank=True)
+    
     class Meta:
         ordering = ('examnr', 'priority')
 

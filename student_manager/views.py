@@ -515,6 +515,9 @@ class PrintExamsView(ListView):
             exams = exams.order_by('student__last_name',
                                    'student__first_name')
             self.template_name = 'student_manager/result_full_list.html'
+
+        if format.startswith('exam'):
+            self.map_seats(exams, examnr)
         return list(exams)
 
     def get_context_data(self, **kwargs):
@@ -538,6 +541,18 @@ class PrintExamsView(ListView):
         context['mark_ranges'] = mark_ranges
         return context
 
+    def map_seats(self, exams, examnr):
+        seat_map = {}
+        for room in models.Room.objects.filter(examnr=examnr):
+            if room.first_seat and room.seat_map:
+                seat_map[room] = (room.first_seat, json.loads(room.seat_map))
+        for e in exams:
+            if seat_map.has_key(e.room):
+                (first,seats) = seat_map[e.room]
+                e.seat = seats[e.number-first]
+            else:
+                e.seat = e.number
+            
 print_exams = staff_member_required(PrintExamsView.as_view())
 
 
