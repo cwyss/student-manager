@@ -32,7 +32,9 @@ def translate_status(regist):
         'angemeldet': 'AN',
         'zugelassen': 'ZU',
         'niedrige Priorität': 'NP',
+        'abgelehnt niedrige Priorität': 'NP',
         'hohe Priorität': 'HP',
+        'abgelehnt hohe Priorität': 'HP',
         'storniert': 'ST'
     }
     for e in regist:
