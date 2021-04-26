@@ -46,13 +46,15 @@ def parse_subject(subject_lines):
         'Elektrotechnik': 'ET',
         'Informationstechnologie': 'IT',
         'Informatik': 'Info',
-        'Wirtschaftsing. Elektrotechnik': 'Wing',
+        'Wirtschaftsing. Elektrotechnik': 'WIng',
         'applied science (Kombi) Physik': 'AS',
         'applied science (Kombi) Chemie': 'AS',
         'applied science (Kombi) Informatik': 'AS',
         '(Kombi) Informatik': 'Kombi Inf',
         '(Erweiterung) Informatik': 'Kombi Inf',
-        '(Kombi) Physik': 'Kombi Phy'
+        '(Kombi) Physik': 'Kombi Phy',
+        '(Kombi) Elektrotechnik': 'Kombi ET',
+        'of Education Sonderpäd (Kombi) Physik': 'SoPäd Phy'
     }
     result = []
     for line in subject_lines:
@@ -86,7 +88,11 @@ def process_subjects(regist):
             (subj,sem) = current
             e['subject'] = subj
             e['semester'] = sem
-
+        elif DEBUG:
+            print("unknown subj %d: " % e['matrikel'],
+                  e['subject_long'],
+                  file=sys.stderr)
+            
 def set_group(regist, group):
     for e in regist:
         e['group'] = str(group)
@@ -123,15 +129,28 @@ def print_registration_data(regist):
 #slregist_fname = sys.argv[1]
 #regist = read_slregist_csv(slregist_fname)
 
-if len(sys.argv)==1:
-    print("""USAGE: slregist-importer.py gruppe1.csv ... gruppeN.csv
+DEBUG = False
+group_filenames = None
+
+if len(sys.argv)>=2:
+    if sys.argv[1]=='-D':
+        DEBUG = True
+        group_filenames = sys.argv[2:]
+    else:
+        group_filenames = sys.argv[1:]
+
+if not group_filenames:
+    print("""Usage: slregist-importer.py [OPTION] gruppe1.csv ... gruppeN.csv
 Convert studilöwe Belegungen to student manager registration file
 
 gruppe?.csv: csv export of studilöwe excel file of one parallel group.
              fields: "Name", "E-Mail", "Status", "Studiengänge"
-             separator: ';'""")
+             separator: ';'
+
+Options
+  -D      debug mode: write unrecognised subjects to stderr""")
 else:
-    regist = prepare_registration_data(sys.argv[1:])
+    regist = prepare_registration_data(group_filenames)
     print_registration_data(regist)
 
 # print(len(regist))
