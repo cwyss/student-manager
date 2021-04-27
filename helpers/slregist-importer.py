@@ -54,7 +54,7 @@ def parse_subject(subject_lines):
         '(Erweiterung) Informatik': 'Kombi Inf',
         '(Kombi) Physik': 'Kombi Phy',
         '(Kombi) Elektrotechnik': 'Kombi ET',
-        'of Education Sonderpäd (Kombi) Physik': 'SoPäd Phy'
+        'of Education Sonderpäd (Kombi) Mathematik': 'SoPäd Mat'
     }
     result = []
     for line in subject_lines:
