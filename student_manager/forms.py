@@ -237,7 +237,7 @@ class QueryStudentsOptForm(forms.Form):
                  ('group', 'Group'),
                  ('active', 'Active')))
     second_field = forms.ChoiceField(
-        choices=((None, 'None'),
+        choices=(('none', 'None'),
                  ('subject', 'Subject'),
                  ('semester', 'Semester'),
                  ('group', 'Group'),

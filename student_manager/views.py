@@ -768,7 +768,7 @@ class QueryStudentsView(TemplateView):
         if only_active:
             qset = qset.filter(active=True)
         context['first_field'] = first_field
-        if second_field=='None':
+        if second_field=='none':
             self.make_data1(qset, first_field, context)
         else:
             context['second_field'] = second_field
