@@ -34,7 +34,7 @@ class NonuniqueModuloMatrikelListFilter(admin.SimpleListFilter):
             return queryset
 
         if self.value() == 'nonunique':
-            duplicates = models.Student.objects.get_pure_query_set()
+            duplicates = models.Student.objects.get_pure_queryset()
             duplicates = duplicates.values('modulo_matrikel') \
                 .annotate(Count('id'))
             duplicates = duplicates.values('modulo_matrikel').order_by()

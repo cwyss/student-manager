@@ -764,7 +764,7 @@ class QueryStudentsView(TemplateView):
               qset = models.Student.object
             here, because of annotation with Exercise in Student model
             (class StudentManager) """
-        qset = models.Student.objects.get_pure_query_set()
+        qset = models.Student.objects.get_pure_queryset()
         if only_active:
             qset = qset.filter(active=True)
         context['first_field'] = first_field
@@ -1192,7 +1192,7 @@ class QueryRegistrationsView(TemplateView):
 
     def make_total_line(self, groupmap):
         groupcnt = len(groupmap)
-        total_cnt = models.Student.objects.get_pure_query_set() \
+        total_cnt = models.Student.objects.get_pure_queryset() \
             .values('group__number').order_by('group__number') \
             .annotate(count=Count('id'))
         row = (groupcnt+1) * [0]
@@ -1234,7 +1234,7 @@ class QueryRegistrationsView(TemplateView):
         for g in group_list:
             if g.assistent:
                 assist_list.add(g.assistent, g.number)
-        query = models.Student.objects.get_pure_query_set() \
+        query = models.Student.objects.get_pure_queryset() \
             .values('group__assistent').order_by('group__assistent') \
             .annotate(count=Count('id'))
         for e in query:

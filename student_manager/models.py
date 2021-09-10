@@ -107,15 +107,15 @@ def validate_matrikel(matrikel, student_id):
 
 class StudentManager(models.Manager):
     """ manager used in Student model """
-    def get_query_set(self):
+    def get_queryset(self):
         """ make Student total_points field, by which we can order """
-        query = super(StudentManager, self).get_query_set()
+        query = super(StudentManager, self).get_queryset()
         return query.annotate(_total_points=Sum('exercise__points'))
 
-    def get_pure_query_set(self):
+    def get_pure_queryset(self):
         """ get query set without annotation/join;
         needed for queries to count e.g. students by semester """
-        return super(StudentManager, self).get_query_set()
+        return super(StudentManager, self).get_queryset()
 
 
 class Student(models.Model):
