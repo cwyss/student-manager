@@ -15,7 +15,7 @@ class StaticData(models.Model):
         ordering = ('key',)
         verbose_name_plural = 'Static data'
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s' % self.key
 
     @classmethod
@@ -54,7 +54,7 @@ class Group(models.Model):
                             max_length=200, null=True, blank=True)
     assistent = models.CharField(max_length=200, null=True, blank=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return '%d' % self.number
 
     class Meta:
@@ -133,7 +133,7 @@ class Student(models.Model):
 
     objects = StudentManager()
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s, %s (%s)' % (self.last_name, self.first_name, self.matrikel)
 
     def number_of_exercises(self):
@@ -217,7 +217,7 @@ class Exercise(models.Model):
         unique_together = (('student', 'sheet'),)
         ordering = ('student', 'sheet')
 
-    def __unicode__(self):
+    def __str__(self):
         return '%i: %1.1f - %s' % (self.sheet, self.points, self.student)
 
     def save(self, *args, **kwargs):
@@ -238,7 +238,7 @@ class MasterExam(models.Model):
     max_points = models.IntegerField(null=True, blank=True)
     part_points = models.TextField(null=True, blank=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s' % self.number
 
 
@@ -253,7 +253,7 @@ class Room(models.Model):
     class Meta:
         ordering = ('examnr', 'priority')
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s (%d)' % (self.name, self.examnr.number)
 
 
@@ -281,7 +281,7 @@ class Exam(models.Model):
                            ('examnr','number'))
         ordering = ('examnr', 'student')
 
-    def __unicode__(self):
+    def __str__(self):
         return '%i: %s' % (self.examnr.number, self.student)
 
     def save(self, *args, **kwargs):
@@ -313,7 +313,7 @@ class ExamPart(models.Model):
         ordering = ('exam', 'number')
         unique_together = (('exam', 'number'),)
 
-    def __unicode__(self):
+    def __str__(self):
         return '%i(%i): %s' % (self.exam.examnr.number, self.number,
                                 self.exam.student)
 
@@ -336,7 +336,7 @@ class Registration(models.Model):
         ordering = ('group','priority')
         unique_together = (('student','group'),)
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s: %d %s' % (self.student, self.group.number, self.status)
 
 
@@ -348,5 +348,5 @@ class EntryTest(models.Model):
     class Meta:
         ordering = ('student',)
         
-    def __unicode__(self):
+    def __str__(self):
         return '%s: %s' % (self.student, self.result)
