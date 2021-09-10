@@ -15,8 +15,8 @@ class Migration(DataMigration):
         std_groups_max = orm.Student.objects.aggregate(models.Max('group'))
         reg_groups_max = orm.Registration.objects.aggregate(models.Max('group'))
         exr_groups_max = orm.Exercise.objects.aggregate(models.Max('group'))
-        maxgroup = max(std_groups_max.values() + reg_groups_max.values()
-                       + exr_groups_max.values())
+        maxgroup = max(list(std_groups_max.values()) + list(reg_groups_max.values())
+                       + list(exr_groups_max.values()))
 
         for grp in range(1,maxgroup+1):
             orm.Group.objects.create(number=grp)

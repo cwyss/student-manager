@@ -1,6 +1,6 @@
 """Views"""
 
-import csv, re, json, urllib.request, urllib.parse, urllib.error
+import csv, re, json, urllib
 import xml.etree.ElementTree as ElementTree
 from decimal import Decimal
 
@@ -70,7 +70,7 @@ class ImportExercisesView(FormView):
 
         messages.info(
             self.request,
-            '%s entries processed.' % sum(map(len, iter(self.stats.values()))))
+            '%s entries processed.' % sum(map(len, self.stats.itervalues())))
         if self.stats['new']:
             messages.success(
                 self.request,
@@ -181,7 +181,7 @@ class ImportStudentsView(FormView):
 
         messages.info(
             self.request,
-            '%s entries processed.' % sum(map(len, iter(self.stats.values()))))
+            '%s entries processed.' % sum(map(len, self.stats.itervalues())))
         if self.stats['new']:
             messages.success(
                 self.request,
@@ -366,7 +366,7 @@ class ImportExamsView(FormView):
         messages.info(
             self.request,
             '%d exam entries with %d subjects processed.' %
-            (sum(map(len, iter(self.stats.values()))),
+            (sum(map(len, self.stats.itervalues())),
              self.subjectcnt))
         if self.stats['newstud']:
             messages.success(
@@ -548,7 +548,7 @@ class PrintExamsView(ListView):
             if room.first_seat and room.seat_map:
                 seat_map[room] = (room.first_seat, json.loads(room.seat_map))
         for e in exams:
-            if e.room in seat_map:
+            if seat_map.has_key(e.room):
                 (first,seats) = seat_map[e.room]
                 try:
                     e.seat = seats[e.number-first]
@@ -584,7 +584,7 @@ def save_exam_results(request, queryset=None):
             messages.success(request, 'Exam results updated.')
             return HttpResponseRedirect(
                 reverse('admin:student_manager_exam_changelist') \
-                    + '?' + urllib.parse.urlencode(request.GET))
+                    + '?' + urllib.urlencode(request.GET))
         num_exercises_form = forms.NumberExercisesForm(request.POST)
         if num_exercises_form.is_valid():
             num_exercises = num_exercises_form.cleaned_data['num_exercises']
@@ -594,9 +594,9 @@ def save_exam_results(request, queryset=None):
     return render_to_response(
         'student_manager/enter_exam_results.html',
         {'formset': formset,
-         'num_exercises': list(range(1, num_exercises + 1)),
+         'num_exercises': range(1, num_exercises + 1),
          'num_exercises_form': num_exercises_form,
-         'params': urllib.parse.urlencode(request.GET)},
+         'params': urllib.urlencode(request.GET)},
         context_instance=RequestContext(request))
 
 
@@ -695,7 +695,7 @@ class QueryExamsView(TemplateView):
         markcounts = [] 
         mark_entry = {'groupcounts': [0]*numgroups}
         for item in query:
-            if 'mark' in mark_entry and \
+            if mark_entry.has_key('mark') and \
                     mark_entry['mark']!=item['mark']:
                 mark_entry['total'] =  sum(mark_entry['groupcounts'])
                 markcounts.append(mark_entry)
@@ -703,7 +703,7 @@ class QueryExamsView(TemplateView):
             mark_entry['mark'] = item['mark']
             group_index = self.exam_groups.index(item['exam_group'])
             mark_entry['groupcounts'][group_index] = item['count']
-        if 'mark' in mark_entry:
+        if mark_entry.has_key('mark'):
             mark_entry['total'] = sum(mark_entry['groupcounts'])
             markcounts.append(mark_entry)
         return markcounts
@@ -865,7 +865,7 @@ class ImportRegistrationsView(FormView):
         if self.stats['nogroup'] and \
                 (import_choice!='none' or update_choice!='none'):
             nogrp_out = ['%s: %d' % x \
-                             for x in self.stats['nogroup'].items()]
+                             for x in self.stats['nogroup'].iteritems()]
             messages.warning(
                 self.request,
                 'No such group in translation: %s' \
@@ -901,9 +901,9 @@ class ImportRegistrationsView(FormView):
         return super(ImportRegistrationsView, self).form_valid(form)
 
     def transl_subj(self, subject):
-        if type(subject)==str:
+        if type(subject)==unicode:
             subject = subject.translate({0xa0: 32})
-        if  subject in self.subject_translation:
+        if  self.subject_translation.has_key(subject):
             return self.subject_translation[subject]
         else:
             return subject
@@ -913,7 +913,7 @@ class ImportRegistrationsView(FormView):
                          subject, semester,
                          status, priority, group_str):
         matrikel = int(matrikel)
-        if matrikel in self.student_dict:
+        if self.student_dict.has_key(matrikel):
             stud = self.student_dict[matrikel]
             if not stud[2]:
                 stud[2] = self.transl_subj(subject)
@@ -928,7 +928,7 @@ class ImportRegistrationsView(FormView):
                     []                    # registrations
                     ]
             self.student_dict[matrikel] = stud
-        if type(group_str)==str:
+        if type(group_str)==unicode:
             group_str = group_str.translate({0xa0: 32})
         if group_str not in self.groups:
             self.groups.append(group_str)
@@ -991,7 +991,7 @@ class ImportRegistrationsView(FormView):
         return True
 
     def import_data(self, import_choice, update_choice):
-        for matrikel, stud in self.student_dict.items():
+        for matrikel, stud in self.student_dict.iteritems():
             try:
                 student = models.Student.objects.get(matrikel=matrikel)
                 if update_choice=='none':
@@ -1174,7 +1174,7 @@ class QueryRegistrationsView(TemplateView):
     def make_registration_table(self, groupmap):
         regtab = []
         groupcnt = len(groupmap)
-        for group in list(groupmap.keys()):
+        for group in groupmap.keys():
             regist_cnt = models.Registration.objects \
                 .filter(group__number=group) \
                 .values('student__group__number') \
@@ -1220,7 +1220,7 @@ class QueryRegistrationsView(TemplateView):
             # self.group_dict = {}
 
         def add(self, name, group):
-            if name in self.name_dict:
+            if self.name_dict.has_key(name):
                 a = self.name_dict[name]
                 a.groups.append(group)
             else:
@@ -1243,7 +1243,7 @@ class QueryRegistrationsView(TemplateView):
                 a = assist_list.name_dict[name]
                 a.add_students(e['count'])
         assist_sum = []
-        for a in list(assist_list.name_dict.values()):
+        for a in assist_list.name_dict.values():
             assist_sum.append([a.name, a.groups, a.students])
         assist_sum.sort(key=lambda e:e[1][0])
         return assist_sum
@@ -1561,7 +1561,7 @@ class QuerySpecialView(TemplateView):
             pfdict[e['subject']] = (pf[0],e['count'])
 
         self.data = []
-        for (s,v) in pfdict.items():
+        for (s,v) in pfdict.iteritems():
             tot = v[0]+v[1]
             rel = Decimal('100.')*v[0]/tot
             rel = rel.quantize(Decimal('99.0'))                   # round to 1 decimal place
@@ -1597,7 +1597,7 @@ class QuerySpecialView(TemplateView):
             pfdict[e['student__group__number']] = (pf[0],pf[1],e['count'])
 
         self.data = []
-        for (s,v) in pfdict.items():
+        for (s,v) in pfdict.iteritems():
             tot = v[0]+v[1]
             rel = Decimal('100.')*v[0]/tot
             rel = rel.quantize(Decimal('99.0'))                   # round to 1 decimal place
@@ -1616,7 +1616,7 @@ class QuerySpecialView(TemplateView):
                        'exercise_points') \
                .order_by('points')
 
-        exam = [e for e in exam if e['exercise_points']>=15]
+        exam = filter(lambda e: e['exercise_points']>=15, exam)
         self.data = []
         for e in exam:
             self.data.append((e['student__matrikel'],

@@ -16,7 +16,7 @@ class StaticData(models.Model):
         verbose_name_plural = 'Static data'
 
     def __unicode__(self):
-        return '%s' % self.key
+        return u'%s' % self.key
 
     @classmethod
     def get_key(cls, key, default=None):
@@ -55,7 +55,7 @@ class Group(models.Model):
     assistent = models.CharField(max_length=200, null=True, blank=True)
 
     def __unicode__(self):
-        return '%d' % self.number
+        return u'%d' % self.number
 
     class Meta:
         ordering = ('number',)
@@ -134,7 +134,7 @@ class Student(models.Model):
     objects = StudentManager()
 
     def __unicode__(self):
-        return '%s, %s (%s)' % (self.last_name, self.first_name, self.matrikel)
+        return u'%s, %s (%s)' % (self.last_name, self.first_name, self.matrikel)
 
     def number_of_exercises(self):
         return self.exercise_set.count()
@@ -218,7 +218,7 @@ class Exercise(models.Model):
         ordering = ('student', 'sheet')
 
     def __unicode__(self):
-        return '%i: %1.1f - %s' % (self.sheet, self.points, self.student)
+        return u'%i: %1.1f - %s' % (self.sheet, self.points, self.student)
 
     def save(self, *args, **kwargs):
         if float(self.points) not in valid_points():
@@ -239,7 +239,7 @@ class MasterExam(models.Model):
     part_points = models.TextField(null=True, blank=True)
 
     def __unicode__(self):
-        return '%s' % self.number
+        return u'%s' % self.number
 
 
 class Room(models.Model):
@@ -254,7 +254,7 @@ class Room(models.Model):
         ordering = ('examnr', 'priority')
 
     def __unicode__(self):
-        return '%s (%d)' % (self.name, self.examnr.number)
+        return u'%s (%d)' % (self.name, self.examnr.number)
 
 
 BONUSMAP = {5.0: 5.0, 4.0: 3.7, 3.7: 3.3, 3.3: 3.0, 3.0: 2.7,
@@ -282,7 +282,7 @@ class Exam(models.Model):
         ordering = ('examnr', 'student')
 
     def __unicode__(self):
-        return '%i: %s' % (self.examnr.number, self.student)
+        return u'%i: %s' % (self.examnr.number, self.student)
 
     def save(self, *args, **kwargs):
         if self.examnr.mark_limits and self.points != None:
@@ -314,7 +314,7 @@ class ExamPart(models.Model):
         unique_together = (('exam', 'number'),)
 
     def __unicode__(self):
-        return '%i(%i): %s' % (self.exam.examnr.number, self.number,
+        return u'%i(%i): %s' % (self.exam.examnr.number, self.number,
                                 self.exam.student)
 
 
@@ -323,9 +323,9 @@ class Registration(models.Model):
     group = models.ForeignKey(Group)
     priority = models.IntegerField(null=True, blank=True)
     status = models.CharField(max_length=2, null=True, blank=True,
-                              choices=[('AN','AN'),('ZU','ZU'),
-                                       ('ST','ST'),
-                                       ('HP','HP'),('NP','NP')])
+                              choices=[(u'AN','AN'),(u'ZU','ZU'),
+                                       (u'ST','ST'),
+                                       (u'HP','HP'),(u'NP','NP')])
 
     def assigned_group(self):
         return self.student.group
@@ -337,16 +337,16 @@ class Registration(models.Model):
         unique_together = (('student','group'),)
 
     def __unicode__(self):
-        return '%s: %d %s' % (self.student, self.group.number, self.status)
+        return u'%s: %d %s' % (self.student, self.group.number, self.status)
 
 
 class EntryTest(models.Model):
     student = models.ForeignKey(Student, unique=True)
     result = models.CharField(max_length=4, null=True, blank=True,
-                              choices=[('fail','fail'),('pass','pass')])
+                              choices=[(u'fail','fail'),(u'pass','pass')])
 
     class Meta:
         ordering = ('student',)
         
     def __unicode__(self):
-        return '%s: %s' % (self.student, self.result)
+        return u'%s: %s' % (self.student, self.result)

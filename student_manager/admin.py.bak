@@ -54,7 +54,7 @@ class StudentAdmin(admin.ModelAdmin):
 
     def translate_subjects(self, request, queryset):
         subject_transl = models.StaticData.get_subject_transl()
-        for (longname, shortname) in list(subject_transl.items()):
+        for (longname, shortname) in subject_transl.items():
             updateset = queryset.filter(subject=longname).values('id')
             # .values('id') noetig; 
             # vermutlich wegen annotation "total_points" aus
