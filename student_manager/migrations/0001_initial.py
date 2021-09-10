@@ -1,61 +1,194 @@
 # -*- coding: utf-8 -*-
-import datetime
-from south.db import db
-from south.v2 import SchemaMigration
-from django.db import models
+from __future__ import unicode_literals
+
+from django.db import models, migrations
 
 
-class Migration(SchemaMigration):
+class Migration(migrations.Migration):
 
-    def forwards(self, orm):
-        # Adding model 'Student'
-        db.create_table('student_manager_student', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('matrikel', self.gf('django.db.models.fields.IntegerField')(unique=True)),
-            ('last_name', self.gf('django.db.models.fields.CharField')(max_length=200)),
-            ('first_name', self.gf('django.db.models.fields.CharField')(max_length=200)),
-        ))
-        db.send_create_signal('student_manager', ['Student'])
+    dependencies = [
+    ]
 
-        # Adding model 'Exercise'
-        db.create_table('student_manager_exercise', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('student', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['student_manager.Student'])),
-            ('number', self.gf('django.db.models.fields.IntegerField')()),
-            ('points', self.gf('django.db.models.fields.DecimalField')(max_digits=2, decimal_places=1)),
-        ))
-        db.send_create_signal('student_manager', ['Exercise'])
-
-        # Adding unique constraint on 'Exercise', fields ['student', 'number']
-        db.create_unique('student_manager_exercise', ['student_id', 'number'])
-
-
-    def backwards(self, orm):
-        # Removing unique constraint on 'Exercise', fields ['student', 'number']
-        db.delete_unique('student_manager_exercise', ['student_id', 'number'])
-
-        # Deleting model 'Student'
-        db.delete_table('student_manager_student')
-
-        # Deleting model 'Exercise'
-        db.delete_table('student_manager_exercise')
-
-
-    models = {
-        'student_manager.exercise': {
-            'Meta': {'ordering': "('student', 'number')", 'unique_together': "(('student', 'number'),)", 'object_name': 'Exercise'},
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'number': ('django.db.models.fields.IntegerField', [], {}),
-            'points': ('django.db.models.fields.DecimalField', [], {'max_digits': '2', 'decimal_places': '1'}),
-            'student': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['student_manager.Student']"})
-        },
-        'student_manager.student': {
-            'Meta': {'ordering': "('last_name', 'first_name')", 'object_name': 'Student'},
-            'first_name': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'last_name': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
-            'matrikel': ('django.db.models.fields.IntegerField', [], {'unique': 'True'})
-        }
-    }
-
-    complete_apps = ['student_manager']
+    operations = [
+        migrations.CreateModel(
+            name='EntryTest',
+            fields=[
+                ('id', models.AutoField(primary_key=True, serialize=False, auto_created=True, verbose_name='ID')),
+                ('result', models.CharField(choices=[('fail', 'fail'), ('pass', 'pass')], max_length=4, null=True, blank=True)),
+            ],
+            options={
+                'ordering': ('student',),
+            },
+        ),
+        migrations.CreateModel(
+            name='Exam',
+            fields=[
+                ('id', models.AutoField(primary_key=True, serialize=False, auto_created=True, verbose_name='ID')),
+                ('subject', models.CharField(max_length=200, null=True, blank=True)),
+                ('resit', models.IntegerField(null=True, blank=True)),
+                ('points', models.DecimalField(max_digits=3, null=True, blank=True, decimal_places=1)),
+                ('number', models.IntegerField(null=True, blank=True)),
+                ('exam_group', models.IntegerField(null=True, blank=True)),
+                ('mark', models.DecimalField(max_digits=2, null=True, blank=True, decimal_places=1)),
+                ('final_mark', models.DecimalField(max_digits=2, null=True, blank=True, decimal_places=1)),
+            ],
+            options={
+                'ordering': ('examnr', 'student'),
+            },
+        ),
+        migrations.CreateModel(
+            name='ExamPart',
+            fields=[
+                ('id', models.AutoField(primary_key=True, serialize=False, auto_created=True, verbose_name='ID')),
+                ('number', models.IntegerField()),
+                ('points', models.DecimalField(max_digits=3, null=True, blank=True, decimal_places=1)),
+                ('exam', models.ForeignKey(to='student_manager.Exam')),
+            ],
+            options={
+                'ordering': ('exam', 'number'),
+            },
+        ),
+        migrations.CreateModel(
+            name='Exercise',
+            fields=[
+                ('id', models.AutoField(primary_key=True, serialize=False, auto_created=True, verbose_name='ID')),
+                ('sheet', models.IntegerField()),
+                ('points', models.DecimalField(decimal_places=2, max_digits=4)),
+            ],
+            options={
+                'ordering': ('student', 'sheet'),
+            },
+        ),
+        migrations.CreateModel(
+            name='Group',
+            fields=[
+                ('id', models.AutoField(primary_key=True, serialize=False, auto_created=True, verbose_name='ID')),
+                ('number', models.IntegerField()),
+                ('time', models.CharField(max_length=200, null=True, blank=True, verbose_name='time / group name (for import regist.)')),
+                ('assistent', models.CharField(max_length=200, null=True, blank=True)),
+            ],
+            options={
+                'ordering': ('number',),
+            },
+        ),
+        migrations.CreateModel(
+            name='MasterExam',
+            fields=[
+                ('id', models.AutoField(primary_key=True, serialize=False, auto_created=True, verbose_name='ID')),
+                ('number', models.IntegerField(unique=True)),
+                ('title', models.CharField(max_length=200, null=True, blank=True)),
+                ('mark_limits', models.TextField(null=True, blank=True)),
+                ('num_exercises', models.IntegerField(default=0)),
+                ('max_points', models.IntegerField(null=True, blank=True)),
+                ('part_points', models.TextField(null=True, blank=True)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Registration',
+            fields=[
+                ('id', models.AutoField(primary_key=True, serialize=False, auto_created=True, verbose_name='ID')),
+                ('priority', models.IntegerField(null=True, blank=True)),
+                ('status', models.CharField(choices=[('AN', 'AN'), ('ZU', 'ZU'), ('ST', 'ST'), ('HP', 'HP'), ('NP', 'NP')], max_length=2, null=True, blank=True)),
+                ('group', models.ForeignKey(to='student_manager.Group')),
+            ],
+            options={
+                'ordering': ('group', 'priority'),
+            },
+        ),
+        migrations.CreateModel(
+            name='Room',
+            fields=[
+                ('id', models.AutoField(primary_key=True, serialize=False, auto_created=True, verbose_name='ID')),
+                ('name', models.CharField(max_length=200)),
+                ('capacity', models.IntegerField(null=True, blank=True)),
+                ('priority', models.IntegerField(null=True, blank=True)),
+                ('first_seat', models.IntegerField(null=True, blank=True)),
+                ('seat_map', models.TextField(null=True, blank=True)),
+                ('examnr', models.ForeignKey(to='student_manager.MasterExam')),
+            ],
+            options={
+                'ordering': ('examnr', 'priority'),
+            },
+        ),
+        migrations.CreateModel(
+            name='StaticData',
+            fields=[
+                ('id', models.AutoField(primary_key=True, serialize=False, auto_created=True, verbose_name='ID')),
+                ('key', models.CharField(max_length=100)),
+                ('value', models.TextField(null=True, blank=True)),
+            ],
+            options={
+                'verbose_name_plural': 'Static data',
+                'ordering': ('key',),
+            },
+        ),
+        migrations.CreateModel(
+            name='Student',
+            fields=[
+                ('id', models.AutoField(primary_key=True, serialize=False, auto_created=True, verbose_name='ID')),
+                ('matrikel', models.IntegerField(null=True, blank=True)),
+                ('modulo_matrikel', models.IntegerField(null=True, blank=True, verbose_name='modulo')),
+                ('obscured_matrikel', models.CharField(max_length=10, null=True, blank=True, verbose_name='obscured')),
+                ('last_name', models.CharField(max_length=200, null=True, blank=True)),
+                ('first_name', models.CharField(max_length=200, null=True, blank=True)),
+                ('subject', models.CharField(max_length=200, null=True, blank=True)),
+                ('semester', models.IntegerField(null=True, blank=True)),
+                ('active', models.BooleanField(default=True)),
+                ('group', models.ForeignKey(null=True, to='student_manager.Group', blank=True)),
+            ],
+            options={
+                'ordering': ('last_name', 'first_name'),
+            },
+        ),
+        migrations.AddField(
+            model_name='registration',
+            name='student',
+            field=models.ForeignKey(to='student_manager.Student'),
+        ),
+        migrations.AddField(
+            model_name='exercise',
+            name='group',
+            field=models.ForeignKey(null=True, to='student_manager.Group', blank=True),
+        ),
+        migrations.AddField(
+            model_name='exercise',
+            name='student',
+            field=models.ForeignKey(to='student_manager.Student'),
+        ),
+        migrations.AddField(
+            model_name='exam',
+            name='examnr',
+            field=models.ForeignKey(to='student_manager.MasterExam'),
+        ),
+        migrations.AddField(
+            model_name='exam',
+            name='room',
+            field=models.ForeignKey(null=True, to='student_manager.Room', blank=True),
+        ),
+        migrations.AddField(
+            model_name='exam',
+            name='student',
+            field=models.ForeignKey(to='student_manager.Student'),
+        ),
+        migrations.AddField(
+            model_name='entrytest',
+            name='student',
+            field=models.ForeignKey(unique=True, to='student_manager.Student'),
+        ),
+        migrations.AlterUniqueTogether(
+            name='registration',
+            unique_together=set([('student', 'group')]),
+        ),
+        migrations.AlterUniqueTogether(
+            name='exercise',
+            unique_together=set([('student', 'sheet')]),
+        ),
+        migrations.AlterUniqueTogether(
+            name='exampart',
+            unique_together=set([('exam', 'number')]),
+        ),
+        migrations.AlterUniqueTogether(
+            name='exam',
+            unique_together=set([('student', 'examnr'), ('examnr', 'number')]),
+        ),
+    ]

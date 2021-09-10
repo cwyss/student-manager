@@ -6,8 +6,8 @@ Installation
 
 To create the database from scratch, run::
 
-  ./manage.py syncdb --all
-  ./manage.py migrate --fake
+  ./manage.py migrate
+  ./manage.py createsuperuser
 
 If $LANG is not set::
 
@@ -155,16 +155,21 @@ enter virtualenv::
 
   studmgr: django version 1.4.3
   studmgr2: django version 1.6.5
-
+  studmgr3: django version 1.8
+  
 leave virtualenv::
 
   deactivate
 
 new fields added to db table; generates migration file::
 
-  ./manage.py schemamigration student_manager --auto
+  ./manage.py makemigrations
   ./manage.py migrate
 
+update old database migration to django 1.8:
+  
+  ./manage.py migrate --fake-initial
+  
 create virtualenv::
 
   mkvirtualenv studmgr

@@ -18,7 +18,8 @@ from student_manager import models
 class GroupForm(forms.ModelForm):
     class Meta:
         model = models.Group
-
+        exclude = ()
+        
     def clean_time(self):
         time = self.cleaned_data['time']
         return time.translate({0xa0: 32})
@@ -39,6 +40,7 @@ class StudentForm(forms.ModelForm):
 class StaticDataForm(forms.ModelForm):
     class Meta:
         model = models.StaticData
+        exclude = ()
 
     def clean_value(self):
         key = self.cleaned_data['key']
@@ -56,6 +58,7 @@ class StaticDataForm(forms.ModelForm):
 class ExerciseForm(forms.ModelForm):
     class Meta:
         model = models.Exercise
+        exclude = ()
 
     def __init__(self, *args, **kwargs):
         super(ExerciseForm, self).__init__(*args, **kwargs)
@@ -68,6 +71,7 @@ class ExerciseForm(forms.ModelForm):
 class MasterExamForm(forms.ModelForm):
     class Meta:
         model = models.MasterExam
+        exclude = ()
 
     def clean_mark_limits(self):
         mark_limits_str = self.cleaned_data['mark_limits']
