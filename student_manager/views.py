@@ -3,6 +3,7 @@
 import csv, re, json, urllib.request, urllib.parse, urllib.error
 import xml.etree.ElementTree as ElementTree
 from decimal import Decimal
+from io import TextIOWrapper
 
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
@@ -31,8 +32,10 @@ class ImportExercisesView(FormView):
     def form_valid(self, form):
         importformat = form.cleaned_data['format']
         group = form.cleaned_data['group']
+        uploaded_file = form.cleaned_data['csv_file']
+        csv_file = TextIOWrapper(uploaded_file.file, encoding='utf-8')
         csvreader = csv.reader(
-            form.cleaned_data['csv_file'],
+            csv_file,
             delimiter=str(form.cleaned_data['column_separator']))
         self.stats = {'new': [],
                       'updated': [],
@@ -140,8 +143,10 @@ class ImportStudentsView(FormView):
         return self.request.GET.get('return_url', '/')
 
     def form_valid(self, form):
+        uploaded_file = form.cleaned_data['csv_file']
+        csv_file = TextIOWrapper(uploaded_file.file, encoding='utf-8')
         csvreader = csv.reader(
-            form.cleaned_data['csv_file'],
+            csv_file,
             delimiter=str(form.cleaned_data['column_separator']))
 
         self.stats = {'new': [],
@@ -168,9 +173,12 @@ class ImportStudentsView(FormView):
             else:
                 group = None
             student = models.Student(matrikel=matrikel,
-                                     last_name=row[1].decode('UTF-8'),
-                                     first_name=row[2].decode('UTF-8'),
-                                     subject=row[3].decode('UTF-8'),
+                                     # last_name=row[1].decode('UTF-8'),
+                                     # first_name=row[2].decode('UTF-8'),
+                                     # subject=row[3].decode('UTF-8'),
+                                     last_name=row[1],
+                                     first_name=row[2],
+                                     subject=row[3],
                                      semester=semester,
                                      group=group)
             try:
@@ -342,8 +350,10 @@ class ImportExamsView(FormView):
         return self.request.GET.get('return_url', '/')
 
     def form_valid(self, form):
+        uploaded_file = form.cleaned_data['csv_file']
+        csv_file = TextIOWrapper(uploaded_file.file, encoding='utf-8')
         csvreader = csv.reader(
-            form.cleaned_data['csv_file'],
+            csv_file,
             delimiter=str(form.cleaned_data['column_separator']))
         self.examnr = form.cleaned_data['examnr']
         self.stats = {'newstud': [],
@@ -389,8 +399,8 @@ class ImportExamsView(FormView):
 
     def examine_row(self, linenr, row):
         try:
-            name = row[1].decode('UTF-8')
-            first_name = row[2].decode('UTF-8')
+            name = row[1]
+            first_name = row[2]
             matr = int(row[3])
             if len(row)>=5 and len(row[-1])>0:
                 resit = int(row[-1])
@@ -830,7 +840,7 @@ class ImportRegistrationsView(FormView):
         return self.request.GET.get('return_url', '/')
 
     def form_valid(self, form):
-        file = form.cleaned_data['file']
+        uploaded_file = form.cleaned_data['file']
         column_sep = str(form.cleaned_data['csv_separator'])
         import_choice = str(form.cleaned_data['import_choice'])
         update_choice = str(form.cleaned_data['update_choice'])
@@ -850,8 +860,10 @@ class ImportRegistrationsView(FormView):
 
         self.subject_translation = \
             models.StaticData.get_subject_transl()
-        if not self.read_xls(file):
-            self.read_csv(file, column_sep)
+        self.read_csv(uploaded_file, column_sep)
+        ## xls support: conversion to Studiloewe needed
+        # if not self.read_xls(uploaded_file):
+        #     self.read_csv(uploaded_file, column_sep)
         self.group_translation = \
             models.Group.get_group_transl(self.groups, create=create_groups)
         self.import_data(import_choice, update_choice)
@@ -955,11 +967,12 @@ class ImportRegistrationsView(FormView):
                                   priority=row[8],
                                   group_str=row[9])
 
-    def read_csv(self, csv_file, column_sep):
+    def read_csv(self, uploaded_file, column_sep):
+        csv_file = TextIOWrapper(uploaded_file.file, encoding='utf-8')
         csvreader = csv.reader(csv_file, delimiter=column_sep)
         table = []
         for row in csvreader:
-            table.append([c.decode('utf-8') for c in row])
+            table.append([c for c in row])
         self.add_table(table)
 
     def read_xls(self, file):
@@ -1067,8 +1080,10 @@ class ImportEntryTestsView(FormView):
         return self.request.GET.get('return_url', '/')
 
     def form_valid(self, form):
+        uploaded_file = form.cleaned_data['csv_file']
+        csv_file = TextIOWrapper(uploaded_file.file, encoding='utf-8')
         csvreader = csv.reader(
-            form.cleaned_data['csv_file'],
+            csv_file,
             delimiter=str(form.cleaned_data['csv_separator']))
         results = {'bestanden': 'pass',
                    'nicht bestanden': 'fail',
@@ -1090,7 +1105,7 @@ class ImportEntryTestsView(FormView):
 
             if row[0].isdigit():
                 matrikel = int(row[0])
-                res_field = row[1].decode('UTF-8').strip('"')
+                res_field = row[1].strip('"')
                 try:
                     result = results[res_field]
                     if not result:
