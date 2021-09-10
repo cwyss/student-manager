@@ -639,7 +639,7 @@ class QueryExamsView(TemplateView):
         examnr = self.request.GET.get('examnr')
         query_examgroups = self.request.GET.get('query_examgroups')
 
-        exams = models.Exam.objects.filter(examnr__number=examnr)
+        exams = models.Exam.objects.filter(examnr=examnr)
         examlist = exams.exclude(points=None)
         context['total_count'] = self.count_apf(examlist)
         context['missing_count'] = exams.filter(points=None).count()
@@ -723,7 +723,7 @@ class QueryExamPartsView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(QueryExamPartsView, self).get_context_data(**kwargs)
         examnr = self.request.GET.get('examnr')
-        masterexam = models.MasterExam.objects.get(number=examnr)
+        masterexam = models.MasterExam.objects.get(id=examnr)
         if masterexam.part_points:
             part_points = json.loads(masterexam.part_points)
         else:
