@@ -155,7 +155,7 @@ enter virtualenv::
 
   studmgr: django version 1.4.3
   studmgr2: django version 1.6.5
-  studmgr3: django version 1.8
+  studmgr3: django version 1.8.19  (with python 3.7)
   
 leave virtualenv::
 
