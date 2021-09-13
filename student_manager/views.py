@@ -1631,7 +1631,8 @@ class QuerySpecialView(TemplateView):
                        'exercise_points') \
                .order_by('points')
 
-        exam = [e for e in exam if e['exercise_points']>=15]
+        exam = [e for e in exam if (e['exercise_points'] or 0)>=15]
+
         self.data = []
         for e in exam:
             self.data.append((e['student__matrikel'],
