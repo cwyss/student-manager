@@ -1332,9 +1332,9 @@ class ExportStudentsView(FormView):
                          'Fach', 'Semester', 'Gruppe'])
         for student in qset:
             writer.writerow([student.matrikel,
-                             student.last_name.encode('utf-8'),
-                             student.first_name.encode('utf-8'),
-                             student.subject.encode('utf-8'),
+                             student.last_name,
+                             student.first_name,
+                             student.subject,
                              student.semester, 
                              student.group])
         return response
