@@ -166,11 +166,11 @@ new fields added to db table; generates migration file::
   ./manage.py makemigrations
   ./manage.py migrate
 
-update old database migration to django 1.8:
+update old database migration to django 1.8::
   
   ./manage.py migrate --fake-initial
   
 create virtualenv::
 
-  mkvirtualenv studmgr
+  mkvirtualenv -p /usr/bin/python3 studmgr         # use python3
   pip install -r path/to/studmgr/requirements.txt
