@@ -4,6 +4,9 @@ from decimal import Decimal
 from django.db import models
 from django.db.models import Sum, Max
 from django.core.exceptions import ValidationError
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
 import json
 
 
@@ -141,8 +144,8 @@ class Student(models.Model):
 
     number_of_exercises.short_description = 'Exercises'
 
-    def total_points(self):
-        if hasattr(self, '_total_points'):
+    def total_points(self, force_recalc=False):
+        if hasattr(self, '_total_points') and not force_recalc:
             _total_points = self._total_points
         else:
             _total_points = self.exercise_set.aggregate(
@@ -151,7 +154,7 @@ class Student(models.Model):
     
     total_points.admin_order_field = '_total_points'
 
-    def bonus(self):
+    def bonus(self, force_recalc=False):
         try:
             bonus1 = Decimal(StaticData.objects.get(key='bonus1').value)
             bonus2 = Decimal(StaticData.objects.get(key='bonus2').value)
@@ -173,7 +176,7 @@ class Student(models.Model):
             else:
                 return 'no etest'
         if bonus1:
-            total = self.total_points()
+            total = self.total_points(force_recalc)
             if total>=bonus2:
                 return '2/3'
             elif total>=bonus1:
@@ -229,6 +232,14 @@ class Exercise(models.Model):
     def total_num_exercises(cls):
         return cls.objects.aggregate(total=Max('sheet'))['total'] or 0
 
+@receiver(post_save, sender=Exercise)
+def update_mark_from_exercise(sender, **kwargs):
+    exercise = kwargs['instance']
+    for exam in exercise.student.exam_set.all():
+        exam.save(
+            force_recalc=True  # trigger recalculation of bonus in student model
+        )
+
 
 class MasterExam(models.Model):
     number = models.IntegerField(unique=True)
@@ -240,6 +251,12 @@ class MasterExam(models.Model):
 
     def __str__(self):
         return '%s' % self.number
+
+@receiver(post_save, sender=MasterExam)
+def update_mark_from_masterexam(sender, **kwargs):
+    masterexam = kwargs['instance']
+    for exam in masterexam.exam_set.all():
+        exam.save()
 
 
 class Room(models.Model):
@@ -291,9 +308,12 @@ class Exam(models.Model):
                 if self.points >= limit:
                     self.mark = mark
                     break
-            if self.student.bonus() == '1/3':
+
+            force_recalc = kwargs.pop('force_recalc', False)
+            bonus = self.student.bonus(force_recalc)
+            if bonus == '1/3':
                 self.final_mark = BONUSMAP[self.mark]
-            elif self.student.bonus() == '2/3':
+            elif bonus == '2/3':
                 self.final_mark = BONUSMAP[BONUSMAP[self.mark]]
             else:
                 self.final_mark = self.mark
