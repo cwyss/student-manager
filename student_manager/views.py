@@ -293,10 +293,12 @@ class PrintExercisesView(ListView):
             for exercise in student.exercise_set.all():
                 if exercise.sheet<=maxsheet:
                     student.exercises[exercise.sheet-1] = exercise
-            if etest_required and \
-               ( not student.entrytest_set.exists() \
-                 or student.entrytest_set.get().result=='fail'):
-                student.etest_fail = True
+            if etest_required:
+                try:
+                    if student.entrytest.result=='fail':
+                        student.etest_fail = True
+                except models.EntryTest.DoesNotExist:
+                    student.etest_fail = True
             if maxpoints:
                 student.percent = float(student.total_points()) \
                                   / maxpoints * 100

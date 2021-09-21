@@ -169,11 +169,10 @@ class Student(models.Model):
         if not etest and not bonus1:
             return None
         if etest:
-            if self.entrytest_set.exists():
-                etest = self.entrytest_set.get()
-                if etest.result=='fail':
+            try:
+                if self.entrytest.result=='fail':
                     return 'etest fail'
-            else:
+            except EntryTest.DoesNotExist:
                 return 'no etest'
         if bonus1:
             total = self.total_points(force_recalc)
@@ -361,7 +360,7 @@ class Registration(models.Model):
 
 
 class EntryTest(models.Model):
-    student = models.ForeignKey(Student, unique=True)
+    student = models.OneToOneField(Student)
     result = models.CharField(max_length=4, null=True, blank=True,
                               choices=[('fail','fail'),('pass','pass')])
 
