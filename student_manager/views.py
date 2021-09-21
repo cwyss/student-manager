@@ -1417,14 +1417,13 @@ class QueryExerciseView(TemplateView):
 
     def get_context_data(self, **kwargs):
         self.context = super(QueryExerciseView, self).get_context_data(**kwargs)
-
+        self.count_total()
         groups = models.Group.objects.order_by('number')
         self.count_by_group(groups)
         return self.context
 
     def count_by_group(self, groups):
         tab = []
-        max_sheet = 0
         for group in groups:
             ex_cnt = models.Exercise.objects \
                 .filter(group=group) \
@@ -1435,27 +1434,25 @@ class QueryExerciseView(TemplateView):
             if not ex_cnt:
                 continue
             sheets = ex_cnt[-1]['sheet']
-            if sheets>=max_sheet:
-                max_sheet = sheets
             row = sheets * [0]
             for d in ex_cnt:
                 s = d['sheet']
                 row[s-1] = d['count']
-            tab.append([group] + row)
+            tab.append(["Gr %d" % group.number] + row)
         self.context['data_by_group'] = tab
-        head = [i for i in range(1,max_sheet+1)]
-        self.context['head_by_group'] = ['Group'] + head
-        self.count_total(max_sheet)
 
-    def count_total(self, max_sheet):
+    def count_total(self):
         total_cnt = models.Exercise.objects \
             .values('sheet').order_by('sheet') \
             .annotate(count=Count('id'))
-        row = max_sheet * [0]
+        max_sheet = max([d['sheet'] for d in total_cnt])
+        total_row = max_sheet * [0]
         for d in total_cnt:
             s = d['sheet']
-            row[s-1] = d['count']
-        self.context['total'] = row
+            total_row[s-1] = d['count']
+        self.context['total'] = total_row
+        head = [i+1 for i in range(max_sheet)]
+        self.context['head'] = ['sheets'] + head
 
 query_exercise = staff_member_required(QueryExerciseView.as_view())
 
