@@ -3,7 +3,7 @@
 from decimal import Decimal
 import json
 from django import forms
-from django.forms.util import ErrorList
+from django.forms.utils import ErrorList
 from django.forms.models import (
     modelformset_factory,
     modelform_factory,

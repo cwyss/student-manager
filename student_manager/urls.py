@@ -5,7 +5,7 @@ from django.views.generic.base import RedirectView
 admin.autodiscover()
 
 urlpatterns = patterns('',
-    url(r'^$', RedirectView.as_view(url='admin/')),
+    url(r'^$', RedirectView.as_view(url='admin/', permanent=True)),
     url(r'^print_exercises_opt/$', 'student_manager.views.print_exercises_opt',
         name='print_exercises_opt'),
     url(r'^print_exercises/$', 'student_manager.views.print_exercises',
