@@ -1,2 +1,2 @@
-Django==1.8.19
+Django==1.9.13
 argparse==1.2.1
