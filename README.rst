@@ -17,6 +17,11 @@ To update an existing database after a code change::
 
   ./manage.py migrate
 
+To migrate an old database (i.e. with django 1.6 migrations)
+to django 1.8::
+  
+  ./manage.py migrate --fake-initial
+  
 To start the server::
 
   ./manage.py runserver
@@ -166,10 +171,6 @@ new fields added to db table; generates migration file::
   ./manage.py makemigrations
   ./manage.py migrate
 
-update old database migration to django 1.8::
-  
-  ./manage.py migrate --fake-initial
-  
 create virtualenv::
 
   mkvirtualenv -p /usr/bin/python3 studmgr         # use python3
