@@ -1,4 +1,4 @@
-from django.conf.urls import patterns, include, url
+from django.conf.urls import url
 from django.contrib import admin
 from django.views.generic.base import RedirectView
 
@@ -6,7 +6,7 @@ from student_manager import views
 
 admin.autodiscover()
 
-urlpatterns = patterns('',
+urlpatterns = [
     url(r'^$', RedirectView.as_view(url='admin/', permanent=True)),
     url(r'^print_exercises_opt/$', views.print_exercises_opt,
         name='print_exercises_opt'),
@@ -66,5 +66,5 @@ urlpatterns = patterns('',
         name='query_special_opt'),
     url(r'^query_special/$', views.query_special,
         name='query_special'),
-    url(r'^admin/', include(admin.site.urls)),
-)
+    url(r'^admin/', admin.site.urls),
+]
