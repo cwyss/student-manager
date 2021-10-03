@@ -163,7 +163,8 @@ enter virtualenv::
   studmgr3: django version 1.8.19  (with python 3.7)
 
   studmgr-dj1.9: django 1.9.13
-
+  studmgr-dj1.10: django 1.10.8
+  
 leave virtualenv::
 
   deactivate
