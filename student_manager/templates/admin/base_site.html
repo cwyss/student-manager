@@ -1,8 +1,9 @@
 {% extends "admin/base.html" %}
 {% load i18n %}
+{% load static %}
 {% load student_manager_extras %}
 
-{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{{ STATIC_URL}}extra.css">{% endblock %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static 'extra.css' %}">{% endblock %}
 
 {% block title %}{{ title }} | {% trans 'Student Manager' %}{% endblock %}
 
