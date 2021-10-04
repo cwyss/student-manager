@@ -182,14 +182,18 @@ class PrintExercisesOptForm(forms.Form):
                  ('group', 'Students from group...')),
         initial='matrikel')
     group = forms.ModelChoiceField(
-        queryset=models.Group.objects.all())
-    total = forms.BooleanField(label=_('Display total/bonus columns'))
-    etest = forms.BooleanField(label=_('Display entry test column'))
+        queryset=models.Group.objects.all(),
+        required=False)
+    total = forms.BooleanField(label=_('Display total/bonus columns'),
+                               required=False)
+    etest = forms.BooleanField(label=_('Display entry test column'),
+                               required=False)
     exclude = forms.ChoiceField(
         choices=(('empty', 'Exclude students without exercises'),
                  ('inactive', 'Exclude inactive students')),
         initial='inactive')
-    maxsheet = forms.IntegerField(label='Sheets up to (optional)')
+    maxsheet = forms.IntegerField(label='Sheets up to (optional)',
+                                  required=False)
     
 
 class PrintStudentsOptForm(forms.Form):
@@ -221,7 +225,9 @@ class QueryExamsOptForm(forms.Form):
         label='Exam number',
         queryset=models.MasterExam.objects.all())
     query_examgroups = forms.BooleanField(
-        label='Distinguish exam groups')
+        label='Distinguish exam groups',
+        required=False
+    )
 
 
 class QueryExamPartsOptForm(forms.Form):
@@ -242,8 +248,11 @@ class QueryStudentsOptForm(forms.Form):
                  ('semester', 'Semester'),
                  ('group', 'Group'),
                  ('active', 'Active')))
-    only_active = forms.BooleanField(label=_('Include only active students'),
-                                     initial=True)
+    only_active = forms.BooleanField(
+        label=_('Include only active students'),
+        initial=True,
+        required=False
+    )
 
 
 class ImportRegistrationsForm(forms.Form):
