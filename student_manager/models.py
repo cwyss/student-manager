@@ -301,6 +301,8 @@ class Exam(models.Model):
         return '%i: %s' % (self.examnr.number, self.student)
 
     def save(self, *args, **kwargs):
+        force_recalc = kwargs.pop('force_recalc', False)
+
         if self.examnr.mark_limits and self.points != None:
             mark_limits = json.loads(self.examnr.mark_limits)
             for limit,mark in mark_limits:
@@ -308,7 +310,6 @@ class Exam(models.Model):
                     self.mark = mark
                     break
 
-            force_recalc = kwargs.pop('force_recalc', False)
             bonus = self.student.bonus(force_recalc)
             if bonus == '1/3':
                 self.final_mark = BONUSMAP[self.mark]
@@ -319,6 +320,7 @@ class Exam(models.Model):
         else:
             self.mark = None
             self.final_mark = None
+
         return super(Exam, self).save(*args, **kwargs)
 
 
