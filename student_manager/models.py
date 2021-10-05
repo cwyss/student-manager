@@ -200,7 +200,9 @@ def points_choices():
     points_div = StaticData.get_points_div()
     n = max_points * points_div + 1
     for i in range(n):
-        choice = (Decimal(i)/points_div, str(float(i)/points_div))
+        d = Decimal("%d.00" % i)  # ensure value with two decimal places
+        d /= points_div
+        choice = (d, str(d))
         yield choice
 
 def valid_points():
