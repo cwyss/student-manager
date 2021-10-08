@@ -42,7 +42,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(primary_key=True, serialize=False, auto_created=True, verbose_name='ID')),
                 ('number', models.IntegerField()),
                 ('points', models.DecimalField(max_digits=3, null=True, blank=True, decimal_places=1)),
-                ('exam', models.ForeignKey(to='student_manager.Exam')),
+                ('exam', models.ForeignKey(to='student_manager.Exam', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ('exam', 'number'),
@@ -89,7 +89,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(primary_key=True, serialize=False, auto_created=True, verbose_name='ID')),
                 ('priority', models.IntegerField(null=True, blank=True)),
                 ('status', models.CharField(choices=[('AN', 'AN'), ('ZU', 'ZU'), ('ST', 'ST'), ('HP', 'HP'), ('NP', 'NP')], max_length=2, null=True, blank=True)),
-                ('group', models.ForeignKey(to='student_manager.Group')),
+                ('group', models.ForeignKey(to='student_manager.Group', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ('group', 'priority'),
@@ -104,7 +104,7 @@ class Migration(migrations.Migration):
                 ('priority', models.IntegerField(null=True, blank=True)),
                 ('first_seat', models.IntegerField(null=True, blank=True)),
                 ('seat_map', models.TextField(null=True, blank=True)),
-                ('examnr', models.ForeignKey(to='student_manager.MasterExam')),
+                ('examnr', models.ForeignKey(to='student_manager.MasterExam', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ('examnr', 'priority'),
@@ -134,7 +134,7 @@ class Migration(migrations.Migration):
                 ('subject', models.CharField(max_length=200, null=True, blank=True)),
                 ('semester', models.IntegerField(null=True, blank=True)),
                 ('active', models.BooleanField(default=True)),
-                ('group', models.ForeignKey(null=True, to='student_manager.Group', blank=True)),
+                ('group', models.ForeignKey(null=True, to='student_manager.Group', on_delete=models.CASCADE, blank=True)),
             ],
             options={
                 'ordering': ('last_name', 'first_name'),
@@ -143,37 +143,37 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='registration',
             name='student',
-            field=models.ForeignKey(to='student_manager.Student'),
+            field=models.ForeignKey(to='student_manager.Student', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='exercise',
             name='group',
-            field=models.ForeignKey(null=True, to='student_manager.Group', blank=True),
+            field=models.ForeignKey(null=True, to='student_manager.Group', on_delete=models.CASCADE, blank=True),
         ),
         migrations.AddField(
             model_name='exercise',
             name='student',
-            field=models.ForeignKey(to='student_manager.Student'),
+            field=models.ForeignKey(to='student_manager.Student', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='exam',
             name='examnr',
-            field=models.ForeignKey(to='student_manager.MasterExam'),
+            field=models.ForeignKey(to='student_manager.MasterExam', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='exam',
             name='room',
-            field=models.ForeignKey(null=True, to='student_manager.Room', blank=True),
+            field=models.ForeignKey(null=True, to='student_manager.Room', on_delete=models.CASCADE, blank=True),
         ),
         migrations.AddField(
             model_name='exam',
             name='student',
-            field=models.ForeignKey(to='student_manager.Student'),
+            field=models.ForeignKey(to='student_manager.Student', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='entrytest',
             name='student',
-            field=models.ForeignKey(unique=True, to='student_manager.Student'),
+            field=models.ForeignKey(unique=True, to='student_manager.Student', on_delete=models.CASCADE),
         ),
         migrations.AlterUniqueTogether(
             name='registration',

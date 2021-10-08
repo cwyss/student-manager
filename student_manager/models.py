@@ -131,7 +131,7 @@ class Student(models.Model):
     first_name = models.CharField(max_length=200, null=True, blank=True)
     subject = models.CharField(max_length=200, null=True, blank=True)
     semester = models.IntegerField(null=True, blank=True)
-    group = models.ForeignKey(Group, null=True, blank=True)
+    group = models.ForeignKey(Group, models.CASCADE, null=True, blank=True)
     active = models.BooleanField(default=True)
 
     objects = StudentManager()
@@ -211,8 +211,8 @@ def valid_points():
 
 
 class Exercise(models.Model):
-    student = models.ForeignKey(Student)
-    group = models.ForeignKey(Group, null=True, blank=True)
+    student = models.ForeignKey(Student, models.CASCADE)
+    group = models.ForeignKey(Group, models.CASCADE, null=True, blank=True)
     sheet = models.IntegerField()
     points = models.DecimalField(
         max_digits=4, decimal_places=2)
@@ -262,7 +262,7 @@ def update_mark_from_masterexam(sender, **kwargs):
 
 class Room(models.Model):
     name = models.CharField(max_length=200)
-    examnr = models.ForeignKey(MasterExam)
+    examnr = models.ForeignKey(MasterExam, models.CASCADE)
     capacity = models.IntegerField(null=True, blank=True)
     priority = models.IntegerField(null=True, blank=True)
     first_seat = models.IntegerField(null=True, blank=True)
@@ -280,13 +280,13 @@ BONUSMAP = {5.0: 5.0, 4.0: 3.7, 3.7: 3.3, 3.3: 3.0, 3.0: 2.7,
             1.0: 1.0}
 
 class Exam(models.Model):
-    student = models.ForeignKey(Student)
+    student = models.ForeignKey(Student, models.CASCADE)
     subject = models.CharField(max_length=200, null=True, blank=True)
-    examnr = models.ForeignKey(MasterExam)
+    examnr = models.ForeignKey(MasterExam, models.CASCADE)
     resit = models.IntegerField(null=True, blank=True)
     points = models.DecimalField(max_digits=3, decimal_places=1, 
                                  null=True, blank=True)
-    room = models.ForeignKey(Room, null=True, blank=True)
+    room = models.ForeignKey(Room, models.CASCADE, null=True, blank=True)
     number = models.IntegerField(null=True, blank=True)
     exam_group = models.IntegerField(null=True, blank=True)
     mark = models.DecimalField(max_digits=2, decimal_places=1,
@@ -327,7 +327,7 @@ class Exam(models.Model):
 
 
 class ExamPart(models.Model):
-    exam = models.ForeignKey(Exam)
+    exam = models.ForeignKey(Exam, models.CASCADE)
     number = models.IntegerField()
     points = models.DecimalField(max_digits=3, decimal_places=1, 
                                  null=True, blank=True)
@@ -342,8 +342,8 @@ class ExamPart(models.Model):
 
 
 class Registration(models.Model):
-    student = models.ForeignKey(Student)
-    group = models.ForeignKey(Group)
+    student = models.ForeignKey(Student, models.CASCADE)
+    group = models.ForeignKey(Group, models.CASCADE)
     priority = models.IntegerField(null=True, blank=True)
     status = models.CharField(max_length=2, null=True, blank=True,
                               choices=[('AN','AN'),('ZU','ZU'),
@@ -364,7 +364,7 @@ class Registration(models.Model):
 
 
 class EntryTest(models.Model):
-    student = models.OneToOneField(Student)
+    student = models.OneToOneField(Student, on_delete=models.CASCADE)
     result = models.CharField(max_length=4, null=True, blank=True,
                               choices=[('fail','fail'),('pass','pass')])
 

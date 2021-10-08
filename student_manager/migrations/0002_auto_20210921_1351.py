@@ -14,6 +14,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='entrytest',
             name='student',
-            field=models.OneToOneField(to='student_manager.Student'),
+            field=models.OneToOneField(to='student_manager.Student', on_delete=models.CASCADE),
         ),
     ]
