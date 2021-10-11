@@ -167,6 +167,7 @@ enter virtualenv::
   studmgr-dj1.11: django 1.11.29
   studmgr-dj2.0: django 2.0.13
   studmgr-dj2.1: django 2.1.15
+  studmgr-dj2.2: django 2.2.24
 
 leave virtualenv::
 
