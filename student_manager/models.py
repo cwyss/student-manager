@@ -12,7 +12,7 @@ import json
 
 class StaticData(models.Model):
     key = models.CharField(max_length=100)
-    value = models.TextField(null=True, blank=True)
+    value = models.TextField(blank=True)
 
     class Meta:
         ordering = ('key',)
@@ -54,8 +54,8 @@ class StaticData(models.Model):
 class Group(models.Model):
     number = models.IntegerField()
     time = models.CharField("time / group name (for import regist.)",
-                            max_length=200, null=True, blank=True)
-    assistent = models.CharField(max_length=200, null=True, blank=True)
+                            max_length=200, blank=True)
+    assistent = models.CharField(max_length=200, blank=True)
 
     def __str__(self):
         return '%d' % self.number
@@ -125,11 +125,11 @@ class Student(models.Model):
     matrikel = models.IntegerField(null=True, blank=True)
     modulo_matrikel = models.IntegerField(null=True, blank=True,
                                           verbose_name='modulo')
-    obscured_matrikel = models.CharField(max_length=10, null=True, blank=True,
+    obscured_matrikel = models.CharField(max_length=10, blank=True,
                                          verbose_name='obscured')
-    last_name = models.CharField(max_length=200, null=True, blank=True)
-    first_name = models.CharField(max_length=200, null=True, blank=True)
-    subject = models.CharField(max_length=200, null=True, blank=True)
+    last_name = models.CharField(max_length=200, blank=True)
+    first_name = models.CharField(max_length=200, blank=True)
+    subject = models.CharField(max_length=200, blank=True)
     semester = models.IntegerField(null=True, blank=True)
     group = models.ForeignKey(Group, models.CASCADE, null=True, blank=True)
     active = models.BooleanField(default=True)
@@ -244,11 +244,11 @@ def update_mark_from_exercise(sender, **kwargs):
 
 class MasterExam(models.Model):
     number = models.IntegerField(unique=True)
-    title = models.CharField(max_length=200, null=True, blank=True)
-    mark_limits = models.TextField(null=True, blank=True)
+    title = models.CharField(max_length=200, blank=True)
+    mark_limits = models.TextField(blank=True)
     num_exercises = models.IntegerField(default=0)
     max_points = models.IntegerField(null=True, blank=True)
-    part_points = models.TextField(null=True, blank=True)
+    part_points = models.TextField(blank=True)
 
     def __str__(self):
         return '%s' % self.number
@@ -266,7 +266,7 @@ class Room(models.Model):
     capacity = models.IntegerField(null=True, blank=True)
     priority = models.IntegerField(null=True, blank=True)
     first_seat = models.IntegerField(null=True, blank=True)
-    seat_map = models.TextField(null=True, blank=True)
+    seat_map = models.TextField(blank=True)
     
     class Meta:
         ordering = ('examnr', 'priority')
@@ -281,7 +281,7 @@ BONUSMAP = {5.0: 5.0, 4.0: 3.7, 3.7: 3.3, 3.3: 3.0, 3.0: 2.7,
 
 class Exam(models.Model):
     student = models.ForeignKey(Student, models.CASCADE)
-    subject = models.CharField(max_length=200, null=True, blank=True)
+    subject = models.CharField(max_length=200, blank=True)
     examnr = models.ForeignKey(MasterExam, models.CASCADE)
     resit = models.IntegerField(null=True, blank=True)
     points = models.DecimalField(max_digits=3, decimal_places=1, 
@@ -345,7 +345,7 @@ class Registration(models.Model):
     student = models.ForeignKey(Student, models.CASCADE)
     group = models.ForeignKey(Group, models.CASCADE)
     priority = models.IntegerField(null=True, blank=True)
-    status = models.CharField(max_length=2, null=True, blank=True,
+    status = models.CharField(max_length=2, blank=True,
                               choices=[('AN','AN'),('ZU','ZU'),
                                        ('ST','ST'),
                                        ('HP','HP'),('NP','NP')])
@@ -365,7 +365,7 @@ class Registration(models.Model):
 
 class EntryTest(models.Model):
     student = models.OneToOneField(Student, on_delete=models.CASCADE)
-    result = models.CharField(max_length=4, null=True, blank=True,
+    result = models.CharField(max_length=4, blank=True,
                               choices=[('fail','fail'),('pass','pass')])
 
     class Meta:
