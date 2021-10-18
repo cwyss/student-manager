@@ -35,7 +35,8 @@ def translate_status(regist):
         'abgelehnt niedrige Priorität': 'NP',
         'hohe Priorität': 'HP',
         'abgelehnt hohe Priorität': 'HP',
-        'storniert': 'ST'
+        'storniert': 'ST',
+        'abgelehnt': 'ST'
     }
     for e in regist:
         e['status'] = status_dict[e['status']]
@@ -53,6 +54,7 @@ def parse_subject(subject_lines):
         '(Kombi) Informatik': 'Kombi Inf',
         '(Erweiterung) Informatik': 'Kombi Inf',
         '(Kombi) Physik': 'Kombi Phy',
+        '(Erweiterung) Physik': 'Kombi Phy',
         '(Kombi) Elektrotechnik': 'Kombi ET',
         'of Education Sonderpäd (Kombi) Mathematik': 'SoPäd Mat'
     }
