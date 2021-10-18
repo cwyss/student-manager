@@ -83,6 +83,8 @@ def get_current_subject(subject_entries):
     else:
         return None
 
+Unknown_subjects = {}
+
 def process_subjects(regist):
     for e in regist:
         current = get_current_subject(parse_subject(e['subject_long']))
@@ -91,9 +93,7 @@ def process_subjects(regist):
             e['subject'] = subj
             e['semester'] = sem
         elif DEBUG:
-            print("unknown subj %d: " % e['matrikel'],
-                  e['subject_long'],
-                  file=sys.stderr)
+            Unknown_subjects[e['matrikel']] = e['subject_long']
             
 def set_group(regist, group):
     for e in regist:
@@ -127,9 +127,14 @@ def print_registration_data(regist):
         )
         print(';'.join(data))
 
-        
-#slregist_fname = sys.argv[1]
-#regist = read_slregist_csv(slregist_fname)
+def print_unknown_subjects():
+    matrikel = list(Unknown_subjects)
+    matrikel.sort()
+    for m in matrikel:
+        print("unknown subj %d: %s\n" % (m, Unknown_subjects[m]),
+              file=sys.stderr)
+
+
 
 DEBUG = False
 group_filenames = None
@@ -154,11 +159,6 @@ Options
 else:
     regist = prepare_registration_data(group_filenames)
     print_registration_data(regist)
+    if DEBUG:
+        print_unknown_subjects()
 
-# print(len(regist))
-# for e in regist:
-#     # try:
-#     #     print('>>', e['subject'],e['semester'])
-#     # except KeyError:
-#     #     print(None)
-#     print(e)
