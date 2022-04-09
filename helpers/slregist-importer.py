@@ -45,6 +45,7 @@ def translate_status(regist):
 def parse_subject(subject_lines):
     subject_translate = {
         'Elektrotechnik': 'ET',
+        'Electrical Engineering': 'ET',
         'Informationstechnologie': 'IT',
         'Informatik': 'Info',
         'Wirtschaftsing. Elektrotechnik': 'WIng',
