@@ -12,7 +12,7 @@ from django.db import IntegrityError
 from django.urls import reverse, reverse_lazy
 from django.db.models import Max, Count, F, Sum
 from django.http import HttpResponseRedirect, HttpResponse
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.template import RequestContext
 from django.views.decorators.http import require_POST
 from django.views.generic.edit import FormView
@@ -603,13 +603,13 @@ def save_exam_results(request, queryset=None):
         else:
             raise ValidationError('Can\'t determine number of exercises')
 
-    return render_to_response(
+    return render(
+        request,
         'student_manager/enter_exam_results.html',
         {'formset': formset,
          'num_exercises': list(range(1, num_exercises + 1)),
          'num_exercises_form': num_exercises_form,
-         'params': urllib.parse.urlencode(request.GET)},
-        context_instance=RequestContext(request))
+         'params': urllib.parse.urlencode(request.GET)})
 
 
 class PointGroup(object):
@@ -1357,10 +1357,11 @@ class PrintExsheetView(ListView):
         if self.form.is_valid():
             return super(PrintExsheetView, self).get(request)
         else:
-            return render_to_response(
+            return render(
+                request,
                 'student_manager/print_exsheet_opt.html',
-                {'form': self.form},
-                 context_instance=RequestContext(request))
+                {'form': self.form}
+            )
 
     def get_queryset(self):
         group = self.form.cleaned_data['group']
@@ -1403,13 +1404,13 @@ def save_exercise_results(request, queryset=None):
         assert groups_form.is_valid()
         queryset = groups_form.cleaned_data['groups']
 
-    return render_to_response(
+    return render(
+        request,
         'student_manager/enter_exercise_results.html',
         {'formset': formset,
          'sheet_form': sheet_form,
          'groups_form': groups_form,
-         'groups': ', '.join([str(group) for group in queryset])},
-        context_instance=RequestContext(request))
+         'groups': ', '.join([str(group) for group in queryset])})
 
 
 class QueryExerciseView(TemplateView):
