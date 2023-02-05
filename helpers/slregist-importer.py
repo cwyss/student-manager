@@ -52,6 +52,7 @@ def parse_subject(subject_lines):
         'applied science (Kombi) Physik': 'AS',
         'applied science (Kombi) Chemie': 'AS',
         'applied science (Kombi) Informatik': 'AS',
+        'Angewandte Naturwissenschaften': 'AS',
         '(Kombi) Informatik': 'Kombi Inf',
         '(Erweiterung) Informatik': 'Kombi Inf',
         '(Kombi) Physik': 'Kombi Phy',
