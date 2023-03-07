@@ -22,22 +22,27 @@ PACKET_PATTERN = {
     2: (5,5),
     3: (3,3,4),
     4: (2,3,2,3),
-    5: (2,2,2,2)
+    5: (2,2,2,2,2),
+    6: (3,2,3,2),
+    7: (4,3,3),
+    8: (5,5),
+    9: (10,)
 }
 def gen_spacing_pattern(smallsteps, shift):
-    numpacks = min(smallsteps,10-smallsteps)
-    if numpacks==0:
+    if smallsteps==0:
         spacing = 10*[0]
     else:
-        pattern = PACKET_PATTERN[numpacks]
-        shift = min(shift, pattern[0]-1)
+        pattern = PACKET_PATTERN[smallsteps]
+        shift = min(shift, pattern[0]-1, pattern[-1]-1)
         spacing = []
         for n in pattern:
-            ext = n*[0]
-            ext[shift] = 1
+            if smallsteps<=5:
+                ext = n*[0]
+                ext[shift] = 1
+            else:
+                ext = n*[1]
+                ext[-shift-1] = 0
             spacing.extend(ext)
-        if smallsteps>5:
-            spacing = [1-s for s in spacing]
     print("spacing pattern (1 for small step):", spacing)
     return spacing
 
