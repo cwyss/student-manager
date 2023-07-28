@@ -186,9 +186,9 @@ if not files:
         """Usage: slexam-importer.py [OPTION] REGISTRATION_FILES
 Convert studilöwe exam registrations to student manager exam import file
 
-REGISTRATION_FILES: csv files with studilöwe registrations. 
-             Excel exports converted to csv, with fields: "Name", 
-             "E-Mail", "Status", "Studiengänge", separator ';'
+REGISTRATION_FILES: csv files with registrations.
+             Excel exports from studilöwe converted to csv, with fields:
+             "Name", "E-Mail", "Status", "Studiengänge", separator ';'
 
 Options
   -m      registrations for "master" course, prepare subjects accordingly
