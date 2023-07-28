@@ -87,7 +87,7 @@ def prepare_exam_data(files, parse_for_master=False):
 
 def print_exam_data(rdict):
     for subj in rdict:
-        print("subject " + subj + ":\n")
+        print("subject: " + subj + "\n")
         for i,e in enumerate(rdict[subj]):
             line = [
                 str(i+1),
@@ -135,7 +135,8 @@ for arg in sys.argv[1:]:
 if HELP or not files:
     print(
         """Usage: examlst-prep.py [OPTIONS] REGISTRATION_FILES
-Prepare exam registration lists for import in student manager
+Prepare exam registration lists for import in student manager:
+translate subjects and group by them.
 
 REGISTRATION_FILES: csv files with registrations.
              fields: name, first name, matrikel, resit, subject
