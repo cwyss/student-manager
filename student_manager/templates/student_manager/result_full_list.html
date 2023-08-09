@@ -40,7 +40,11 @@
 	<td>{{ exam.student.last_name }}, {{ exam.student.first_name }}</td>
 	<td>{{ exam.subject }}</td>
 	<td class="center">{{ exam.resit }}</td>
+	{% if exam.student.bonus != "no etest" and exam.student.bonus != "etest fail" %}
 	<td class="center">{{ exam.student.bonus }}</td>
+	{% else %}
+	<td />
+	{% endif %}
 	<td class="right">{{ exam.points|floatformat:1|default:"n.t." }}</td>
 	<td class="center">{{ exam.mark|floatformat:1 }}</td>
 	<td class="center">{{ exam.final_mark|floatformat:1 }}</td>
