@@ -46,8 +46,8 @@ def gen_spacing_pattern(smallsteps, shift):
     print("spacing pattern (1 for small step):", spacing)
     return spacing
 
-MARKS = ['1.0','1.3','1.7','2.0','2.3','2.7','3.0',
-         '3.3','3.7','4.0']
+MARKS = [1.0,1.3,1.7,2.0,2.3,2.7,3.0,
+         3.3,3.7,4.0]
 def print_spacing(minpoints, stepsize, spacing):
     lower_points = 10*[minpoints]
     for (i,small) in enumerate(spacing[0:9]):
@@ -55,9 +55,13 @@ def print_spacing(minpoints, stepsize, spacing):
         if small==1:
             points -= 0.5
         lower_points[i+1] = points
+    output = [(MARKS[i],lower_points[-1-i],spacing[-1-i]) for i in range(10)]
     for i in range(10):
-        print("%s: %4.1f  (%d)" % (MARKS[i],lower_points[-1-i],spacing[-1-i]))
+        print("%3.1f: %4.1f  (%d)" % output[i])
 
+    import_out = [[p,m] for (m,p,s) in output]
+    import_out.append([0,5.0])
+    print('\n' + str(import_out))
     
 if len(sys.argv)>=3 and len(sys.argv)<=4:
     Minpoints = float(sys.argv[1])
