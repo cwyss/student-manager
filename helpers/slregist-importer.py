@@ -49,6 +49,7 @@ def parse_subject(subject_lines):
         'Informationstechnologie': 'IT',
         'Informatik': 'Info',
         'Wirtschaftsing. Elektrotechnik': 'WIng',
+        'Wirtschaftsingenieurwesen Elektrotechnik': 'WIng',
         'applied science (Kombi) Physik': 'AS',
         'applied science (Kombi) Chemie': 'AS',
         'applied science (Kombi) Informatik': 'AS',
