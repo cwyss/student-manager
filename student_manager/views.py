@@ -1096,7 +1096,6 @@ class ImportEntryTestsView(FormView):
         }
         self.stats = {'new': [],
                       'update': [],
-                      'unknown': [],
                       'error': []
         }
 
@@ -1117,7 +1116,8 @@ class ImportEntryTestsView(FormView):
                         student = models.Student.objects.get(matrikel=matrikel)
                         status = self.save_etest(student, result)
                     except models.Student.DoesNotExist:
-                        status = 'unknown'
+                        # ignore entries for students not in the database
+                        continue
                 except KeyError:
                     status = 'error'
             else:
@@ -1136,11 +1136,6 @@ class ImportEntryTestsView(FormView):
             messages.success(
                 self.request,
                 '%d test(s) updated' % len(self.stats['update']))
-        if self.stats['unknown']:
-            lst = ['%d' % m for m in self.stats['unknown']]
-            messages.warning(
-                self.request,
-                "unknown student(s): %s" % ', '.join(lst))
         if self.stats['error']:
             lst = ["%d" % m for m in self.stats['error']]
             messages.warning(
@@ -1151,8 +1146,9 @@ class ImportEntryTestsView(FormView):
     def save_etest(self, student, result):
         try:
             etest = models.EntryTest.objects.get(student=student)
-            if etest.result!=result:
-                etest.result = result
+            # only update an etest from fail to pass
+            if etest.result=='fail' and result=='pass':
+                etest.result = 'pass'
                 status = 'update'
             else:
                 # unchanged test result
