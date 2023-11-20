@@ -365,3 +365,10 @@ class QuerySpecialOptForm(forms.Form):
                  ('exam_group', 'Exam 1 by group'),
                  ('exgroup_diff', 'Exercise from different group')
              ))
+
+
+class ExportEntryTestsForm(forms.Form):
+    export_choice = forms.ChoiceField(
+        choices=(('all', 'all entry tests'),
+                 ('active_missing', 'active students without passed test')
+                 ))

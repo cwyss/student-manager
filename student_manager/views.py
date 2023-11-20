@@ -1659,3 +1659,34 @@ class QuerySpecialView(TemplateView):
 
                 
 query_special = staff_member_required(QuerySpecialView.as_view())
+
+
+class ExportEntryTestsView(FormView):
+    template_name = 'student_manager/export_entrytests.html'
+    form_class = forms.ExportEntryTestsForm
+
+    def form_valid(self, form):
+        export_choice = form.cleaned_data['export_choice']
+        filename = 'entrytests.csv'
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = \
+            'attachment; filename="%s"' % filename
+
+        writer = csv.writer(response, delimiter=';')
+        writer.writerow(['Matrikel', 'EntryTest'])
+
+        if export_choice=='all':
+            qset = models.EntryTest.objects.all()
+            for etest in qset:
+                writer.writerow([etest.student.matrikel,
+                                 etest.result])
+        elif export_choice=='active_missing':
+            qset = models.Student.objects.filter(active=True) \
+                                         .exclude(entrytest__result='pass')
+            for student in qset:
+                writer.writerow([student.matrikel,
+                                 student.bonus()])
+        return response
+
+export_entrytests = staff_member_required(ExportEntryTestsView.as_view())

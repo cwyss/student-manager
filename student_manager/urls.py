@@ -66,5 +66,7 @@ urlpatterns = [
         name='query_special_opt'),
     url(r'^query_special/$', views.query_special,
         name='query_special'),
+    url(r'^export_entrytests/$', views.export_entrytests,
+        name='export_entrytests'),
     url(r'^admin/', admin.site.urls),
 ]
