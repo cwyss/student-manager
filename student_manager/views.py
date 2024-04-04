@@ -1486,7 +1486,7 @@ class QuerySpecialView(TemplateView):
                         + "column 'jointly' counts each student only once"
 
         exams_all = models.Exam.objects.all()
-        exams_fk6 = exams_all.filter(subject__in=('ET','IT','WIng','Kombi ET'))
+        exams_fk6 = exams_all.filter(student__subject__in=('ET','IT','WIng','Kombi ET'))
         exams_sem12 = exams_all.filter(student__semester__lte=2)
         exams_fk6sem12 = exams_fk6.filter(student__semester__lte=2)
 
@@ -1558,18 +1558,18 @@ class QuerySpecialView(TemplateView):
                 .filter(examnr__number=1)
         
         exams_pass=exams.filter(mark__lte=4.0) \
-                        .values('subject').order_by('subject') \
+                        .values('student__subject').order_by('student__subject') \
                         .annotate(count=Count('id'))
         exams_fail=exams.filter(mark=5.0) \
-                        .values('subject').order_by('subject') \
+                        .values('student__subject').order_by('student__subject') \
                         .annotate(count=Count('id'))
 
         pfdict = {}
         for e in exams_pass:
-            pfdict[e['subject']] = (e['count'],0)
+            pfdict[e['student__subject']] = (e['count'],0)
         for e in exams_fail:
-            pf = pfdict.get(e['subject'], (0,0))
-            pfdict[e['subject']] = (pf[0],e['count'])
+            pf = pfdict.get(e['student__subject'], (0,0))
+            pfdict[e['student__subject']] = (pf[0],e['count'])
 
         self.data = []
         for (s,v) in pfdict.items():
