@@ -154,6 +154,31 @@ import entry test data (CSV)::
 Development notes
 =================
 
+new fields added to db table; generates migration file::
+
+  ./manage.py makemigrations
+  ./manage.py migrate
+
+
+virtualenvironment setup: venv
+------------------------------
+
+create::
+  python3 -m venv path/to/venvs/studmgr
+
+activate::
+  source path/to/venvs/studmgr/bin/activate
+
+setup::
+  pip install -r requirements.txt
+
+leave::
+  deactivate
+
+
+virtualenvwrapper (obsolte)
+---------------------------
+
 enter virtualenv::
 
   workon studmgr
@@ -172,11 +197,6 @@ enter virtualenv::
 leave virtualenv::
 
   deactivate
-
-new fields added to db table; generates migration file::
-
-  ./manage.py makemigrations
-  ./manage.py migrate
 
 create virtualenv::
 
