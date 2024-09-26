@@ -372,3 +372,9 @@ class ExportEntryTestsForm(forms.Form):
         choices=(('all', 'all entry tests'),
                  ('active_missing', 'active students without passed test')
                  ))
+
+
+class ExportExamResultsForm(forms.Form):
+    examnr = forms.ModelChoiceField(
+        label='Exam number',
+        queryset=models.MasterExam.objects.all())

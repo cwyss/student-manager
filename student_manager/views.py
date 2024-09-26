@@ -1690,3 +1690,32 @@ class ExportEntryTestsView(FormView):
         return response
 
 export_entrytests = staff_member_required(ExportEntryTestsView.as_view())
+
+
+class ExportExamResultsView(FormView):
+    template_name = 'student_manager/export_examresults.html'
+    form_class = forms.ExportExamResultsForm
+
+    def form_valid(self, form):
+        examnr = form.cleaned_data['examnr']
+        filename = 'examresults.csv'
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = \
+            'attachment; filename="%s"' % filename
+
+        writer = csv.writer(response, delimiter=';')
+        writer.writerow(['Matrikel', 'Name', 'Vorname', 'Endnote'])
+
+        qset = models.Exam.objects.filter(examnr=examnr)
+        for exam in qset:
+            mark = exam.final_mark
+            if mark==None:
+                mark = 'NE'
+            writer.writerow([exam.student.matrikel,
+                             exam.student.last_name,
+                             exam.student.first_name,
+                             mark])
+        return response
+
+export_examresults = staff_member_required(ExportExamResultsView.as_view())
