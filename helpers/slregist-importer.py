@@ -59,11 +59,13 @@ def parse_subject(subject_lines):
         '(Kombi) Physik': 'Kombi Phy',
         '(Erweiterung) Physik': 'Kombi Phy',
         '(Kombi) Elektrotechnik': 'Kombi ET',
-        'of Education Sonderpäd (Kombi) Mathematik': 'SoPäd Mat'
+        'of Education Sonderpäd (Kombi) Mathematik': 'SoPäd Mat',
+        'Sonderpädagogik (Kombi) Mathematik': 'SoPäd Mat',
+        'Smart and Sustainable Systems': 'SSS'
     }
     result = []
     for line in subject_lines:
-        match = re.match(r"Bachelor ([\w\(][\w \(\).]*).*?\((\d+)\. Fachsem",
+        match = re.match(r"(?:Bachelor|B\.Ed\.) ([\w\(][\w \(\).]*).*?\((\d+)\. Fachsem",
                          line)
         if match:
             raw_subj = match.group(1).strip()
