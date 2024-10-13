@@ -9,8 +9,8 @@ register = template.Library()
 def static_data(key):
     try:
         data = models.StaticData.objects.get(key=key)
-        return unicode(data.value)
+        return str(data.value)
     except models.StaticData.DoesNotExist:
-        return u''
+        return ''
 
 register.simple_tag(static_data)

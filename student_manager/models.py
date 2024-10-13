@@ -4,19 +4,22 @@ from decimal import Decimal
 from django.db import models
 from django.db.models import Sum, Max
 from django.core.exceptions import ValidationError
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
 import json
 
 
 class StaticData(models.Model):
     key = models.CharField(max_length=100)
-    value = models.TextField(null=True, blank=True)
+    value = models.TextField(blank=True)
 
     class Meta:
         ordering = ('key',)
         verbose_name_plural = 'Static data'
 
-    def __unicode__(self):
-        return u'%s' % self.key
+    def __str__(self):
+        return '%s' % self.key
 
     @classmethod
     def get_key(cls, key, default=None):
@@ -51,11 +54,11 @@ class StaticData(models.Model):
 class Group(models.Model):
     number = models.IntegerField()
     time = models.CharField("time / group name (for import regist.)",
-                            max_length=200, null=True, blank=True)
-    assistent = models.CharField(max_length=200, null=True, blank=True)
+                            max_length=200, blank=True)
+    assistent = models.CharField(max_length=200, blank=True)
 
-    def __unicode__(self):
-        return u'%d' % self.number
+    def __str__(self):
+        return '%d' % self.number
 
     class Meta:
         ordering = ('number',)
@@ -107,42 +110,42 @@ def validate_matrikel(matrikel, student_id):
 
 class StudentManager(models.Manager):
     """ manager used in Student model """
-    def get_query_set(self):
+    def get_queryset(self):
         """ make Student total_points field, by which we can order """
-        query = super(StudentManager, self).get_query_set()
+        query = super(StudentManager, self).get_queryset()
         return query.annotate(_total_points=Sum('exercise__points'))
 
-    def get_pure_query_set(self):
+    def get_pure_queryset(self):
         """ get query set without annotation/join;
         needed for queries to count e.g. students by semester """
-        return super(StudentManager, self).get_query_set()
+        return super(StudentManager, self).get_queryset()
 
 
 class Student(models.Model):
     matrikel = models.IntegerField(null=True, blank=True)
     modulo_matrikel = models.IntegerField(null=True, blank=True,
                                           verbose_name='modulo')
-    obscured_matrikel = models.CharField(max_length=10, null=True, blank=True,
+    obscured_matrikel = models.CharField(max_length=10, blank=True,
                                          verbose_name='obscured')
-    last_name = models.CharField(max_length=200, null=True, blank=True)
-    first_name = models.CharField(max_length=200, null=True, blank=True)
-    subject = models.CharField(max_length=200, null=True, blank=True)
+    last_name = models.CharField(max_length=200, blank=True)
+    first_name = models.CharField(max_length=200, blank=True)
+    subject = models.CharField(max_length=200, blank=True)
     semester = models.IntegerField(null=True, blank=True)
-    group = models.ForeignKey(Group, null=True, blank=True)
+    group = models.ForeignKey(Group, models.CASCADE, null=True, blank=True)
     active = models.BooleanField(default=True)
 
     objects = StudentManager()
 
-    def __unicode__(self):
-        return u'%s, %s (%s)' % (self.last_name, self.first_name, self.matrikel)
+    def __str__(self):
+        return '%s, %s (%s)' % (self.last_name, self.first_name, self.matrikel)
 
     def number_of_exercises(self):
         return self.exercise_set.count()
 
     number_of_exercises.short_description = 'Exercises'
 
-    def total_points(self):
-        if hasattr(self, '_total_points'):
+    def total_points(self, force_recalc=False):
+        if hasattr(self, '_total_points') and not force_recalc:
             _total_points = self._total_points
         else:
             _total_points = self.exercise_set.aggregate(
@@ -151,7 +154,7 @@ class Student(models.Model):
     
     total_points.admin_order_field = '_total_points'
 
-    def bonus(self):
+    def bonus(self, force_recalc=False):
         try:
             bonus1 = Decimal(StaticData.objects.get(key='bonus1').value)
             bonus2 = Decimal(StaticData.objects.get(key='bonus2').value)
@@ -166,14 +169,13 @@ class Student(models.Model):
         if not etest and not bonus1:
             return None
         if etest:
-            if self.entrytest_set.exists():
-                etest = self.entrytest_set.get()
-                if etest.result=='fail':
+            try:
+                if self.entrytest.result=='fail':
                     return 'etest fail'
-            else:
+            except EntryTest.DoesNotExist:
                 return 'no etest'
         if bonus1:
-            total = self.total_points()
+            total = self.total_points(force_recalc)
             if total>=bonus2:
                 return '2/3'
             elif total>=bonus1:
@@ -198,7 +200,9 @@ def points_choices():
     points_div = StaticData.get_points_div()
     n = max_points * points_div + 1
     for i in range(n):
-        choice = (Decimal(i)/points_div, str(float(i)/points_div))
+        d = Decimal("%d.00" % i)  # ensure value with two decimal places
+        d /= points_div
+        choice = (d, str(d))
         yield choice
 
 def valid_points():
@@ -207,8 +211,8 @@ def valid_points():
 
 
 class Exercise(models.Model):
-    student = models.ForeignKey(Student)
-    group = models.ForeignKey(Group, null=True, blank=True)
+    student = models.ForeignKey(Student, models.CASCADE)
+    group = models.ForeignKey(Group, models.CASCADE, null=True, blank=True)
     sheet = models.IntegerField()
     points = models.DecimalField(
         max_digits=4, decimal_places=2)
@@ -217,8 +221,8 @@ class Exercise(models.Model):
         unique_together = (('student', 'sheet'),)
         ordering = ('student', 'sheet')
 
-    def __unicode__(self):
-        return u'%i: %1.1f - %s' % (self.sheet, self.points, self.student)
+    def __str__(self):
+        return '%i: %1.1f - %s' % (self.sheet, self.points, self.student)
 
     def save(self, *args, **kwargs):
         if float(self.points) not in valid_points():
@@ -229,32 +233,46 @@ class Exercise(models.Model):
     def total_num_exercises(cls):
         return cls.objects.aggregate(total=Max('sheet'))['total'] or 0
 
+@receiver(post_save, sender=Exercise)
+def update_mark_from_exercise(sender, **kwargs):
+    exercise = kwargs['instance']
+    for exam in exercise.student.exam_set.all():
+        exam.save(
+            force_recalc=True  # trigger recalculation of bonus in student model
+        )
+
 
 class MasterExam(models.Model):
     number = models.IntegerField(unique=True)
-    title = models.CharField(max_length=200, null=True, blank=True)
-    mark_limits = models.TextField(null=True, blank=True)
+    title = models.CharField(max_length=200, blank=True)
+    mark_limits = models.TextField(blank=True)
     num_exercises = models.IntegerField(default=0)
     max_points = models.IntegerField(null=True, blank=True)
-    part_points = models.TextField(null=True, blank=True)
+    part_points = models.TextField(blank=True)
 
-    def __unicode__(self):
-        return u'%s' % self.number
+    def __str__(self):
+        return '%s' % self.number
+
+@receiver(post_save, sender=MasterExam)
+def update_mark_from_masterexam(sender, **kwargs):
+    masterexam = kwargs['instance']
+    for exam in masterexam.exam_set.all():
+        exam.save()
 
 
 class Room(models.Model):
     name = models.CharField(max_length=200)
-    examnr = models.ForeignKey(MasterExam)
+    examnr = models.ForeignKey(MasterExam, models.CASCADE)
     capacity = models.IntegerField(null=True, blank=True)
     priority = models.IntegerField(null=True, blank=True)
     first_seat = models.IntegerField(null=True, blank=True)
-    seat_map = models.TextField(null=True, blank=True)
+    seat_map = models.TextField(blank=True)
     
     class Meta:
         ordering = ('examnr', 'priority')
 
-    def __unicode__(self):
-        return u'%s (%d)' % (self.name, self.examnr.number)
+    def __str__(self):
+        return '%s (%d)' % (self.name, self.examnr.number)
 
 
 BONUSMAP = {5.0: 5.0, 4.0: 3.7, 3.7: 3.3, 3.3: 3.0, 3.0: 2.7,
@@ -262,13 +280,13 @@ BONUSMAP = {5.0: 5.0, 4.0: 3.7, 3.7: 3.3, 3.3: 3.0, 3.0: 2.7,
             1.0: 1.0}
 
 class Exam(models.Model):
-    student = models.ForeignKey(Student)
-    subject = models.CharField(max_length=200, null=True, blank=True)
-    examnr = models.ForeignKey(MasterExam)
+    student = models.ForeignKey(Student, models.CASCADE)
+    subject = models.CharField(max_length=200, blank=True)
+    examnr = models.ForeignKey(MasterExam, models.CASCADE)
     resit = models.IntegerField(null=True, blank=True)
     points = models.DecimalField(max_digits=3, decimal_places=1, 
                                  null=True, blank=True)
-    room = models.ForeignKey(Room, null=True, blank=True)
+    room = models.ForeignKey(Room, models.CASCADE, null=True, blank=True)
     number = models.IntegerField(null=True, blank=True)
     exam_group = models.IntegerField(null=True, blank=True)
     mark = models.DecimalField(max_digits=2, decimal_places=1,
@@ -281,30 +299,35 @@ class Exam(models.Model):
                            ('examnr','number'))
         ordering = ('examnr', 'student')
 
-    def __unicode__(self):
-        return u'%i: %s' % (self.examnr.number, self.student)
+    def __str__(self):
+        return '%i: %s' % (self.examnr.number, self.student)
 
     def save(self, *args, **kwargs):
+        force_recalc = kwargs.pop('force_recalc', False)
+
         if self.examnr.mark_limits and self.points != None:
             mark_limits = json.loads(self.examnr.mark_limits)
             for limit,mark in mark_limits:
                 if self.points >= limit:
                     self.mark = mark
                     break
-            if self.student.bonus() == '1/3':
+
+            bonus = self.student.bonus(force_recalc)
+            if bonus == '1/3':
                 self.final_mark = BONUSMAP[self.mark]
-            elif self.student.bonus() == '2/3':
+            elif bonus == '2/3':
                 self.final_mark = BONUSMAP[BONUSMAP[self.mark]]
             else:
                 self.final_mark = self.mark
         else:
             self.mark = None
             self.final_mark = None
+
         return super(Exam, self).save(*args, **kwargs)
 
 
 class ExamPart(models.Model):
-    exam = models.ForeignKey(Exam)
+    exam = models.ForeignKey(Exam, models.CASCADE)
     number = models.IntegerField()
     points = models.DecimalField(max_digits=3, decimal_places=1, 
                                  null=True, blank=True)
@@ -313,19 +336,19 @@ class ExamPart(models.Model):
         ordering = ('exam', 'number')
         unique_together = (('exam', 'number'),)
 
-    def __unicode__(self):
-        return u'%i(%i): %s' % (self.exam.examnr.number, self.number,
+    def __str__(self):
+        return '%i(%i): %s' % (self.exam.examnr.number, self.number,
                                 self.exam.student)
 
 
 class Registration(models.Model):
-    student = models.ForeignKey(Student)
-    group = models.ForeignKey(Group)
+    student = models.ForeignKey(Student, models.CASCADE)
+    group = models.ForeignKey(Group, models.CASCADE)
     priority = models.IntegerField(null=True, blank=True)
-    status = models.CharField(max_length=2, null=True, blank=True,
-                              choices=[(u'AN','AN'),(u'ZU','ZU'),
-                                       (u'ST','ST'),
-                                       (u'HP','HP'),(u'NP','NP')])
+    status = models.CharField(max_length=2, blank=True,
+                              choices=[('AN','AN'),('ZU','ZU'),
+                                       ('ST','ST'),
+                                       ('HP','HP'),('NP','NP')])
 
     def assigned_group(self):
         return self.student.group
@@ -336,17 +359,17 @@ class Registration(models.Model):
         ordering = ('group','priority')
         unique_together = (('student','group'),)
 
-    def __unicode__(self):
-        return u'%s: %d %s' % (self.student, self.group.number, self.status)
+    def __str__(self):
+        return '%s: %d %s' % (self.student, self.group.number, self.status)
 
 
 class EntryTest(models.Model):
-    student = models.ForeignKey(Student, unique=True)
-    result = models.CharField(max_length=4, null=True, blank=True,
-                              choices=[(u'fail','fail'),(u'pass','pass')])
+    student = models.OneToOneField(Student, on_delete=models.CASCADE)
+    result = models.CharField(max_length=4, blank=True,
+                              choices=[('fail','fail'),('pass','pass')])
 
     class Meta:
         ordering = ('student',)
         
-    def __unicode__(self):
-        return u'%s: %s' % (self.student, self.result)
+    def __str__(self):
+        return '%s: %s' % (self.student, self.result)

@@ -1,9 +1,9 @@
 {% extends "admin/base_site.html" %}
-{% load i18n admin_static %}
+{% load i18n static %}
 
 {% block extrastyle %}{{ block.super }}
 <link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}" />
-<link rel="stylesheet" type="text/css" href="{{ STATIC_URL}}main.css" %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'main.css' %}" %}" />
 {% endblock %}
 
 {% block title %}Enter exercise results | {% trans 'Django site admin' %}{% endblock %}

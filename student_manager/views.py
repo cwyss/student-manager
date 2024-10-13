@@ -1,17 +1,18 @@
 """Views"""
 
-import csv, re, json, urllib
+import csv, re, json, urllib.request, urllib.parse, urllib.error
 import xml.etree.ElementTree as ElementTree
 from decimal import Decimal
+from io import TextIOWrapper
 
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
-from django.core.urlresolvers import reverse, reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.db.models import Max, Count, F, Sum
 from django.http import HttpResponseRedirect, HttpResponse
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.template import RequestContext
 from django.views.decorators.http import require_POST
 from django.views.generic.edit import FormView
@@ -31,8 +32,10 @@ class ImportExercisesView(FormView):
     def form_valid(self, form):
         importformat = form.cleaned_data['format']
         group = form.cleaned_data['group']
+        uploaded_file = form.cleaned_data['csv_file']
+        csv_file = TextIOWrapper(uploaded_file.file, encoding='utf-8')
         csvreader = csv.reader(
-            form.cleaned_data['csv_file'],
+            csv_file,
             delimiter=str(form.cleaned_data['column_separator']))
         self.stats = {'new': [],
                       'updated': [],
@@ -70,7 +73,7 @@ class ImportExercisesView(FormView):
 
         messages.info(
             self.request,
-            '%s entries processed.' % sum(map(len, self.stats.itervalues())))
+            '%s entries processed.' % sum(map(len, iter(self.stats.values()))))
         if self.stats['new']:
             messages.success(
                 self.request,
@@ -140,8 +143,10 @@ class ImportStudentsView(FormView):
         return self.request.GET.get('return_url', '/')
 
     def form_valid(self, form):
+        uploaded_file = form.cleaned_data['csv_file']
+        csv_file = TextIOWrapper(uploaded_file.file, encoding='utf-8')
         csvreader = csv.reader(
-            form.cleaned_data['csv_file'],
+            csv_file,
             delimiter=str(form.cleaned_data['column_separator']))
 
         self.stats = {'new': [],
@@ -168,9 +173,12 @@ class ImportStudentsView(FormView):
             else:
                 group = None
             student = models.Student(matrikel=matrikel,
-                                     last_name=row[1].decode('UTF-8'),
-                                     first_name=row[2].decode('UTF-8'),
-                                     subject=row[3].decode('UTF-8'),
+                                     # last_name=row[1].decode('UTF-8'),
+                                     # first_name=row[2].decode('UTF-8'),
+                                     # subject=row[3].decode('UTF-8'),
+                                     last_name=row[1],
+                                     first_name=row[2],
+                                     subject=row[3],
                                      semester=semester,
                                      group=group)
             try:
@@ -181,7 +189,7 @@ class ImportStudentsView(FormView):
 
         messages.info(
             self.request,
-            '%s entries processed.' % sum(map(len, self.stats.itervalues())))
+            '%s entries processed.' % sum(map(len, iter(self.stats.values()))))
         if self.stats['new']:
             messages.success(
                 self.request,
@@ -285,10 +293,12 @@ class PrintExercisesView(ListView):
             for exercise in student.exercise_set.all():
                 if exercise.sheet<=maxsheet:
                     student.exercises[exercise.sheet-1] = exercise
-            if etest_required and \
-               ( not student.entrytest_set.exists() \
-                 or student.entrytest_set.get().result=='fail'):
-                student.etest_fail = True
+            if etest_required:
+                try:
+                    if student.entrytest.result=='fail':
+                        student.etest_fail = True
+                except models.EntryTest.DoesNotExist:
+                    student.etest_fail = True
             if maxpoints:
                 student.percent = float(student.total_points()) \
                                   / maxpoints * 100
@@ -342,8 +352,10 @@ class ImportExamsView(FormView):
         return self.request.GET.get('return_url', '/')
 
     def form_valid(self, form):
+        uploaded_file = form.cleaned_data['csv_file']
+        csv_file = TextIOWrapper(uploaded_file.file, encoding='utf-8')
         csvreader = csv.reader(
-            form.cleaned_data['csv_file'],
+            csv_file,
             delimiter=str(form.cleaned_data['column_separator']))
         self.examnr = form.cleaned_data['examnr']
         self.stats = {'newstud': [],
@@ -366,7 +378,7 @@ class ImportExamsView(FormView):
         messages.info(
             self.request,
             '%d exam entries with %d subjects processed.' %
-            (sum(map(len, self.stats.itervalues())),
+            (sum(map(len, iter(self.stats.values()))),
              self.subjectcnt))
         if self.stats['newstud']:
             messages.success(
@@ -389,8 +401,8 @@ class ImportExamsView(FormView):
 
     def examine_row(self, linenr, row):
         try:
-            name = row[1].decode('UTF-8')
-            first_name = row[2].decode('UTF-8')
+            name = row[1]
+            first_name = row[2]
             matr = int(row[3])
             if len(row)>=5 and len(row[-1])>0:
                 resit = int(row[-1])
@@ -548,7 +560,7 @@ class PrintExamsView(ListView):
             if room.first_seat and room.seat_map:
                 seat_map[room] = (room.first_seat, json.loads(room.seat_map))
         for e in exams:
-            if seat_map.has_key(e.room):
+            if e.room in seat_map:
                 (first,seats) = seat_map[e.room]
                 try:
                     e.seat = seats[e.number-first]
@@ -584,20 +596,20 @@ def save_exam_results(request, queryset=None):
             messages.success(request, 'Exam results updated.')
             return HttpResponseRedirect(
                 reverse('admin:student_manager_exam_changelist') \
-                    + '?' + urllib.urlencode(request.GET))
+                    + '?' + urllib.parse.urlencode(request.GET))
         num_exercises_form = forms.NumberExercisesForm(request.POST)
         if num_exercises_form.is_valid():
             num_exercises = num_exercises_form.cleaned_data['num_exercises']
         else:
             raise ValidationError('Can\'t determine number of exercises')
 
-    return render_to_response(
+    return render(
+        request,
         'student_manager/enter_exam_results.html',
         {'formset': formset,
-         'num_exercises': range(1, num_exercises + 1),
+         'num_exercises': list(range(1, num_exercises + 1)),
          'num_exercises_form': num_exercises_form,
-         'params': urllib.urlencode(request.GET)},
-        context_instance=RequestContext(request))
+         'params': urllib.parse.urlencode(request.GET)})
 
 
 class PointGroup(object):
@@ -695,7 +707,7 @@ class QueryExamsView(TemplateView):
         markcounts = [] 
         mark_entry = {'groupcounts': [0]*numgroups}
         for item in query:
-            if mark_entry.has_key('mark') and \
+            if 'mark' in mark_entry and \
                     mark_entry['mark']!=item['mark']:
                 mark_entry['total'] =  sum(mark_entry['groupcounts'])
                 markcounts.append(mark_entry)
@@ -703,7 +715,7 @@ class QueryExamsView(TemplateView):
             mark_entry['mark'] = item['mark']
             group_index = self.exam_groups.index(item['exam_group'])
             mark_entry['groupcounts'][group_index] = item['count']
-        if mark_entry.has_key('mark'):
+        if 'mark' in mark_entry:
             mark_entry['total'] = sum(mark_entry['groupcounts'])
             markcounts.append(mark_entry)
         return markcounts
@@ -764,11 +776,11 @@ class QueryStudentsView(TemplateView):
               qset = models.Student.object
             here, because of annotation with Exercise in Student model
             (class StudentManager) """
-        qset = models.Student.objects.get_pure_query_set()
+        qset = models.Student.objects.get_pure_queryset()
         if only_active:
             qset = qset.filter(active=True)
         context['first_field'] = first_field
-        if second_field=='None':
+        if second_field=='none':
             self.make_data1(qset, first_field, context)
         else:
             context['second_field'] = second_field
@@ -830,7 +842,7 @@ class ImportRegistrationsView(FormView):
         return self.request.GET.get('return_url', '/')
 
     def form_valid(self, form):
-        file = form.cleaned_data['file']
+        uploaded_file = form.cleaned_data['file']
         column_sep = str(form.cleaned_data['csv_separator'])
         import_choice = str(form.cleaned_data['import_choice'])
         update_choice = str(form.cleaned_data['update_choice'])
@@ -850,8 +862,10 @@ class ImportRegistrationsView(FormView):
 
         self.subject_translation = \
             models.StaticData.get_subject_transl()
-        if not self.read_xls(file):
-            self.read_csv(file, column_sep)
+        self.read_csv(uploaded_file, column_sep)
+        ## xls support: conversion to Studiloewe needed
+        # if not self.read_xls(uploaded_file):
+        #     self.read_csv(uploaded_file, column_sep)
         self.group_translation = \
             models.Group.get_group_transl(self.groups, create=create_groups)
         self.import_data(import_choice, update_choice)
@@ -865,7 +879,7 @@ class ImportRegistrationsView(FormView):
         if self.stats['nogroup'] and \
                 (import_choice!='none' or update_choice!='none'):
             nogrp_out = ['%s: %d' % x \
-                             for x in self.stats['nogroup'].iteritems()]
+                             for x in self.stats['nogroup'].items()]
             messages.warning(
                 self.request,
                 'No such group in translation: %s' \
@@ -901,9 +915,9 @@ class ImportRegistrationsView(FormView):
         return super(ImportRegistrationsView, self).form_valid(form)
 
     def transl_subj(self, subject):
-        if type(subject)==unicode:
+        if type(subject)==str:
             subject = subject.translate({0xa0: 32})
-        if  self.subject_translation.has_key(subject):
+        if  subject in self.subject_translation:
             return self.subject_translation[subject]
         else:
             return subject
@@ -913,7 +927,7 @@ class ImportRegistrationsView(FormView):
                          subject, semester,
                          status, priority, group_str):
         matrikel = int(matrikel)
-        if self.student_dict.has_key(matrikel):
+        if matrikel in self.student_dict:
             stud = self.student_dict[matrikel]
             if not stud[2]:
                 stud[2] = self.transl_subj(subject)
@@ -928,7 +942,7 @@ class ImportRegistrationsView(FormView):
                     []                    # registrations
                     ]
             self.student_dict[matrikel] = stud
-        if type(group_str)==unicode:
+        if type(group_str)==str:
             group_str = group_str.translate({0xa0: 32})
         if group_str not in self.groups:
             self.groups.append(group_str)
@@ -955,11 +969,12 @@ class ImportRegistrationsView(FormView):
                                   priority=row[8],
                                   group_str=row[9])
 
-    def read_csv(self, csv_file, column_sep):
+    def read_csv(self, uploaded_file, column_sep):
+        csv_file = TextIOWrapper(uploaded_file.file, encoding='utf-8')
         csvreader = csv.reader(csv_file, delimiter=column_sep)
         table = []
         for row in csvreader:
-            table.append([c.decode('utf-8') for c in row])
+            table.append([c for c in row])
         self.add_table(table)
 
     def read_xls(self, file):
@@ -991,7 +1006,7 @@ class ImportRegistrationsView(FormView):
         return True
 
     def import_data(self, import_choice, update_choice):
-        for matrikel, stud in self.student_dict.iteritems():
+        for matrikel, stud in self.student_dict.items():
             try:
                 student = models.Student.objects.get(matrikel=matrikel)
                 if update_choice=='none':
@@ -1067,8 +1082,10 @@ class ImportEntryTestsView(FormView):
         return self.request.GET.get('return_url', '/')
 
     def form_valid(self, form):
+        uploaded_file = form.cleaned_data['csv_file']
+        csv_file = TextIOWrapper(uploaded_file.file, encoding='utf-8')
         csvreader = csv.reader(
-            form.cleaned_data['csv_file'],
+            csv_file,
             delimiter=str(form.cleaned_data['csv_separator']))
         results = {'bestanden': 'pass',
                    'nicht bestanden': 'fail',
@@ -1079,7 +1096,6 @@ class ImportEntryTestsView(FormView):
         }
         self.stats = {'new': [],
                       'update': [],
-                      'unknown': [],
                       'error': []
         }
 
@@ -1090,7 +1106,7 @@ class ImportEntryTestsView(FormView):
 
             if row[0].isdigit():
                 matrikel = int(row[0])
-                res_field = row[1].decode('UTF-8').strip('"')
+                res_field = row[1].strip('"')
                 try:
                     result = results[res_field]
                     if not result:
@@ -1100,7 +1116,8 @@ class ImportEntryTestsView(FormView):
                         student = models.Student.objects.get(matrikel=matrikel)
                         status = self.save_etest(student, result)
                     except models.Student.DoesNotExist:
-                        status = 'unknown'
+                        # ignore entries for students not in the database
+                        continue
                 except KeyError:
                     status = 'error'
             else:
@@ -1119,11 +1136,6 @@ class ImportEntryTestsView(FormView):
             messages.success(
                 self.request,
                 '%d test(s) updated' % len(self.stats['update']))
-        if self.stats['unknown']:
-            lst = ['%d' % m for m in self.stats['unknown']]
-            messages.warning(
-                self.request,
-                "unknown student(s): %s" % ', '.join(lst))
         if self.stats['error']:
             lst = ["%d" % m for m in self.stats['error']]
             messages.warning(
@@ -1134,8 +1146,9 @@ class ImportEntryTestsView(FormView):
     def save_etest(self, student, result):
         try:
             etest = models.EntryTest.objects.get(student=student)
-            if etest.result!=result:
-                etest.result = result
+            # only update an etest from fail to pass
+            if etest.result=='fail' and result=='pass':
+                etest.result = 'pass'
                 status = 'update'
             else:
                 # unchanged test result
@@ -1174,7 +1187,7 @@ class QueryRegistrationsView(TemplateView):
     def make_registration_table(self, groupmap):
         regtab = []
         groupcnt = len(groupmap)
-        for group in groupmap.keys():
+        for group in list(groupmap.keys()):
             regist_cnt = models.Registration.objects \
                 .filter(group__number=group) \
                 .values('student__group__number') \
@@ -1192,7 +1205,7 @@ class QueryRegistrationsView(TemplateView):
 
     def make_total_line(self, groupmap):
         groupcnt = len(groupmap)
-        total_cnt = models.Student.objects.get_pure_query_set() \
+        total_cnt = models.Student.objects.get_pure_queryset() \
             .values('group__number').order_by('group__number') \
             .annotate(count=Count('id'))
         row = (groupcnt+1) * [0]
@@ -1220,7 +1233,7 @@ class QueryRegistrationsView(TemplateView):
             # self.group_dict = {}
 
         def add(self, name, group):
-            if self.name_dict.has_key(name):
+            if name in self.name_dict:
                 a = self.name_dict[name]
                 a.groups.append(group)
             else:
@@ -1234,7 +1247,7 @@ class QueryRegistrationsView(TemplateView):
         for g in group_list:
             if g.assistent:
                 assist_list.add(g.assistent, g.number)
-        query = models.Student.objects.get_pure_query_set() \
+        query = models.Student.objects.get_pure_queryset() \
             .values('group__assistent').order_by('group__assistent') \
             .annotate(count=Count('id'))
         for e in query:
@@ -1243,7 +1256,7 @@ class QueryRegistrationsView(TemplateView):
                 a = assist_list.name_dict[name]
                 a.add_students(e['count'])
         assist_sum = []
-        for a in assist_list.name_dict.values():
+        for a in list(assist_list.name_dict.values()):
             assist_sum.append([a.name, a.groups, a.students])
         assist_sum.sort(key=lambda e:e[1][0])
         return assist_sum
@@ -1317,9 +1330,9 @@ class ExportStudentsView(FormView):
                          'Fach', 'Semester', 'Gruppe'])
         for student in qset:
             writer.writerow([student.matrikel,
-                             student.last_name.encode('utf-8'),
-                             student.first_name.encode('utf-8'),
-                             student.subject.encode('utf-8'),
+                             student.last_name,
+                             student.first_name,
+                             student.subject,
                              student.semester, 
                              student.group])
         return response
@@ -1340,10 +1353,11 @@ class PrintExsheetView(ListView):
         if self.form.is_valid():
             return super(PrintExsheetView, self).get(request)
         else:
-            return render_to_response(
+            return render(
+                request,
                 'student_manager/print_exsheet_opt.html',
-                {'form': self.form},
-                 context_instance=RequestContext(request))
+                {'form': self.form}
+            )
 
     def get_queryset(self):
         group = self.form.cleaned_data['group']
@@ -1386,13 +1400,13 @@ def save_exercise_results(request, queryset=None):
         assert groups_form.is_valid()
         queryset = groups_form.cleaned_data['groups']
 
-    return render_to_response(
+    return render(
+        request,
         'student_manager/enter_exercise_results.html',
         {'formset': formset,
          'sheet_form': sheet_form,
          'groups_form': groups_form,
-         'groups': ', '.join([str(group) for group in queryset])},
-        context_instance=RequestContext(request))
+         'groups': ', '.join([str(group) for group in queryset])})
 
 
 class QueryExerciseView(TemplateView):
@@ -1400,14 +1414,13 @@ class QueryExerciseView(TemplateView):
 
     def get_context_data(self, **kwargs):
         self.context = super(QueryExerciseView, self).get_context_data(**kwargs)
-
+        self.count_total()
         groups = models.Group.objects.order_by('number')
         self.count_by_group(groups)
         return self.context
 
     def count_by_group(self, groups):
         tab = []
-        max_sheet = 0
         for group in groups:
             ex_cnt = models.Exercise.objects \
                 .filter(group=group) \
@@ -1418,27 +1431,25 @@ class QueryExerciseView(TemplateView):
             if not ex_cnt:
                 continue
             sheets = ex_cnt[-1]['sheet']
-            if sheets>=max_sheet:
-                max_sheet = sheets
             row = sheets * [0]
             for d in ex_cnt:
                 s = d['sheet']
                 row[s-1] = d['count']
-            tab.append([group] + row)
+            tab.append(["Gr %d" % group.number] + row)
         self.context['data_by_group'] = tab
-        head = [i for i in range(1,max_sheet+1)]
-        self.context['head_by_group'] = ['Group'] + head
-        self.count_total(max_sheet)
 
-    def count_total(self, max_sheet):
+    def count_total(self):
         total_cnt = models.Exercise.objects \
             .values('sheet').order_by('sheet') \
             .annotate(count=Count('id'))
-        row = max_sheet * [0]
+        max_sheet = max([d['sheet'] for d in total_cnt])
+        total_row = max_sheet * [0]
         for d in total_cnt:
             s = d['sheet']
-            row[s-1] = d['count']
-        self.context['total'] = row
+            total_row[s-1] = d['count']
+        self.context['total'] = total_row
+        head = [i+1 for i in range(max_sheet)]
+        self.context['head'] = ['sheets'] + head
 
 query_exercise = staff_member_required(QueryExerciseView.as_view())
 
@@ -1475,7 +1486,7 @@ class QuerySpecialView(TemplateView):
                         + "column 'jointly' counts each student only once"
 
         exams_all = models.Exam.objects.all()
-        exams_fk6 = exams_all.filter(subject__in=('ET','IT','WIng','Kombi ET'))
+        exams_fk6 = exams_all.filter(student__subject__in=('ET','IT','WIng','Kombi ET'))
         exams_sem12 = exams_all.filter(student__semester__lte=2)
         exams_fk6sem12 = exams_fk6.filter(student__semester__lte=2)
 
@@ -1547,21 +1558,21 @@ class QuerySpecialView(TemplateView):
                 .filter(examnr__number=1)
         
         exams_pass=exams.filter(mark__lte=4.0) \
-                        .values('subject').order_by('subject') \
+                        .values('student__subject').order_by('student__subject') \
                         .annotate(count=Count('id'))
         exams_fail=exams.filter(mark=5.0) \
-                        .values('subject').order_by('subject') \
+                        .values('student__subject').order_by('student__subject') \
                         .annotate(count=Count('id'))
 
         pfdict = {}
         for e in exams_pass:
-            pfdict[e['subject']] = (e['count'],0)
+            pfdict[e['student__subject']] = (e['count'],0)
         for e in exams_fail:
-            pf = pfdict.get(e['subject'], (0,0))
-            pfdict[e['subject']] = (pf[0],e['count'])
+            pf = pfdict.get(e['student__subject'], (0,0))
+            pfdict[e['student__subject']] = (pf[0],e['count'])
 
         self.data = []
-        for (s,v) in pfdict.iteritems():
+        for (s,v) in pfdict.items():
             tot = v[0]+v[1]
             rel = Decimal('100.')*v[0]/tot
             rel = rel.quantize(Decimal('99.0'))                   # round to 1 decimal place
@@ -1597,7 +1608,7 @@ class QuerySpecialView(TemplateView):
             pfdict[e['student__group__number']] = (pf[0],pf[1],e['count'])
 
         self.data = []
-        for (s,v) in pfdict.iteritems():
+        for (s,v) in pfdict.items():
             tot = v[0]+v[1]
             rel = Decimal('100.')*v[0]/tot
             rel = rel.quantize(Decimal('99.0'))                   # round to 1 decimal place
@@ -1616,7 +1627,8 @@ class QuerySpecialView(TemplateView):
                        'exercise_points') \
                .order_by('points')
 
-        exam = filter(lambda e: e['exercise_points']>=15, exam)
+        exam = [e for e in exam if (e['exercise_points'] or 0)>=15]
+
         self.data = []
         for e in exam:
             self.data.append((e['student__matrikel'],
@@ -1647,3 +1659,63 @@ class QuerySpecialView(TemplateView):
 
                 
 query_special = staff_member_required(QuerySpecialView.as_view())
+
+
+class ExportEntryTestsView(FormView):
+    template_name = 'student_manager/export_entrytests.html'
+    form_class = forms.ExportEntryTestsForm
+
+    def form_valid(self, form):
+        export_choice = form.cleaned_data['export_choice']
+        filename = 'entrytests.csv'
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = \
+            'attachment; filename="%s"' % filename
+
+        writer = csv.writer(response, delimiter=';')
+        writer.writerow(['Matrikel', 'EntryTest'])
+
+        if export_choice=='all':
+            qset = models.EntryTest.objects.all()
+            for etest in qset:
+                writer.writerow([etest.student.matrikel,
+                                 etest.result])
+        elif export_choice=='active_missing':
+            qset = models.Student.objects.filter(active=True) \
+                                         .exclude(entrytest__result='pass')
+            for student in qset:
+                writer.writerow([student.matrikel,
+                                 student.bonus()])
+        return response
+
+export_entrytests = staff_member_required(ExportEntryTestsView.as_view())
+
+
+class ExportExamResultsView(FormView):
+    template_name = 'student_manager/export_examresults.html'
+    form_class = forms.ExportExamResultsForm
+
+    def form_valid(self, form):
+        examnr = form.cleaned_data['examnr']
+        filename = 'examresults.csv'
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = \
+            'attachment; filename="%s"' % filename
+
+        writer = csv.writer(response, delimiter=';')
+        writer.writerow(['Matrikel', 'Name', 'Vorname', 'Endnote'])
+
+        qset = models.Exam.objects.filter(examnr=examnr)
+        for exam in qset:
+            mark = exam.final_mark
+            if mark==None:
+                mark = 'NE'
+            writer.writerow([exam.student.matrikel,
+                             exam.student.last_name,
+                             exam.student.first_name,
+                             mark])
+        return response
+
+export_examresults = staff_member_required(ExportExamResultsView.as_view())

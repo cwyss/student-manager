@@ -6,8 +6,8 @@ Installation
 
 To create the database from scratch, run::
 
-  ./manage.py syncdb --all
-  ./manage.py migrate --fake
+  ./manage.py migrate
+  ./manage.py createsuperuser
 
 If $LANG is not set::
 
@@ -17,6 +17,11 @@ To update an existing database after a code change::
 
   ./manage.py migrate
 
+To migrate an old database (i.e. with django 1.6 migrations)
+to django 1.8::
+  
+  ./manage.py migrate --fake-initial
+  
 To start the server::
 
   ./manage.py runserver
@@ -149,23 +154,51 @@ import entry test data (CSV)::
 Development notes
 =================
 
+new fields added to db table; generates migration file::
+
+  ./manage.py makemigrations
+  ./manage.py migrate
+
+
+virtualenvironment setup: venv
+------------------------------
+
+create::
+  python3 -m venv path/to/venvs/studmgr
+
+activate::
+  source path/to/venvs/studmgr/bin/activate
+
+setup::
+  pip install -r requirements.txt
+
+leave::
+  deactivate
+
+
+virtualenvwrapper (obsolte)
+---------------------------
+
 enter virtualenv::
 
   workon studmgr
 
   studmgr: django version 1.4.3
   studmgr2: django version 1.6.5
+  studmgr3: django version 1.8.19  (with python 3.7)
+
+  studmgr-dj1.9: django 1.9.13
+  studmgr-dj1.10: django 1.10.8
+  studmgr-dj1.11: django 1.11.29
+  studmgr-dj2.0: django 2.0.13
+  studmgr-dj2.1: django 2.1.15
+  studmgr-dj2.2: django 2.2.24
 
 leave virtualenv::
 
   deactivate
 
-new fields added to db table; generates migration file::
-
-  ./manage.py schemamigration student_manager --auto
-  ./manage.py migrate
-
 create virtualenv::
 
-  mkvirtualenv studmgr
+  mkvirtualenv -p /usr/bin/python3 studmgr         # use python3
   pip install -r path/to/studmgr/requirements.txt

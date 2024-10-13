@@ -7,7 +7,7 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.utils.translation import ugettext_lazy as _
 from django.http import HttpResponseRedirect
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from student_manager import forms, models, views
 
@@ -34,7 +34,7 @@ class NonuniqueModuloMatrikelListFilter(admin.SimpleListFilter):
             return queryset
 
         if self.value() == 'nonunique':
-            duplicates = models.Student.objects.get_pure_query_set()
+            duplicates = models.Student.objects.get_pure_queryset()
             duplicates = duplicates.values('modulo_matrikel') \
                 .annotate(Count('id'))
             duplicates = duplicates.values('modulo_matrikel').order_by()
@@ -54,7 +54,7 @@ class StudentAdmin(admin.ModelAdmin):
 
     def translate_subjects(self, request, queryset):
         subject_transl = models.StaticData.get_subject_transl()
-        for (longname, shortname) in subject_transl.items():
+        for (longname, shortname) in list(subject_transl.items()):
             updateset = queryset.filter(subject=longname).values('id')
             # .values('id') noetig; 
             # vermutlich wegen annotation "total_points" aus

@@ -1,7 +1,8 @@
+{% load static %}
 <!DOCTYPE html>
 <html>
   <head>
-    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL}}print.css">
+    <link rel="stylesheet" type="text/css" href="{% static 'print.css' %}">
   </head>
   <body>
     <h3>Platzliste {{ examtitle|safe|default:"Klausur" }}</h3>

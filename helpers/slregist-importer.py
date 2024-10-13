@@ -35,7 +35,8 @@ def translate_status(regist):
         'abgelehnt niedrige Priorität': 'NP',
         'hohe Priorität': 'HP',
         'abgelehnt hohe Priorität': 'HP',
-        'storniert': 'ST'
+        'storniert': 'ST',
+        'abgelehnt': 'ST'
     }
     for e in regist:
         e['status'] = status_dict[e['status']]
@@ -44,15 +45,19 @@ def translate_status(regist):
 def parse_subject(subject_lines):
     subject_translate = {
         'Elektrotechnik': 'ET',
+        'Electrical Engineering': 'ET',
         'Informationstechnologie': 'IT',
         'Informatik': 'Info',
         'Wirtschaftsing. Elektrotechnik': 'WIng',
+        'Wirtschaftsingenieurwesen Elektrotechnik': 'WIng',
         'applied science (Kombi) Physik': 'AS',
         'applied science (Kombi) Chemie': 'AS',
         'applied science (Kombi) Informatik': 'AS',
+        'Angewandte Naturwissenschaften': 'AS',
         '(Kombi) Informatik': 'Kombi Inf',
         '(Erweiterung) Informatik': 'Kombi Inf',
         '(Kombi) Physik': 'Kombi Phy',
+        '(Erweiterung) Physik': 'Kombi Phy',
         '(Kombi) Elektrotechnik': 'Kombi ET',
         'of Education Sonderpäd (Kombi) Mathematik': 'SoPäd Mat'
     }
@@ -81,6 +86,8 @@ def get_current_subject(subject_entries):
     else:
         return None
 
+Unknown_subjects = {}
+
 def process_subjects(regist):
     for e in regist:
         current = get_current_subject(parse_subject(e['subject_long']))
@@ -89,9 +96,7 @@ def process_subjects(regist):
             e['subject'] = subj
             e['semester'] = sem
         elif DEBUG:
-            print("unknown subj %d: " % e['matrikel'],
-                  e['subject_long'],
-                  file=sys.stderr)
+            Unknown_subjects[e['matrikel']] = e['subject_long']
             
 def set_group(regist, group):
     for e in regist:
@@ -125,9 +130,14 @@ def print_registration_data(regist):
         )
         print(';'.join(data))
 
-        
-#slregist_fname = sys.argv[1]
-#regist = read_slregist_csv(slregist_fname)
+def print_unknown_subjects():
+    matrikel = list(Unknown_subjects)
+    matrikel.sort()
+    for m in matrikel:
+        print("unknown subj %d: %s\n" % (m, Unknown_subjects[m]),
+              file=sys.stderr)
+
+
 
 DEBUG = False
 group_filenames = None
@@ -152,11 +162,6 @@ Options
 else:
     regist = prepare_registration_data(group_filenames)
     print_registration_data(regist)
+    if DEBUG:
+        print_unknown_subjects()
 
-# print(len(regist))
-# for e in regist:
-#     # try:
-#     #     print('>>', e['subject'],e['semester'])
-#     # except KeyError:
-#     #     print(None)
-#     print(e)

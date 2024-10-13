@@ -1,5 +1,5 @@
 {% extends "admin/base_site.html" %}
-{% load i18n admin_static %}
+{% load i18n static %}
 
 {% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}" />{% endblock %}
 
@@ -27,16 +27,16 @@
       <tr>
   	<th>Matrikel</th>
 	<th>Name</th>
-  	<th>New group</th>
   	<th>Old group</th>
+  	<th>New group</th>
       </tr>
     </thead>
     {% for entry in changed_assigned %}
     <tr>
       <td class="center">{{ entry.student__matrikel }}</td>
       <td>{% if entry.student__last_name %}{{ entry.student__last_name }}, {{ entry.student__first_name }}{% else %}&mdash;{% endif %}</td>
-      <td class="center">{{ entry.student__group__number }}</td>
       <td class="center">{{ entry.group__number }}</td>
+      <td class="center">{{ entry.student__group__number }}</td>
     </tr>
     {% endfor %}
   </table>
