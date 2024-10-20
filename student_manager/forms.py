@@ -9,7 +9,7 @@ from django.forms.models import (
     modelform_factory,
     BaseModelFormSet)
 from django.forms.widgets import HiddenInput, TextInput
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ValidationError
 
 from student_manager import models

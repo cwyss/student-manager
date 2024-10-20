@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.contrib import messages
 from django.db.models import Count, Sum
 from django.template import RequestContext
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 
