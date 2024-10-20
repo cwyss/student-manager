@@ -9,10 +9,6 @@ To create the database from scratch, run::
   ./manage.py migrate
   ./manage.py createsuperuser
 
-If $LANG is not set::
-
-  LANG=en_GB.UTF-8 ./manage.py syncdb --all
-
 To update an existing database after a code change::
 
   ./manage.py migrate

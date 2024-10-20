@@ -3,7 +3,6 @@
 from django.contrib import admin
 from django.contrib import messages
 from django.db.models import Count, Sum
-from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.utils.translation import ugettext_lazy as _
 from django.http import HttpResponseRedirect
