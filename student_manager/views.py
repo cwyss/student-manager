@@ -1325,6 +1325,7 @@ class ExportStudentsView(FormView):
             qset = models.Student.objects.filter(group=group)
         else:
             qset = models.Student.objects.all()
+        qset = qset.order_by('last_name', 'first_name')
         writer = csv.writer(response, delimiter=';')
         writer.writerow(['Matrikel', 'Name', 'Vorname',
                          'Fach', 'Semester', 'Gruppe'])
