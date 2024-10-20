@@ -163,6 +163,9 @@ LOGGING = {
     }
 }
 
+# Set the type of implicit primary keys.
+# This is used in models which have no field with primary_key=True
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 try:
     from settings_local import *
