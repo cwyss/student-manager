@@ -8,7 +8,7 @@ from django.forms.models import (
     modelformset_factory,
     modelform_factory,
     BaseModelFormSet)
-from django.forms.widgets import HiddenInput, TextInput
+from django.forms.widgets import HiddenInput, TextInput, NumberInput
 from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ValidationError
 
@@ -29,6 +29,9 @@ class StudentForm(forms.ModelForm):
     class Meta:
         model = models.Student
         exclude = ('modulo_matrikel',)
+        widgets = {
+            "matrikel": NumberInput(attrs={"size": 8})
+        }
 
     def clean_matrikel(self):
         student_id = self.instance.id  if self.instance else None
