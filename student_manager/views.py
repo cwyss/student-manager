@@ -1537,13 +1537,19 @@ class QuerySpecialView(TemplateView):
         exams_et = exams.filter(student__subject='ET')
         exams_it = exams.filter(student__subject='IT')
         exams_wing = exams.filter(student__subject='WIng')
+        exams_kombi_et = exams.filter(student__subject='Kombi ET')
         exams_info = exams.filter(student__subject='Info')
+        exams_as = exams.filter(student__subject='AS')
+        exams_kombi_inf = exams.filter(student__subject='Kombi Inf')
+        exams_kombi_phy = exams.filter(student__subject='Kombi Phy')
 
         self.headline = ['group','pass','total','%']
         self.data = []
 
         for (group, query) in (('ET',exams_et), ('IT',exams_it), ('WIng',exams_wing),
-                               ('Info',exams_info),
+                               ('Kombi ET', exams_kombi_et),
+                               ('Info',exams_info), ('AS', exams_as),
+                               ('Kombi Inf', exams_kombi_inf), ('Kombi Phy', exams_kombi_phy),
                                ('FK6',exams_fk6), ('all',exams)):
             cnt_pass = query.filter(mark__lte=4.0).count()
             cnt_tot = query.count()
