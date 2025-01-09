@@ -1533,15 +1533,17 @@ class QuerySpecialView(TemplateView):
         exams = models.Exam.objects \
                 .filter(examnr__number=1, student__semester__lte=1, mark__lte=5.0)
 
-        exams_fk6 = exams.filter(subject__in=('ET','IT','WIng','Kombi ET'))
-        exams_et = exams.filter(subject='ET')
-        exams_it = exams.filter(subject='IT')
-        exams_wing = exams.filter(subject='WIng')
-                
+        exams_fk6 = exams.filter(student__subject__in=('ET','IT','WIng','Kombi ET'))
+        exams_et = exams.filter(student__subject='ET')
+        exams_it = exams.filter(student__subject='IT')
+        exams_wing = exams.filter(student__subject='WIng')
+        exams_info = exams.filter(student__subject='Info')
+
         self.headline = ['group','pass','total','%']
         self.data = []
 
         for (group, query) in (('ET',exams_et), ('IT',exams_it), ('WIng',exams_wing),
+                               ('Info',exams_info),
                                ('FK6',exams_fk6), ('all',exams)):
             cnt_pass = query.filter(mark__lte=4.0).count()
             cnt_tot = query.count()
