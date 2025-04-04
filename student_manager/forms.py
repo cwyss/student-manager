@@ -367,7 +367,12 @@ class QuerySpecialOptForm(forms.Form):
                  ('exam_both', 'both exams'),
                  ('exam_group', 'Exam 1 by group'),
                  ('exgroup_diff', 'Exercise from different group')
-             ))
+            ))
+    subject_from = forms.ChoiceField(
+        label = "Use subject from",
+        choices = (('exam', 'exam record'),
+                   ('student', 'student record')
+            ))
 
 
 class ExportEntryTestsForm(forms.Form):

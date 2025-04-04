@@ -1466,6 +1466,7 @@ class QuerySpecialView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(QuerySpecialView, self).get_context_data(**kwargs)
         select_query = self.request.GET.get('select_query')
+        self.subject_from = self.request.GET.get('subject_from')
 
         queries = {'exam_exercise': self.mkque_exam_exercise,
                    'exam_subject': self.mkque_exam_subject,
@@ -1484,21 +1485,32 @@ class QuerySpecialView(TemplateView):
 
     def mkque_exam_both(self):
         self.infotext = "Results for both exams: figures are 'pass' / 'total'; " \
-                        + "column 'jointly' counts each student only once"
+                        + "column 'jointly' counts each student only once" \
+                        + f'; subject from {self.subject_from}'
 
         exams_all = models.Exam.objects.all()
-        exams_fk6 = exams_all.filter(student__subject__in=('ET','IT','WIng','Kombi ET'))
-        exams_sem12 = exams_all.filter(student__semester__lte=2)
-        exams_fk6sem12 = exams_fk6.filter(student__semester__lte=2)
+
+        queries = {
+            'all': exams_all,
+            'sem12': exams_all.filter(student__semester__lte=2)
+        }
+        if self.subject_from=='exam':
+            queries['fk6'] = exams_all.filter(subject__in=('ET','IT','WIng','Kombi ET'))
+        else:
+            queries['fk6'] = exams_all.filter(student__subject__in=('ET','IT','WIng','Kombi ET'))
+
+        queries['fk6sem12'] = queries['fk6'].filter(student__semester__lte=2)
 
         self.headline = ['group','exam 1','%','exam 2','%','jointly','%']
         self.data = []
 
-        for (group, query) in (('all',exams_all), ('fk6',exams_fk6), ('1st year all', exams_sem12),
-                               ('1st year fk6', exams_fk6sem12)):
-            line = [group]
+        for (group, description) in (
+                ('all','all'), ('fk6','FK6'), ('sem12','1st year all'),
+                ('fk6sem12','1st year FK6')
+        ):
+            line = [description]
             for i in (1,2):
-                exams = query.filter(examnr__number=i)
+                exams = queries[group].filter(examnr__number=i)
                 cnt_pass = exams.filter(mark__lte=4.0).count()
                 cnt_tot = exams.filter(mark__lte=5.0).count()
                 if cnt_tot>0:
@@ -1509,11 +1521,11 @@ class QuerySpecialView(TemplateView):
                 line.append("%d/%d" % (cnt_pass,cnt_tot))
                 line.append(rel_pass)
             
-            exams_pass = query.filter(mark__lte=4.0) \
+            exams_pass = queries[group].filter(mark__lte=4.0) \
                               .values('student__matrikel') \
                               .annotate(exam_count=Count('id'))
             cnt_pass = exams_pass.count()
-            exams_tot = query.filter(mark__lte=5.0) \
+            exams_tot = queries[group].filter(mark__lte=5.0) \
                             .values('student__matrikel') \
                             .annotate(exam_count=Count('id'))
             cnt_tot = exams_tot.count()
@@ -1528,31 +1540,43 @@ class QuerySpecialView(TemplateView):
             self.data.append(line)
             
     def mkque_exam_first_sem(self):
-        self.infotext = 'exam results for first semester students (for exam 1)'
+        self.infotext = 'exam results for first semester students' \
+            + f' (for exam 1, subject from {self.subject_from})'
 
         exams = models.Exam.objects \
                 .filter(examnr__number=1, student__semester__lte=1, mark__lte=5.0)
 
-        exams_fk6 = exams.filter(student__subject__in=('ET','IT','WIng','Kombi ET'))
-        exams_et = exams.filter(student__subject='ET')
-        exams_it = exams.filter(student__subject='IT')
-        exams_wing = exams.filter(student__subject='WIng')
-        exams_kombi_et = exams.filter(student__subject='Kombi ET')
-        exams_info = exams.filter(student__subject='Info')
-        exams_as = exams.filter(student__subject='AS')
-        exams_kombi_inf = exams.filter(student__subject='Kombi Inf')
-        exams_kombi_phy = exams.filter(student__subject='Kombi Phy')
+        queries = {'all': exams}
+
+        if self.subject_from=='exam':
+            queries['FK6'] = exams.filter(subject__in=('ET','IT','WIng','Kombi ET'))
+            queries['ET'] = exams.filter(subject='ET')
+            queries['IT'] = exams.filter(subject='IT')
+            queries['WIng'] = exams.filter(subject='WIng')
+            queries['Kombi ET'] = exams.filter(subject='Kombi ET')
+            queries['Info'] = exams.filter(subject='Info')
+            queries['AS'] = exams.filter(subject='AS')
+            queries['Kombi Inf'] = exams.filter(subject='Kombi Inf')
+            queries['Kombi Phy'] = exams.filter(subject='Kombi Phy')
+
+        else:
+            queries['FK6'] = exams.filter(student__subject__in=('ET','IT','WIng','Kombi ET'))
+            queries['ET'] = exams.filter(student__subject='ET')
+            queries['IT'] = exams.filter(student__subject='IT')
+            queries['WIng'] = exams.filter(student__subject='WIng')
+            queries['Kombi ET'] = exams.filter(student__subject='Kombi ET')
+            queries['Info'] = exams.filter(student__subject='Info')
+            queries['AS'] = exams.filter(student__subject='AS')
+            queries['Kombi Inf'] = exams.filter(student__subject='Kombi Inf')
+            queries['Kombi Phy'] = exams.filter(student__subject='Kombi Phy')
 
         self.headline = ['group','pass','total','%']
         self.data = []
 
-        for (group, query) in (('ET',exams_et), ('IT',exams_it), ('WIng',exams_wing),
-                               ('Kombi ET', exams_kombi_et),
-                               ('Info',exams_info), ('AS', exams_as),
-                               ('Kombi Inf', exams_kombi_inf), ('Kombi Phy', exams_kombi_phy),
-                               ('FK6',exams_fk6), ('all',exams)):
-            cnt_pass = query.filter(mark__lte=4.0).count()
-            cnt_tot = query.count()
+        for group in ('ET','IT','WIng','Kombi ET','Info','AS',
+                      'Kombi Inf','Kombi Phy','FK6','all'):
+            cnt_pass = queries[group].filter(mark__lte=4.0).count()
+            cnt_tot = queries[group].count()
             if cnt_tot>0:
                 rel_pass = Decimal('100.')*cnt_pass/cnt_tot
                 rel_pass = rel_pass.quantize(Decimal('99.0'))              # round to 1 decimal places
@@ -1561,24 +1585,40 @@ class QuerySpecialView(TemplateView):
             self.data.append((group, cnt_pass, cnt_tot, rel_pass))
         
     def mkque_exam_subject(self):
-        self.infotext = 'exam pass/fail count by subject (for exam 1)'
+        self.infotext = 'exam pass/fail count by subject' \
+            + f' (for exam 1, subject from {self.subject_from})'
 
-        exams = models.Exam.objects \
-                .filter(examnr__number=1)
-        
-        exams_pass=exams.filter(mark__lte=4.0) \
-                        .values('student__subject').order_by('student__subject') \
-                        .annotate(count=Count('id'))
-        exams_fail=exams.filter(mark=5.0) \
-                        .values('student__subject').order_by('student__subject') \
-                        .annotate(count=Count('id'))
-
+        exams = models.Exam.objects.filter(examnr__number=1)
         pfdict = {}
-        for e in exams_pass:
-            pfdict[e['student__subject']] = (e['count'],0)
-        for e in exams_fail:
-            pf = pfdict.get(e['student__subject'], (0,0))
-            pfdict[e['student__subject']] = (pf[0],e['count'])
+
+        if self.subject_from=='exam':
+            exams_pass=exams.filter(mark__lte=4.0) \
+                            .values('subject') \
+                            .order_by('subject') \
+                            .annotate(count=Count('id'))
+            exams_fail=exams.filter(mark=5.0) \
+                        .values('subject') \
+                        .order_by('subject') \
+                        .annotate(count=Count('id'))
+            for e in exams_pass:
+                pfdict[e['subject']] = (e['count'],0)
+            for e in exams_fail:
+                pf = pfdict.get(e['subject'], (0,0))
+                pfdict[e['subject']] = (pf[0],e['count'])
+        else:
+            exams_pass=exams.filter(mark__lte=4.0) \
+                            .values('student__subject') \
+                            .order_by('student__subject') \
+                            .annotate(count=Count('id'))
+            exams_fail=exams.filter(mark=5.0) \
+                        .values('student__subject') \
+                        .order_by('student__subject') \
+                        .annotate(count=Count('id'))
+            for e in exams_pass:
+                pfdict[e['student__subject']] = (e['count'],0)
+            for e in exams_fail:
+                pf = pfdict.get(e['student__subject'], (0,0))
+                pfdict[e['student__subject']] = (pf[0],e['count'])
 
         self.data = []
         for (s,v) in pfdict.items():
