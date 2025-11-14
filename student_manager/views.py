@@ -1312,6 +1312,7 @@ class ExportStudentsView(FormView):
     def form_valid(self, form):
         export_choice = form.cleaned_data['export_choice']
         group = form.cleaned_data['group']
+        only_active = form.cleaned_data.get('only_active')
         if export_choice=='group':
             filename = 'gruppe%d.csv' % group.number
         else:
@@ -1325,6 +1326,8 @@ class ExportStudentsView(FormView):
             qset = models.Student.objects.filter(group=group)
         else:
             qset = models.Student.objects.all()
+        if only_active:
+            qset = qset.filter(active=True)
         qset = qset.order_by('last_name', 'first_name')
         writer = csv.writer(response, delimiter=';')
         writer.writerow(['Matrikel', 'Name', 'Vorname',

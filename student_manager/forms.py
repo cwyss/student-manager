@@ -287,9 +287,16 @@ class ImportEntryTestsForm(forms.Form):
 class ExportStudentsForm(forms.Form):
     export_choice = forms.ChoiceField(
         choices=(('group', 'Students from group...'),
-                 ('all', 'All students')))
+                 ('all', 'All students')),
+        initial='all'
+    )
     group = forms.ModelChoiceField(required=False,
         queryset=models.Group.objects.all())
+    only_active = forms.BooleanField(
+        label=_('Include only active students'),
+        initial=False,
+        required=False
+    )
 
     def clean(self):
         group = self.cleaned_data.get('group')
