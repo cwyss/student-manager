@@ -47,6 +47,7 @@ def parse_subject(subject_lines):
         'Elektrotechnik': 'ET',
         'Electrical Engineering': 'ET',
         'Informationstechnologie': 'IT',
+        'Informationstechnologie und Medientechnologie': 'IT',
         'Informatik': 'Info',
         'Wirtschaftsing. Elektrotechnik': 'WIng',
         'Wirtschaftsingenieurwesen Elektrotechnik': 'WIng',
